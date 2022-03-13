@@ -1,0 +1,394 @@
+<!DOCTYPE html>
+<html lang='zh-CN'>
+
+<head>
+  <meta name="generator" content="Hexo 6.0.0">
+  <meta charset="utf-8">
+  
+
+  <meta http-equiv='x-dns-prefetch-control' content='on' />
+  <link rel='dns-prefetch' href='https://cdn.jsdelivr.net'>
+  <link rel="preconnect" href="https://cdn.jsdelivr.net" crossorigin>
+
+  <meta name="renderer" content="webkit">
+  <meta name="force-rendering" content="webkit">
+  <meta http-equiv="X-UA-Compatible" content="IE=Edge,chrome=1">
+  <meta name="HandheldFriendly" content="True" >
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1">
+  <meta name="theme-color" content="#f8f8f8">
+  <title>简单配置 Apache - Veryitman</title>
+
+  
+    <meta name="description" content="声明有时候, 我们希望在自己本机(PC)搭建一个 WebServer, 然后自己可以在浏览器或者手机上面可以访问对应的地址直接查看效果, 再或者希望测试下载功能等, 其实 MacOS 自带的有 Apache 服务器. 下面简单分享一下, 在 MacOS 中如何简单的使用 Apache 服务器. 常用命令常用的命令有开启&#x2F;重启&#x2F;停止等. 1.开启: sudo apachectl">
+<meta property="og:type" content="article">
+<meta property="og:title" content="简单配置 Apache">
+<meta property="og:url" content="http://example.com/2018/07/14/%E7%AE%80%E5%8D%95%E9%85%8D%E7%BD%AE-Apache/index.html">
+<meta property="og:site_name" content="Veryitman">
+<meta property="og:description" content="声明有时候, 我们希望在自己本机(PC)搭建一个 WebServer, 然后自己可以在浏览器或者手机上面可以访问对应的地址直接查看效果, 再或者希望测试下载功能等, 其实 MacOS 自带的有 Apache 服务器. 下面简单分享一下, 在 MacOS 中如何简单的使用 Apache 服务器. 常用命令常用的命令有开启&#x2F;重启&#x2F;停止等. 1.开启: sudo apachectl">
+<meta property="og:locale" content="zh_CN">
+<meta property="og:image" content="http://example.com/upload/images/2018/07/14/1.jpg">
+<meta property="og:image" content="http://example.com/upload/images/2018/07/14/2.jpg">
+<meta property="og:image" content="http://example.com/upload/me/qrcode_wx.jpg">
+<meta property="article:published_time" content="2018-07-14T14:57:20.000Z">
+<meta property="article:modified_time" content="2022-03-09T14:53:24.345Z">
+<meta property="article:author" content="veryitman">
+<meta property="article:tag" content="Apache WebServer MacOS">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:image" content="http://example.com/upload/images/2018/07/14/1.jpg">
+  
+  
+
+  <!-- feed -->
+  
+
+  
+    
+<link rel="stylesheet" href="/css/main.css">
+
+  
+
+  
+
+  
+</head>
+
+<body>
+  
+
+
+  <div class='l_body' id='start'>
+    <aside class='l_left' layout='post'>
+    
+
+
+<header class="header">
+
+<div class="logo-wrap"><a class="title" href="/"><div class="main">Veryitman</div></a></div>
+<nav class="menu dis-select"></nav></header>
+
+<div class="widgets">
+
+<div class="widget-wrap single" id="toc"><div class="widget-header cap dis-select"><span class="name">本文目录</span></div><div class="widget-body fs14"><div class="doc-tree active"><ol class="toc"><li class="toc-item toc-level-2"><a class="toc-link" href="#%E5%A3%B0%E6%98%8E"><span class="toc-text">声明</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#%E5%B8%B8%E7%94%A8%E5%91%BD%E4%BB%A4"><span class="toc-text">常用命令</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#%E9%85%8D%E7%BD%AE-Sites"><span class="toc-text">配置 Sites</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#WebServer-%E7%9B%AE%E5%BD%95"><span class="toc-text">WebServer 目录</span></a></li></ol></div></div></div>
+
+
+</div>
+
+
+    </aside>
+    <div class='l_main'>
+      
+
+      
+
+
+<div class="bread-nav fs12"><div id="breadcrumb"><a class="cap breadcrumb" href="/">主页</a><span class="sep"></span><a class="cap breadcrumb" href="/">文章</a><span class="sep"></span><a class="cap breadcrumb-link" href="/categories/Server/">Server</a></div><div id="post-meta">发布于&nbsp;<time datetime="2018-07-14T14:57:20.000Z">2018-07-14</time></div></div>
+
+<article class='content md post'>
+<h1 class="article-title"><span>简单配置 Apache</span></h1>
+<h2 id="声明"><a href="#声明" class="headerlink" title="声明"></a>声明</h2><p>有时候, 我们希望在自己本机(PC)搭建一个 WebServer, 然后自己可以在浏览器或者手机上面可以访问对应的地址直接查看效果, 再或者希望测试下载功能等, 其实 MacOS 自带的有 Apache 服务器.</p>
+<p>下面简单分享一下, 在 MacOS 中如何简单的使用 Apache 服务器.</p>
+<h2 id="常用命令"><a href="#常用命令" class="headerlink" title="常用命令"></a>常用命令</h2><p>常用的命令有开启&#x2F;重启&#x2F;停止等.</p>
+<p>1.开启: <code>sudo apachectl start</code><br>2.重启: <code>sudo apachectl restart</code><br>3.关闭: <code>sudo apachectl stop</code><br>4.查看版本号: <code>httpd -v</code></p>
+<p><strong>1.查看 Apache 版本号</strong></p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">httpd -v  </span><br></pre></td></tr></table></figure>
+
+<p>或者使用下面的命令:</p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">sudo apachectl -v</span><br></pre></td></tr></table></figure>
+
+<p>查看结果如下:</p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line">Server version: Apache/2.4.28 (Unix)</span><br><span class="line">Server built:   Oct  9 2017 19:54:20</span><br></pre></td></tr></table></figure>
+
+<p><strong>2.启动 Apache</strong></p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">sudo apachectl start</span><br></pre></td></tr></table></figure>
+
+<p>在浏览器打开: <a target="_blank" rel="noopener" href="http://localhost/">http://localhost</a></p>
+<p>会显示:</p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">It works</span><br></pre></td></tr></table></figure>
+
+<p><img class="lazy" src="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAABGdBTUEAALGPC/xhBQAAADhlWElmTU0AKgAAAAgAAYdpAAQAAAABAAAAGgAAAAAAAqACAAQAAAABAAAAAaADAAQAAAABAAAAAQAAAADa6r/EAAAAC0lEQVQIHWNgAAIAAAUAAY27m/MAAAAASUVORK5CYII=" data-src="/upload/images/2018/07/14/1.jpg"></p>
+<p><strong>3.停止 Apache</strong></p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">sudo apachectl stop</span><br></pre></td></tr></table></figure>
+
+<p>如果没有开启 Apache 服务, 执行上面命令的话, 会报下面的错误:</p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line">/System/Library/LaunchDaemons/org.apache.httpd.plist: </span><br><span class="line">Could not find specified service</span><br></pre></td></tr></table></figure>
+
+<p><strong>4.重新启动 Apache</strong></p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">sudo apachectl restart</span><br></pre></td></tr></table></figure>
+
+<p>如果修改了 Apache 的配置文件, 需要重新启动 Apache 服务, 执行上面的命令即可.</p>
+<h2 id="配置-Sites"><a href="#配置-Sites" class="headerlink" title="配置 Sites"></a>配置 Sites</h2><p>在自己的用户目录, 新建一个 <code>Sites</code> 目录, 例如我的用户目录是 <code>/Users/mark</code>, 可以在终端分别执行:</p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line">cd /Users/mark</span><br><span class="line"></span><br><span class="line">mkdir Sites</span><br></pre></td></tr></table></figure>
+
+<p>执行成功后, 可以看到如下图所示的目录:</p>
+<p><img class="lazy" src="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAABGdBTUEAALGPC/xhBQAAADhlWElmTU0AKgAAAAgAAYdpAAQAAAABAAAAGgAAAAAAAqACAAQAAAABAAAAAaADAAQAAAABAAAAAQAAAADa6r/EAAAAC0lEQVQIHWNgAAIAAAUAAY27m/MAAAAASUVORK5CYII=" data-src="/upload/images/2018/07/14/2.jpg"></p>
+<p>接下来修改 Apache 中的配置文件, 执行下面命令开始编辑 <code>httpd.conf</code> 文件.</p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">sudo vim /etc/apache2/httpd.conf </span><br></pre></td></tr></table></figure>
+
+<p>打开 httpd.conf 文件，查找 <code>userdir</code> 关键字.</p>
+<p>找到如下两行被注释掉的内容:</p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line">#Include /private/etc/apache2/extra/httpd-userdir.conf</span><br><span class="line"></span><br><span class="line">#LoadModule userdir_module libexec/apache2/mod_userdir.so</span><br></pre></td></tr></table></figure>
+
+<p>将其前面的 <code>#</code>(注释) 去掉, 紧接着编辑这个文件, 增加如下内容:</p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line">&lt;Directory /Users/mark/Sites&gt;</span><br><span class="line">  Require all granted</span><br><span class="line">&lt;/Directory&gt;</span><br></pre></td></tr></table></figure>
+
+<p>将上面的这些代码放到如下代码下面即可:</p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br></pre></td><td class="code"><pre><span class="line">&lt;Directory &quot;/Library/WebServer/CGI-Executables&quot;&gt;</span><br><span class="line">    AllowOverride None</span><br><span class="line">    Options All</span><br><span class="line">    Require all granted</span><br><span class="line">&lt;/Directory&gt;</span><br></pre></td></tr></table></figure>
+
+<p>保存该文件并退出 vim.</p>
+<p>执行下面的命令修改 <code>httpd-userdir.conf</code> 文件:</p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">sudo vim /private/etc/apache2/extra/httpd-userdir.conf</span><br></pre></td></tr></table></figure>
+
+<p>增加如下内容:</p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br></pre></td><td class="code"><pre><span class="line">UserDir Sites</span><br><span class="line"></span><br><span class="line">&lt;IfModule bonjour_module&gt;</span><br><span class="line">   RegisterUserSite customized-users</span><br><span class="line">&lt;/IfModule&gt;</span><br></pre></td></tr></table></figure>
+
+<p><strong>注意:</strong> 如果在 <code>/private/etc/apache2/extra/</code> 目录下没有该文件, 新建一个即可.</p>
+<p>保存文件并退出即可.</p>
+<p>我们可以将自己需要运行的 html 等文件放到该目录, 如我将 <code>index.html</code> 放到该目录.</p>
+<p>重新启动 Apache 服务, 在浏览器中输入 <code>http://localhost/~mark/</code>, 可以看到 <code>index.html</code> 里面的内容.</p>
+<h2 id="WebServer-目录"><a href="#WebServer-目录" class="headerlink" title="WebServer 目录"></a>WebServer 目录</h2><p>上面我们提到, 启动 Apache 服务之后, 在浏览器可以看到 <code>It Works</code> 的字样, 那么这个是哪个文件输出的呢?</p>
+<p>这个文件是 <code>sudo mvim index.html.en~orig</code>, 在如下目录:</p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">/Library/WebServer/Documents</span><br></pre></td></tr></table></figure>
+
+<p>可以使用 vim 编辑该文件, 然后再刷新浏览器就可以看到其变化.</p>
+<p>我们也可以把自己的 html 文件放到这里, 如 <code>mark.html</code>, 内容如下:</p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br></pre></td><td class="code"><pre><span class="line">&lt;html&gt;</span><br><span class="line">  &lt;body&gt;</span><br><span class="line">	&lt;h1&gt;Hi, mark, Apache server works!&lt;/h1&gt;</span><br><span class="line">  &lt;/body&gt;</span><br><span class="line">&lt;/html&gt;</span><br></pre></td></tr></table></figure>
+
+<p>在浏览器中输入 <code>http://localhost/mark.html</code>, 可以看到对应的输出.</p>
+<p>如果嫌配置 <code>Sites</code> 目录麻烦, 可以使用这种方式, 直接拷贝对应的文件或者目录放到 <code>/Library/WebServer/Documents</code> 中, 只不过需要 root 权限罢了.</p>
+<hr>
+<p><strong>扫码关注，你我就各多一个朋友~</strong></p>
+<p><img class="lazy" src="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAABGdBTUEAALGPC/xhBQAAADhlWElmTU0AKgAAAAgAAYdpAAQAAAABAAAAGgAAAAAAAqACAAQAAAABAAAAAaADAAQAAAABAAAAAQAAAADa6r/EAAAAC0lEQVQIHWNgAAIAAAUAAY27m/MAAAAASUVORK5CYII=" data-src="/upload/me/qrcode_wx.jpg"></p>
+
+
+
+
+</article>
+
+<div class="related-wrap reveal" id="read-next"><section class="header cap theme"><span>接下来阅读</span></section><section class="body fs14"><a id="next" href="/2018/07/01/RunLoop-%E7%A7%BB%E9%99%A4%E5%B8%B8%E9%A9%BB%E7%BA%BF%E7%A8%8B/">RunLoop: 移除常驻线程<span class="note">较早</span></a><div class="line"></div><a id="prev" href="/2018/08/19/%E9%85%8D%E7%BD%AE-php7-Nginx/">配置 php7 + Nginx<span class="note">较新</span></a></section></div>
+
+
+
+
+
+
+  <div class='related-wrap md reveal' id="comments">
+    <div class='cmt-title cap theme'>
+      快来参与讨论吧
+    </div>
+    <div class='cmt-body valine'>
+      
+
+<div id="valine_container" class="valine_thread"><svg class="loading" style="vertical-align: middle;fill: currentColor;overflow: hidden;" viewBox="0 0 1024 1024" version="1.1" xmlns="http://www.w3.org/2000/svg" p-id="2709"><path d="M832 512c0-176-144-320-320-320V128c211.2 0 384 172.8 384 384h-64zM192 512c0 176 144 320 320 320v64C300.8 896 128 723.2 128 512h64z" p-id="2710"></path></svg></div>
+
+    </div>
+  </div>
+
+
+
+      
+<footer class="page-footer reveal fs12"><hr><div class="text"><p>本博客所有文章除特别声明外，均采用 <a target="_blank" rel="noopener" href="https://creativecommons.org/licenses/by-nc-sa/4.0/">CC BY-NC-SA 4.0</a> 许可协议，转载请注明出处。</p>
+<p>veryitman</p>
+</div></footer>
+
+      <div class='float-panel mobile-only blur' style='display:none'>
+  <button type='button' class='sidebar-toggle mobile' onclick='sidebar.toggle()'>
+    <svg class="icon" style="width: 1em; height: 1em;vertical-align: middle;fill: currentColor;overflow: hidden;" viewBox="0 0 1024 1024" version="1.1" xmlns="http://www.w3.org/2000/svg" p-id="15301"><path d="M566.407 808.3c26.9-0.1 49.3-20.8 51.6-47.6-1.9-27.7-23.9-49.7-51.6-51.6h-412.6c-28.2-1.4-52.6 19.5-55.5 47.6 2.3 26.8 24.6 47.5 51.6 47.6h416.5v4z m309.3-249.9c26.9-0.1 49.3-20.8 51.6-47.6-2.2-26.8-24.6-47.5-51.6-47.6h-721.9c-27.7-2.8-52.5 17.4-55.3 45.1-0.1 0.8-0.1 1.7-0.2 2.5 0.9 27.2 23.6 48.5 50.7 47.6H875.707z m-103.1-245.9c26.9-0.1 49.3-20.8 51.6-47.6-0.4-28.3-23.2-51.1-51.5-51.6h-618.9c-29.5-1.1-54.3 21.9-55.5 51.4v0.2c1.4 27.8 25.2 49.2 53 47.8 0.8 0 1.7-0.1 2.5-0.2h618.8z" p-id="15302"></path><path d="M566.407 808.3c26.9-0.1 49.3-20.8 51.6-47.6-1.9-27.7-23.9-49.7-51.6-51.6h-412.6c-28.2-1.4-52.6 19.5-55.5 47.6 1.9 27.7 23.9 49.7 51.6 51.6h416.5z m309.3-249.9c26.9-0.1 49.3-20.8 51.6-47.6-2.2-26.8-24.6-47.5-51.6-47.6h-721.9c-27.7-2.8-52.5 17.4-55.3 45.1-0.1 0.8-0.1 1.7-0.2 2.5 0.9 27.2 23.6 48.5 50.7 47.6H875.707z m-103.1-245.9c26.9-0.1 49.3-20.8 51.6-47.6-0.4-28.3-23.2-51.1-51.5-51.6h-618.9c-29.5-1.1-54.3 21.9-55.5 51.4v0.2c1.4 27.8 25.2 49.2 53 47.8 0.8 0 1.7-0.1 2.5-0.2h618.8z" p-id="15303"></path></svg>
+  </button>
+</div>
+
+    </div>
+  </div>
+  <div class='scripts'>
+    <script type="text/javascript">
+  stellar = {
+    // 懒加载 css https://github.com/filamentgroup/loadCSS
+    loadCSS: (href, before, media, attributes) => {
+      var doc = window.document;
+      var ss = doc.createElement("link");
+      var ref;
+      if (before) {
+        ref = before;
+      } else {
+        var refs = (doc.body || doc.getElementsByTagName("head")[0]).childNodes;
+        ref = refs[refs.length - 1];
+      }
+      var sheets = doc.styleSheets;
+      if (attributes) {
+        for (var attributeName in attributes) {
+          if (attributes.hasOwnProperty(attributeName)) {
+            ss.setAttribute(attributeName, attributes[attributeName]);
+          }
+        }
+      }
+      ss.rel = "stylesheet";
+      ss.href = href;
+      ss.media = "only x";
+      function ready(cb) {
+        if (doc.body) {
+          return cb();
+        }
+        setTimeout(function () {
+          ready(cb);
+        });
+      }
+      ready(function () {
+        ref.parentNode.insertBefore(ss, before ? ref : ref.nextSibling);
+      });
+      var onloadcssdefined = function (cb) {
+        var resolvedHref = ss.href;
+        var i = sheets.length;
+        while (i--) {
+          if (sheets[i].href === resolvedHref) {
+            return cb();
+          }
+        }
+        setTimeout(function () {
+          onloadcssdefined(cb);
+        });
+      };
+      function loadCB() {
+        if (ss.addEventListener) {
+          ss.removeEventListener("load", loadCB);
+        }
+        ss.media = media || "all";
+      }
+      if (ss.addEventListener) {
+        ss.addEventListener("load", loadCB);
+      }
+      ss.onloadcssdefined = onloadcssdefined;
+      onloadcssdefined(loadCB);
+      return ss;
+    },
+
+    // 从 butterfly 和 volantis 获得灵感
+    loadScript: (src, opt) => new Promise((resolve, reject) => {
+      var script = document.createElement('script');
+      script.src = src;
+      if (opt) {
+        for (let key of Object.keys(opt)) {
+          script[key] = opt[key]
+        }
+      } else {
+        // 默认异步，如果需要同步，第二个参数传入 {} 即可
+        script.async = true
+      }
+      script.onerror = reject
+      script.onload = script.onreadystatechange = function() {
+        const loadState = this.readyState
+        if (loadState && loadState !== 'loaded' && loadState !== 'complete') return
+        script.onload = script.onreadystatechange = null
+        resolve()
+      }
+      document.head.appendChild(script)
+    }),
+
+    // https://github.com/jerryc127/hexo-theme-butterfly
+    jQuery: (fn) => {
+      if (typeof jQuery === 'undefined') {
+        stellar.loadScript(stellar.plugins.jQuery).then(fn)
+      } else {
+        fn()
+      }
+    }
+  };
+  stellar.github = 'https://github.com/xaoxuu/hexo-theme-stellar/tree/1.6.1';
+  stellar.config = {
+    date_suffix: {
+      just: '刚刚',
+      min: '分钟前',
+      hour: '小时前',
+      day: '天前',
+      month: '个月前',
+    },
+  };
+
+  // required plugins (only load if needs)
+  stellar.plugins = {
+    jQuery: 'https://cdn.jsdelivr.net/npm/jquery@3.5.1/dist/jquery.min.js',
+    sitesjs: '/js/plugins/sites.js',
+    friendsjs: '/js/plugins/friends.js',
+  };
+
+  // optional plugins
+  if ('true' == 'true') {
+    stellar.plugins.lazyload = Object.assign({"enable":true,"js":"https://cdn.jsdelivr.net/npm/vanilla-lazyload@17.3.1/dist/lazyload.min.js","transition":"blur"});
+  }
+  if ('true' == 'true') {
+    stellar.plugins.swiper = Object.assign({"enable":true,"css":"https://unpkg.com/swiper@6/swiper-bundle.min.css","js":"https://unpkg.com/swiper@6/swiper-bundle.min.js"});
+  }
+  if ('' == 'true') {
+    stellar.plugins.scrollreveal = Object.assign({"enable":null,"js":"https://cdn.jsdelivr.net/npm/scrollreveal@4.0.9/dist/scrollreveal.min.js","distance":"8px","duration":500,"interval":100,"scale":1});
+  }
+  if ('true' == 'true') {
+    stellar.plugins.preload = Object.assign({"enable":true,"service":"flying_pages","instant_page":"https://cdn.jsdelivr.net/gh/volantis-x/cdn-volantis@4.1.2/js/instant_page.js","flying_pages":"https://cdn.jsdelivr.net/gh/gijo-varghese/flying-pages@2.1.2/flying-pages.min.js"});
+  }
+</script>
+
+<!-- required -->
+
+  
+<script src="/js/main.js" async></script>
+
+
+
+<!-- optional -->
+
+  <script>
+  function getEmojiMaps() {
+    function emoji(path, idx, ext) {
+      return path + "/" + path + "-" + idx + "." + ext;
+    }
+    var emojiMaps = {};
+    for (var i = 1; i <= 54; i++) {
+      emojiMaps['tieba-' + i] = emoji('tieba', i, 'png');
+    }
+    for (var i = 1; i <= 101; i++) {
+      emojiMaps['qq-' + i] = emoji('qq', i, 'gif');
+    }
+    for (var i = 1; i <= 116; i++) {
+      emojiMaps['aru-' + i] = emoji('aru', i, 'gif');
+    }
+    for (var i = 1; i <= 125; i++) {
+      emojiMaps['twemoji-' + i] = emoji('twemoji', i, 'png');
+    }
+    for (var i = 1; i <= 4; i++) {
+      emojiMaps['weibo-' + i] = emoji('weibo', i, 'png');
+    }
+    return emojiMaps;
+  }
+  function load_comment(){
+    if(!document.getElementById("valine_container"))return;
+    stellar.loadScript('https://cdn.jsdelivr.net/gh/XuxuGood/simple-blog-cdn@main/js/Valine.min.js', {defer:true}).then(function () {
+      const el = document.getElementById("valine_container");
+      var path = el.getAttribute('comment_id');
+      const placeholder = "欢迎您留言~";
+      if (!path) {
+        path = decodeURI(window.location.pathname);
+      }
+      var valine = new Valine();
+      valine.init(Object.assign({"js":"https://cdn.jsdelivr.net/gh/XuxuGood/simple-blog-cdn@main/js/Valine.min.js","appId":"FY2C9UCttYNaE1j8umenqdCE-gzGzoHsz","appKey":"4i7xMwkfSEGmEDhi6SceKFxz","placeholder":"欢迎您留言~","requiredFields":["nick","mail"],"enableQQ":true,"recordIP":false,"avatar":"robohash","pageSize":10,"lang":"zh-cn","highlight":true,"mathJax":false,"tagMeta":["博主","小伙伴","访客"],"metaPlaceholder":{"nick":"昵称/QQ号(必填)","mail":"邮箱（必填，完全保密）"},"master":["6783037F2DF30EAB99F9FC256157D875"],"friends":["6783037F2DF30EAB99F9FC256157D875"],"comment_count":true}, {
+        el: '#valine_container',
+        path: path,
+        placeholder: placeholder,
+        emojiCDN: 'https://cdn.jsdelivr.net/gh/volantis-x/cdn-emoji/valine/',
+        emojiMaps: getEmojiMaps(),
+      }));
+    });
+  }
+  window.addEventListener('DOMContentLoaded', (event) => {
+    console.log('DOM fully loaded and parsed');
+    load_comment();
+  });
+
+</script>
+
+
+
+
+<!-- inject -->
+
+
+  </div>
+</body>
+</html>

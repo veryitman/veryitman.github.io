@@ -1,0 +1,378 @@
+<!DOCTYPE html>
+<html lang='zh-CN'>
+
+<head>
+  <meta name="generator" content="Hexo 6.0.0">
+  <meta charset="utf-8">
+  
+
+  <meta http-equiv='x-dns-prefetch-control' content='on' />
+  <link rel='dns-prefetch' href='https://cdn.jsdelivr.net'>
+  <link rel="preconnect" href="https://cdn.jsdelivr.net" crossorigin>
+
+  <meta name="renderer" content="webkit">
+  <meta name="force-rendering" content="webkit">
+  <meta http-equiv="X-UA-Compatible" content="IE=Edge,chrome=1">
+  <meta name="HandheldFriendly" content="True" >
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1">
+  <meta name="theme-color" content="#f8f8f8">
+  <title>微服务: Actuator实现服务监测 - Veryitman</title>
+
+  
+    <meta name="description" content="简介SpringBoot Actuator 可以帮助我们监控 SpringBoot 应用的运行情况，服务上线后如何监控和管理自己的服务是我们要考虑的一个重要问题。 Actuator 是 SpringBoot 的一个附加组件（需要自己手动集成），Actuator 能帮助应用程序实现在各个环境运行时的监控。可以使用 HTTP 的各个请求路径来进行健康检查、审计、收集引用的运行情况，对于应用状态、内存、">
+<meta property="og:type" content="article">
+<meta property="og:title" content="微服务: Actuator实现服务监测">
+<meta property="og:url" content="http://example.com/2020/05/01/%E5%BE%AE%E6%9C%8D%E5%8A%A1-Actuator%E5%AE%9E%E7%8E%B0%E6%9C%8D%E5%8A%A1%E7%9B%91%E6%B5%8B/index.html">
+<meta property="og:site_name" content="Veryitman">
+<meta property="og:description" content="简介SpringBoot Actuator 可以帮助我们监控 SpringBoot 应用的运行情况，服务上线后如何监控和管理自己的服务是我们要考虑的一个重要问题。 Actuator 是 SpringBoot 的一个附加组件（需要自己手动集成），Actuator 能帮助应用程序实现在各个环境运行时的监控。可以使用 HTTP 的各个请求路径来进行健康检查、审计、收集引用的运行情况，对于应用状态、内存、">
+<meta property="og:locale" content="zh_CN">
+<meta property="og:image" content="http://example.com/upload/images/2020/05/01/1.png">
+<meta property="og:image" content="http://example.com/upload/images/2020/05/01/2.png">
+<meta property="og:image" content="http://example.com/upload/images/2020/05/01/3.png">
+<meta property="og:image" content="http://example.com/upload/me/qrcode_wx.jpg">
+<meta property="article:published_time" content="2020-05-01T03:47:31.000Z">
+<meta property="article:modified_time" content="2022-03-09T14:53:24.329Z">
+<meta property="article:author" content="veryitman">
+<meta property="article:tag" content="SpringBoot Actuator 微服务">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:image" content="http://example.com/upload/images/2020/05/01/1.png">
+  
+  
+
+  <!-- feed -->
+  
+
+  
+    
+<link rel="stylesheet" href="/css/main.css">
+
+  
+
+  
+
+  
+</head>
+
+<body>
+  
+
+
+  <div class='l_body' id='start'>
+    <aside class='l_left' layout='post'>
+    
+
+
+<header class="header">
+
+<div class="logo-wrap"><a class="title" href="/"><div class="main">Veryitman</div></a></div>
+<nav class="menu dis-select"></nav></header>
+
+<div class="widgets">
+
+<div class="widget-wrap single" id="toc"><div class="widget-header cap dis-select"><span class="name">本文目录</span></div><div class="widget-body fs14"><div class="doc-tree active"><ol class="toc"><li class="toc-item toc-level-2"><a class="toc-link" href="#%E7%AE%80%E4%BB%8B"><span class="toc-text">简介</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#%E5%AE%9E%E6%88%98"><span class="toc-text">实战</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#%E5%AE%89%E5%85%A8"><span class="toc-text">安全</span></a></li></ol></div></div></div>
+
+
+</div>
+
+
+    </aside>
+    <div class='l_main'>
+      
+
+      
+
+
+<div class="bread-nav fs12"><div id="breadcrumb"><a class="cap breadcrumb" href="/">主页</a><span class="sep"></span><a class="cap breadcrumb" href="/">文章</a><span class="sep"></span><a class="cap breadcrumb-link" href="/categories/Server/">Server</a></div><div id="post-meta">发布于&nbsp;<time datetime="2020-05-01T03:47:31.000Z">2020-05-01</time></div></div>
+
+<article class='content md post'>
+<h1 class="article-title"><span>微服务: Actuator实现服务监测</span></h1>
+<h2 id="简介"><a href="#简介" class="headerlink" title="简介"></a>简介</h2><p>SpringBoot Actuator 可以帮助我们监控 SpringBoot 应用的运行情况，服务上线后如何监控和管理自己的服务是我们要考虑的一个重要问题。</p>
+<p>Actuator 是 SpringBoot 的一个附加组件（需要自己手动集成），Actuator 能帮助应用程序实现在各个环境运行时的监控。可以使用 HTTP 的各个请求路径来进行健康检查、审计、收集引用的运行情况，对于应用状态、内存、线程、堆栈等等都可以进行监控，比较全面的监控了 SpringBoot 应用的整个生命周期。对于微服务的管理十分有意义，在企业级应用中，对系统进行运行状态监控是不可或缺的。</p>
+<p>Actuator 不仅支持 HTTP 方式访问，还支持 JMX（Java Management Extensions，即Java管理扩展）、SSH、Telnet 方式访问。Actuator 还支持端点扩展，扩展 Actuator 的端点（Endpoint） 可以自定义监控指标，实现更多的运维能力。</p>
+<p>访问 spring-boot-actuator 给我们展现的是纯 JSON 格式的数据，对于非开发人员来说不够直观和不够人性化。<code>Spring Boot Admin</code> 就是用来解决这个问题的，使用 <code>Spring Boot Admin</code> 可以实现这些 JSON 接口数据的界面展现，方便运营人员查看和管理。本篇我们只学习 spring-boot-actuator 的使用，关于  <code>Spring Boot Admin</code> 下一篇再一起学习。</p>
+<p>本篇主要内容：</p>
+<ul>
+<li>如何使用 spring-boot-actuator（算是简单入门）；</li>
+<li>结合 spring-boot-security 增加对 spring-boot-actuator 的访问限制；</li>
+</ul>
+<p>更多关于微服务相关文章，可以通过 <a target="_blank" rel="noopener" href="http://www.veryitman.com/2019/05/28/%E5%BE%AE%E6%9C%8D%E5%8A%A1%E9%A1%B9%E7%9B%AE%E7%B3%BB%E5%88%97%E6%96%87%E7%AB%A0/">微服务项目系列文章</a> 学习。</p>
+<h2 id="实战"><a href="#实战" class="headerlink" title="实战"></a>实战</h2><p>在你的工程的 pom.xml 文件中，加入如下依赖就可以引入 spring-boot-actuator 组件，如下：</p>
+<figure class="highlight xml"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><span class="line"><span class="tag">&lt;<span class="name">dependency</span>&gt;</span></span><br><span class="line">	<span class="tag">&lt;<span class="name">groupId</span>&gt;</span>org.springframework.boot<span class="tag">&lt;/<span class="name">groupId</span>&gt;</span></span><br><span class="line">	<span class="tag">&lt;<span class="name">artifactId</span>&gt;</span>spring-boot-starter-actuator<span class="tag">&lt;/<span class="name">artifactId</span>&gt;</span></span><br><span class="line"><span class="tag">&lt;/<span class="name">dependency</span>&gt;</span></span><br></pre></td></tr></table></figure>
+
+<p>等待加载完成（就是对应的jar包文件下载完成且ide加载jar正常），可以看到多了如下两个jar包。</p>
+<p><img class="lazy" src="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAABGdBTUEAALGPC/xhBQAAADhlWElmTU0AKgAAAAgAAYdpAAQAAAABAAAAGgAAAAAAAqACAAQAAAABAAAAAaADAAQAAAABAAAAAQAAAADa6r/EAAAAC0lEQVQIHWNgAAIAAAUAAY27m/MAAAAASUVORK5CYII=" data-src="/upload/images/2020/05/01/1.png"></p>
+<p><code>actuator</code> 是其功能实现，<code>actuator-autoconfigure</code> 是其自动配置的实现。</p>
+<p>启动工程，然后在浏览器打开 <code>http://localhost:8080/actuator</code>，可以看到如下 json 数据。</p>
+<figure class="highlight json"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br></pre></td><td class="code"><pre><span class="line"><span class="punctuation">&#123;</span></span><br><span class="line">    <span class="attr">&quot;_links&quot;</span><span class="punctuation">:</span> <span class="punctuation">&#123;</span></span><br><span class="line">        <span class="attr">&quot;self&quot;</span><span class="punctuation">:</span> <span class="punctuation">&#123;</span></span><br><span class="line">            <span class="attr">&quot;href&quot;</span><span class="punctuation">:</span> <span class="string">&quot;http://localhost:8080/actuator&quot;</span><span class="punctuation">,</span></span><br><span class="line">            <span class="attr">&quot;templated&quot;</span><span class="punctuation">:</span> <span class="keyword">false</span></span><br><span class="line">        <span class="punctuation">&#125;</span><span class="punctuation">,</span></span><br><span class="line">        <span class="attr">&quot;health&quot;</span><span class="punctuation">:</span> <span class="punctuation">&#123;</span></span><br><span class="line">            <span class="attr">&quot;href&quot;</span><span class="punctuation">:</span> <span class="string">&quot;http://localhost:8080/actuator/health&quot;</span><span class="punctuation">,</span></span><br><span class="line">            <span class="attr">&quot;templated&quot;</span><span class="punctuation">:</span> <span class="keyword">false</span></span><br><span class="line">        <span class="punctuation">&#125;</span><span class="punctuation">,</span></span><br><span class="line">        <span class="attr">&quot;health-path&quot;</span><span class="punctuation">:</span> <span class="punctuation">&#123;</span></span><br><span class="line">            <span class="attr">&quot;href&quot;</span><span class="punctuation">:</span> <span class="string">&quot;http://localhost:8080/actuator/health/&#123;*path&#125;&quot;</span><span class="punctuation">,</span></span><br><span class="line">            <span class="attr">&quot;templated&quot;</span><span class="punctuation">:</span> <span class="keyword">true</span></span><br><span class="line">        <span class="punctuation">&#125;</span><span class="punctuation">,</span></span><br><span class="line">        <span class="attr">&quot;info&quot;</span><span class="punctuation">:</span> <span class="punctuation">&#123;</span></span><br><span class="line">            <span class="attr">&quot;href&quot;</span><span class="punctuation">:</span> <span class="string">&quot;http://localhost:8080/actuator/info&quot;</span><span class="punctuation">,</span></span><br><span class="line">            <span class="attr">&quot;templated&quot;</span><span class="punctuation">:</span> <span class="keyword">false</span></span><br><span class="line">        <span class="punctuation">&#125;</span></span><br><span class="line">    <span class="punctuation">&#125;</span></span><br><span class="line"><span class="punctuation">&#125;</span></span><br></pre></td></tr></table></figure>
+
+<p>你可以访问如下的 URL，如下：</p>
+<figure class="highlight http"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line">http://localhost:8080/actuator/health</span><br><span class="line">http://localhost:8080/actuator/info</span><br></pre></td></tr></table></figure>
+
+<p>在 Actuator 的 2.x 版本中，大多数端点默认被禁掉了，且默认端点增加了 <code>/actuator</code> 前缀。默认暴露的两个端点为 <code>/actuator/health</code> 和  <code>/actuator/info</code>，正是如上可以访问的两个 URL.</p>
+<p>如果想开启所有的断点可以被访问，需要在工程的 properties 文件中，增加如下配置：</p>
+<figure class="highlight xml"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">management.endpoints.web.exposure.include=*</span><br></pre></td></tr></table></figure>
+
+<p>再次访问 <code>http://localhost:8080/actuator</code>，就会有更多的URL可以被访问了。如 <code>http://localhost:8080/actuator/env</code>、<code>http://localhost:8080/actuator/beans</code> 等。</p>
+<p>官方文档 <a target="_blank" rel="noopener" href="https://docs.spring.io/spring-boot/docs/current/reference/html/production-ready-features.html#production-ready-endpoints">Spring Boot Actuator: Production-ready Features</a> 完整的介绍了相关的内容，大家可以自行查阅。</p>
+<p>从上面的访问路径可以看出，默认访问 Actuator 所有的监控点路径都在<code>/actuator/*</code>，是否可以自定义呢？是的，可以自定义这个前缀，只需要在 properties 中配置如下内容即可：</p>
+<figure class="highlight xml"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">management.endpoints.web.base-path=/monitor</span><br></pre></td></tr></table></figure>
+
+<p>再次访问上面的 URL，就需要将 <code>actuator/</code> 换成 <code>monitor/</code> 了。</p>
+<h2 id="安全"><a href="#安全" class="headerlink" title="安全"></a>安全</h2><p>虽然 Actuator 提供了很方便的监控和管理服务的能力，但是试想一下让任何其他的服务都可以访问，会存在一些安全隐患，SpringBoot 提供了 <code>security </code> 模块，可以帮助我们更加安全的使用 Actuator。集成 <code>security</code> 也很简单，下面我们具体说说如何使用吧。</p>
+<p>首先，需要在 pom 文件中，添加如下依赖。</p>
+<figure class="highlight xml"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><span class="line"><span class="tag">&lt;<span class="name">dependency</span>&gt;</span></span><br><span class="line">    <span class="tag">&lt;<span class="name">groupId</span>&gt;</span>org.springframework.boot<span class="tag">&lt;/<span class="name">groupId</span>&gt;</span></span><br><span class="line">    <span class="tag">&lt;<span class="name">artifactId</span>&gt;</span>spring-boot-starter-security<span class="tag">&lt;/<span class="name">artifactId</span>&gt;</span></span><br><span class="line"><span class="tag">&lt;/<span class="name">dependency</span>&gt;</span></span><br></pre></td></tr></table></figure>
+
+<p>其次，配置工程的 properties 文件，加入如下内容：</p>
+<figure class="highlight xml"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line">spring.security.user.name=actuator-self</span><br><span class="line">spring.security.user.password=actuator-admin</span><br><span class="line">spring.security.user.roles=ACTUATOR_ADMIN</span><br></pre></td></tr></table></figure>
+
+<p>用户名（name）和密码（password），可以根据自己的实际情况自定义。</p>
+<p>最后，添加一个配置类 MSActuatorSecurityConfig，该类继承 WebSecurityConfigurerAdapter.</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">import</span> org.springframework.boot.actuate.autoconfigure.security.servlet.EndpointRequest;</span><br><span class="line"><span class="keyword">import</span> org.springframework.boot.autoconfigure.security.servlet.PathRequest;</span><br><span class="line"><span class="keyword">import</span> org.springframework.context.annotation.Configuration;</span><br><span class="line"><span class="keyword">import</span> org.springframework.security.config.annotation.web.builders.HttpSecurity;</span><br><span class="line"><span class="keyword">import</span> org.springframework.security.config.annotation.web.configuration.WebSecurityConfigurerAdapter;</span><br><span class="line"></span><br><span class="line"><span class="meta">@Configuration</span></span><br><span class="line"><span class="keyword">public</span> <span class="keyword">class</span> <span class="title class_">MSActuatorSecurityConfig</span> <span class="keyword">extends</span> <span class="title class_">WebSecurityConfigurerAdapter</span> &#123;</span><br><span class="line"></span><br><span class="line">    <span class="meta">@Override</span></span><br><span class="line">    <span class="keyword">protected</span> <span class="keyword">void</span> <span class="title function_">configure</span><span class="params">(HttpSecurity http)</span> <span class="keyword">throws</span> Exception &#123;</span><br><span class="line"></span><br><span class="line">        http.authorizeRequests()</span><br><span class="line">                .requestMatchers(EndpointRequest.toAnyEndpoint())</span><br><span class="line">                .hasRole(<span class="string">&quot;ACTUATOR_ADMIN&quot;</span>)</span><br><span class="line">                .requestMatchers(PathRequest.toStaticResources().atCommonLocations())</span><br><span class="line">                .permitAll()</span><br><span class="line">                .antMatchers(<span class="string">&quot;/&quot;</span>)</span><br><span class="line">                .permitAll()</span><br><span class="line">                .antMatchers(<span class="string">&quot;/**&quot;</span>)</span><br><span class="line">                .authenticated()</span><br><span class="line">                .and()</span><br><span class="line">                .httpBasic();</span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<p>下次再次访问  <code>http://localhost:8080/monitor</code>，就会提示你输入用户名和密码了。</p>
+<p>下图是使用 Chrome 浏览器显示的效果。</p>
+<p><img class="lazy" src="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAABGdBTUEAALGPC/xhBQAAADhlWElmTU0AKgAAAAgAAYdpAAQAAAABAAAAGgAAAAAAAqACAAQAAAABAAAAAaADAAQAAAABAAAAAQAAAADa6r/EAAAAC0lEQVQIHWNgAAIAAAUAAY27m/MAAAAASUVORK5CYII=" data-src="/upload/images/2020/05/01/2.png"></p>
+<p>输入配置的用户名和密码登录就可以访问到数据了。</p>
+<p>另外为了安全，可以单独设置 Actuator 的管理端口并配置不对外网开放，如下配置独立的端口 <code>1102</code>，然后可以在防火墙上做下限制即 <code>1102</code> 端口仅用于内网访问即可。</p>
+<p>在 properties 中增加如下配置，如下：</p>
+<figure class="highlight xml"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line"># 配置独立的端口</span><br><span class="line">management.server.port=1012</span><br></pre></td></tr></table></figure>
+
+<p>使用效果：</p>
+<p><img class="lazy" src="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAABGdBTUEAALGPC/xhBQAAADhlWElmTU0AKgAAAAgAAYdpAAQAAAABAAAAGgAAAAAAAqACAAQAAAABAAAAAaADAAQAAAABAAAAAQAAAADa6r/EAAAAC0lEQVQIHWNgAAIAAAUAAY27m/MAAAAASUVORK5CYII=" data-src="/upload/images/2020/05/01/3.png"></p>
+<hr>
+<p><strong>人无千日好，花无百日红，早时不算计，过后一场空。~</strong></p>
+<p><img class="lazy" src="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAABGdBTUEAALGPC/xhBQAAADhlWElmTU0AKgAAAAgAAYdpAAQAAAABAAAAGgAAAAAAAqACAAQAAAABAAAAAaADAAQAAAABAAAAAQAAAADa6r/EAAAAC0lEQVQIHWNgAAIAAAUAAY27m/MAAAAASUVORK5CYII=" data-src="/upload/me/qrcode_wx.jpg"></p>
+
+
+
+
+</article>
+
+<div class="related-wrap reveal" id="read-next"><section class="header cap theme"><span>接下来阅读</span></section><section class="body fs14"><a id="next" href="/2020/04/11/%E5%BE%AE%E6%9C%8D%E5%8A%A1-%E7%BB%93%E5%90%88MySQL%E5%AE%9E%E7%8E%B0%E7%99%BB%E5%BD%95%E6%B3%A8%E5%86%8C/">微服务: 结合MySQL实现登录注册<span class="note">较早</span></a><div class="line"></div><a id="prev" href="/2020/05/03/%E5%BE%AE%E6%9C%8D%E5%8A%A1-Admin%E4%B8%8E%E6%9C%8D%E5%8A%A1%E7%9B%91%E6%B5%8B%E5%92%8C%E7%AE%A1%E7%90%86/">微服务: Admin与服务监测和管理<span class="note">较新</span></a></section></div>
+
+
+
+
+
+
+  <div class='related-wrap md reveal' id="comments">
+    <div class='cmt-title cap theme'>
+      快来参与讨论吧
+    </div>
+    <div class='cmt-body valine'>
+      
+
+<div id="valine_container" class="valine_thread"><svg class="loading" style="vertical-align: middle;fill: currentColor;overflow: hidden;" viewBox="0 0 1024 1024" version="1.1" xmlns="http://www.w3.org/2000/svg" p-id="2709"><path d="M832 512c0-176-144-320-320-320V128c211.2 0 384 172.8 384 384h-64zM192 512c0 176 144 320 320 320v64C300.8 896 128 723.2 128 512h64z" p-id="2710"></path></svg></div>
+
+    </div>
+  </div>
+
+
+
+      
+<footer class="page-footer reveal fs12"><hr><div class="text"><p>本博客所有文章除特别声明外，均采用 <a target="_blank" rel="noopener" href="https://creativecommons.org/licenses/by-nc-sa/4.0/">CC BY-NC-SA 4.0</a> 许可协议，转载请注明出处。</p>
+<p>veryitman</p>
+</div></footer>
+
+      <div class='float-panel mobile-only blur' style='display:none'>
+  <button type='button' class='sidebar-toggle mobile' onclick='sidebar.toggle()'>
+    <svg class="icon" style="width: 1em; height: 1em;vertical-align: middle;fill: currentColor;overflow: hidden;" viewBox="0 0 1024 1024" version="1.1" xmlns="http://www.w3.org/2000/svg" p-id="15301"><path d="M566.407 808.3c26.9-0.1 49.3-20.8 51.6-47.6-1.9-27.7-23.9-49.7-51.6-51.6h-412.6c-28.2-1.4-52.6 19.5-55.5 47.6 2.3 26.8 24.6 47.5 51.6 47.6h416.5v4z m309.3-249.9c26.9-0.1 49.3-20.8 51.6-47.6-2.2-26.8-24.6-47.5-51.6-47.6h-721.9c-27.7-2.8-52.5 17.4-55.3 45.1-0.1 0.8-0.1 1.7-0.2 2.5 0.9 27.2 23.6 48.5 50.7 47.6H875.707z m-103.1-245.9c26.9-0.1 49.3-20.8 51.6-47.6-0.4-28.3-23.2-51.1-51.5-51.6h-618.9c-29.5-1.1-54.3 21.9-55.5 51.4v0.2c1.4 27.8 25.2 49.2 53 47.8 0.8 0 1.7-0.1 2.5-0.2h618.8z" p-id="15302"></path><path d="M566.407 808.3c26.9-0.1 49.3-20.8 51.6-47.6-1.9-27.7-23.9-49.7-51.6-51.6h-412.6c-28.2-1.4-52.6 19.5-55.5 47.6 1.9 27.7 23.9 49.7 51.6 51.6h416.5z m309.3-249.9c26.9-0.1 49.3-20.8 51.6-47.6-2.2-26.8-24.6-47.5-51.6-47.6h-721.9c-27.7-2.8-52.5 17.4-55.3 45.1-0.1 0.8-0.1 1.7-0.2 2.5 0.9 27.2 23.6 48.5 50.7 47.6H875.707z m-103.1-245.9c26.9-0.1 49.3-20.8 51.6-47.6-0.4-28.3-23.2-51.1-51.5-51.6h-618.9c-29.5-1.1-54.3 21.9-55.5 51.4v0.2c1.4 27.8 25.2 49.2 53 47.8 0.8 0 1.7-0.1 2.5-0.2h618.8z" p-id="15303"></path></svg>
+  </button>
+</div>
+
+    </div>
+  </div>
+  <div class='scripts'>
+    <script type="text/javascript">
+  stellar = {
+    // 懒加载 css https://github.com/filamentgroup/loadCSS
+    loadCSS: (href, before, media, attributes) => {
+      var doc = window.document;
+      var ss = doc.createElement("link");
+      var ref;
+      if (before) {
+        ref = before;
+      } else {
+        var refs = (doc.body || doc.getElementsByTagName("head")[0]).childNodes;
+        ref = refs[refs.length - 1];
+      }
+      var sheets = doc.styleSheets;
+      if (attributes) {
+        for (var attributeName in attributes) {
+          if (attributes.hasOwnProperty(attributeName)) {
+            ss.setAttribute(attributeName, attributes[attributeName]);
+          }
+        }
+      }
+      ss.rel = "stylesheet";
+      ss.href = href;
+      ss.media = "only x";
+      function ready(cb) {
+        if (doc.body) {
+          return cb();
+        }
+        setTimeout(function () {
+          ready(cb);
+        });
+      }
+      ready(function () {
+        ref.parentNode.insertBefore(ss, before ? ref : ref.nextSibling);
+      });
+      var onloadcssdefined = function (cb) {
+        var resolvedHref = ss.href;
+        var i = sheets.length;
+        while (i--) {
+          if (sheets[i].href === resolvedHref) {
+            return cb();
+          }
+        }
+        setTimeout(function () {
+          onloadcssdefined(cb);
+        });
+      };
+      function loadCB() {
+        if (ss.addEventListener) {
+          ss.removeEventListener("load", loadCB);
+        }
+        ss.media = media || "all";
+      }
+      if (ss.addEventListener) {
+        ss.addEventListener("load", loadCB);
+      }
+      ss.onloadcssdefined = onloadcssdefined;
+      onloadcssdefined(loadCB);
+      return ss;
+    },
+
+    // 从 butterfly 和 volantis 获得灵感
+    loadScript: (src, opt) => new Promise((resolve, reject) => {
+      var script = document.createElement('script');
+      script.src = src;
+      if (opt) {
+        for (let key of Object.keys(opt)) {
+          script[key] = opt[key]
+        }
+      } else {
+        // 默认异步，如果需要同步，第二个参数传入 {} 即可
+        script.async = true
+      }
+      script.onerror = reject
+      script.onload = script.onreadystatechange = function() {
+        const loadState = this.readyState
+        if (loadState && loadState !== 'loaded' && loadState !== 'complete') return
+        script.onload = script.onreadystatechange = null
+        resolve()
+      }
+      document.head.appendChild(script)
+    }),
+
+    // https://github.com/jerryc127/hexo-theme-butterfly
+    jQuery: (fn) => {
+      if (typeof jQuery === 'undefined') {
+        stellar.loadScript(stellar.plugins.jQuery).then(fn)
+      } else {
+        fn()
+      }
+    }
+  };
+  stellar.github = 'https://github.com/xaoxuu/hexo-theme-stellar/tree/1.6.1';
+  stellar.config = {
+    date_suffix: {
+      just: '刚刚',
+      min: '分钟前',
+      hour: '小时前',
+      day: '天前',
+      month: '个月前',
+    },
+  };
+
+  // required plugins (only load if needs)
+  stellar.plugins = {
+    jQuery: 'https://cdn.jsdelivr.net/npm/jquery@3.5.1/dist/jquery.min.js',
+    sitesjs: '/js/plugins/sites.js',
+    friendsjs: '/js/plugins/friends.js',
+  };
+
+  // optional plugins
+  if ('true' == 'true') {
+    stellar.plugins.lazyload = Object.assign({"enable":true,"js":"https://cdn.jsdelivr.net/npm/vanilla-lazyload@17.3.1/dist/lazyload.min.js","transition":"blur"});
+  }
+  if ('true' == 'true') {
+    stellar.plugins.swiper = Object.assign({"enable":true,"css":"https://unpkg.com/swiper@6/swiper-bundle.min.css","js":"https://unpkg.com/swiper@6/swiper-bundle.min.js"});
+  }
+  if ('' == 'true') {
+    stellar.plugins.scrollreveal = Object.assign({"enable":null,"js":"https://cdn.jsdelivr.net/npm/scrollreveal@4.0.9/dist/scrollreveal.min.js","distance":"8px","duration":500,"interval":100,"scale":1});
+  }
+  if ('true' == 'true') {
+    stellar.plugins.preload = Object.assign({"enable":true,"service":"flying_pages","instant_page":"https://cdn.jsdelivr.net/gh/volantis-x/cdn-volantis@4.1.2/js/instant_page.js","flying_pages":"https://cdn.jsdelivr.net/gh/gijo-varghese/flying-pages@2.1.2/flying-pages.min.js"});
+  }
+</script>
+
+<!-- required -->
+
+  
+<script src="/js/main.js" async></script>
+
+
+
+<!-- optional -->
+
+  <script>
+  function getEmojiMaps() {
+    function emoji(path, idx, ext) {
+      return path + "/" + path + "-" + idx + "." + ext;
+    }
+    var emojiMaps = {};
+    for (var i = 1; i <= 54; i++) {
+      emojiMaps['tieba-' + i] = emoji('tieba', i, 'png');
+    }
+    for (var i = 1; i <= 101; i++) {
+      emojiMaps['qq-' + i] = emoji('qq', i, 'gif');
+    }
+    for (var i = 1; i <= 116; i++) {
+      emojiMaps['aru-' + i] = emoji('aru', i, 'gif');
+    }
+    for (var i = 1; i <= 125; i++) {
+      emojiMaps['twemoji-' + i] = emoji('twemoji', i, 'png');
+    }
+    for (var i = 1; i <= 4; i++) {
+      emojiMaps['weibo-' + i] = emoji('weibo', i, 'png');
+    }
+    return emojiMaps;
+  }
+  function load_comment(){
+    if(!document.getElementById("valine_container"))return;
+    stellar.loadScript('https://cdn.jsdelivr.net/gh/XuxuGood/simple-blog-cdn@main/js/Valine.min.js', {defer:true}).then(function () {
+      const el = document.getElementById("valine_container");
+      var path = el.getAttribute('comment_id');
+      const placeholder = "欢迎您留言~";
+      if (!path) {
+        path = decodeURI(window.location.pathname);
+      }
+      var valine = new Valine();
+      valine.init(Object.assign({"js":"https://cdn.jsdelivr.net/gh/XuxuGood/simple-blog-cdn@main/js/Valine.min.js","appId":"FY2C9UCttYNaE1j8umenqdCE-gzGzoHsz","appKey":"4i7xMwkfSEGmEDhi6SceKFxz","placeholder":"欢迎您留言~","requiredFields":["nick","mail"],"enableQQ":true,"recordIP":false,"avatar":"robohash","pageSize":10,"lang":"zh-cn","highlight":true,"mathJax":false,"tagMeta":["博主","小伙伴","访客"],"metaPlaceholder":{"nick":"昵称/QQ号(必填)","mail":"邮箱（必填，完全保密）"},"master":["6783037F2DF30EAB99F9FC256157D875"],"friends":["6783037F2DF30EAB99F9FC256157D875"],"comment_count":true}, {
+        el: '#valine_container',
+        path: path,
+        placeholder: placeholder,
+        emojiCDN: 'https://cdn.jsdelivr.net/gh/volantis-x/cdn-emoji/valine/',
+        emojiMaps: getEmojiMaps(),
+      }));
+    });
+  }
+  window.addEventListener('DOMContentLoaded', (event) => {
+    console.log('DOM fully loaded and parsed');
+    load_comment();
+  });
+
+</script>
+
+
+
+
+<!-- inject -->
+
+
+  </div>
+</body>
+</html>

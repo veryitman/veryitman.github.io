@@ -1,0 +1,395 @@
+<!DOCTYPE html>
+<html lang='zh-CN'>
+
+<head>
+  <meta name="generator" content="Hexo 6.0.0">
+  <meta charset="utf-8">
+  
+
+  <meta http-equiv='x-dns-prefetch-control' content='on' />
+  <link rel='dns-prefetch' href='https://cdn.jsdelivr.net'>
+  <link rel="preconnect" href="https://cdn.jsdelivr.net" crossorigin>
+
+  <meta name="renderer" content="webkit">
+  <meta name="force-rendering" content="webkit">
+  <meta http-equiv="X-UA-Compatible" content="IE=Edge,chrome=1">
+  <meta name="HandheldFriendly" content="True" >
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1">
+  <meta name="theme-color" content="#f8f8f8">
+  <title>短地址原理 - Veryitman</title>
+
+  
+    <meta name="description" content="简介一个同事遇到一个问题，他说受限于第三方的服务，自己请求所带过去的字符串因为太长，无法从第三方服务获取信息，很是苦恼😴。后来我们商量了一下，最终借鉴短地址的思想解决了问题。道理很简单，因为我们请求中的附加字符串信息第三方服务只是透传回来给我们，我们只需要把这些附加信息进行字符压缩就可以了，这样请求带过去的字符串长度就满足了要求😊。 无论是写文章还是制作一些表格的时候，我会时常用到短地址。短地">
+<meta property="og:type" content="article">
+<meta property="og:title" content="短地址原理">
+<meta property="og:url" content="http://example.com/2019/11/24/%E7%9F%AD%E5%9C%B0%E5%9D%80%E5%8E%9F%E7%90%86/index.html">
+<meta property="og:site_name" content="Veryitman">
+<meta property="og:description" content="简介一个同事遇到一个问题，他说受限于第三方的服务，自己请求所带过去的字符串因为太长，无法从第三方服务获取信息，很是苦恼😴。后来我们商量了一下，最终借鉴短地址的思想解决了问题。道理很简单，因为我们请求中的附加字符串信息第三方服务只是透传回来给我们，我们只需要把这些附加信息进行字符压缩就可以了，这样请求带过去的字符串长度就满足了要求😊。 无论是写文章还是制作一些表格的时候，我会时常用到短地址。短地">
+<meta property="og:locale" content="zh_CN">
+<meta property="og:image" content="http://example.com/upload/images/2019/11/24/1.png">
+<meta property="og:image" content="http://example.com/upload/images/2019/11/24/2.png">
+<meta property="og:image" content="http://example.com/upload/images/2019/11/24/3.png">
+<meta property="og:image" content="http://example.com/upload/images/2019/11/24/4.png">
+<meta property="og:image" content="http://example.com/upload/me/qrcode_wx.jpg">
+<meta property="article:published_time" content="2019-11-24T02:08:02.000Z">
+<meta property="article:modified_time" content="2022-03-09T14:53:24.315Z">
+<meta property="article:author" content="veryitman">
+<meta property="article:tag" content="Short-URL SpringBoot">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:image" content="http://example.com/upload/images/2019/11/24/1.png">
+  
+  
+
+  <!-- feed -->
+  
+
+  
+    
+<link rel="stylesheet" href="/css/main.css">
+
+  
+
+  
+
+  
+</head>
+
+<body>
+  
+
+
+  <div class='l_body' id='start'>
+    <aside class='l_left' layout='post'>
+    
+
+
+<header class="header">
+
+<div class="logo-wrap"><a class="title" href="/"><div class="main">Veryitman</div></a></div>
+<nav class="menu dis-select"></nav></header>
+
+<div class="widgets">
+
+<div class="widget-wrap single" id="toc"><div class="widget-header cap dis-select"><span class="name">本文目录</span></div><div class="widget-body fs14"><div class="doc-tree active"><ol class="toc"><li class="toc-item toc-level-2"><a class="toc-link" href="#%E7%AE%80%E4%BB%8B"><span class="toc-text">简介</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#HTTP-%E8%AF%B7%E6%B1%82%E9%87%8D%E5%AE%9A%E5%90%91"><span class="toc-text">HTTP 请求重定向</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#%E6%A8%A1%E6%8B%9F%E9%87%8D%E5%AE%9A%E5%90%91"><span class="toc-text">模拟重定向</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#%E8%AF%B7%E6%B1%82%E7%9F%AD%E5%9C%B0%E5%9D%80%E8%BF%87%E7%A8%8B"><span class="toc-text">请求短地址过程</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#%E7%9F%AD%E5%9C%B0%E5%9D%80%E5%8E%9F%E7%90%86"><span class="toc-text">短地址原理</span></a></li></ol></div></div></div>
+
+
+</div>
+
+
+    </aside>
+    <div class='l_main'>
+      
+
+      
+
+
+<div class="bread-nav fs12"><div id="breadcrumb"><a class="cap breadcrumb" href="/">主页</a><span class="sep"></span><a class="cap breadcrumb" href="/">文章</a><span class="sep"></span><a class="cap breadcrumb-link" href="/categories/Server/">Server</a></div><div id="post-meta">发布于&nbsp;<time datetime="2019-11-24T02:08:02.000Z">2019-11-24</time></div></div>
+
+<article class='content md post'>
+<h1 class="article-title"><span>短地址原理</span></h1>
+<h2 id="简介"><a href="#简介" class="headerlink" title="简介"></a>简介</h2><p>一个同事遇到一个问题，他说受限于第三方的服务，自己请求所带过去的字符串因为太长，无法从第三方服务获取信息，很是苦恼😴。后来我们商量了一下，最终借鉴短地址的思想解决了问题。道理很简单，因为我们请求中的附加字符串信息第三方服务只是透传回来给我们，我们只需要把这些附加信息进行字符压缩就可以了，这样请求带过去的字符串长度就满足了要求😊。</p>
+<p>无论是写文章还是制作一些表格的时候，我会时常用到短地址。短地址的优势在于其短（字符少）、简洁，方便书写又不占位置。方便在社交网络和第三方平台上分享链接，投放广告。比如有人会在发朋友圈的时候带上短地址，还有一些营销短信里面也会带一些短地址链接。</p>
+<p>有现成的短地址生成器，常用的短地址转换有 <a target="_blank" rel="noopener" href="http://dwz.cn/">百度短网址转换</a>、<a target="_blank" rel="noopener" href="https://goo.gl/">Google短网址转换</a> 和 <a target="_blank" rel="noopener" href="http://dwz.wailian.work/">新浪短地址转换</a>，可惜的是谷歌关闭了该服务，官方发言如下：</p>
+<figure class="highlight xml"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br></pre></td><td class="code"><pre><span class="line">On March 30, 2018, we turned down support for goo.gl URL shortener. </span><br><span class="line">From April 13, 2018, only existing users were able to create short links on the goo.gl console.</span><br><span class="line">Analytics data was available for up to one year, until March 30, 2019, when goo.gl was discontinued. </span><br><span class="line">Previously created links will continue to redirect to their intended destination. </span><br><span class="line">Please see this blog post for more details.</span><br></pre></td></tr></table></figure>
+
+<p>我经常使用百度的短地址服务，在国内访问它是最快的也能满足我的工作和学习需求，它也提供 API 服务可以参考 <a target="_blank" rel="noopener" href="https://dwz.cn/console/apidoc">短网址生成接口文档</a> 学习和了解。</p>
+<p>我们先来了解一下 HTTP 协议中那些重定向的事。</p>
+<h2 id="HTTP-请求重定向"><a href="#HTTP-请求重定向" class="headerlink" title="HTTP 请求重定向"></a>HTTP 请求重定向</h2><p>HTTP 中的 <code>301</code>、<code>302</code>、<code>303</code>、<code>307</code>、<code>308</code> 响应状态码，都表示重定向的响应。</p>
+<p>其中，<code>301</code>、<code>308</code> 响应状态码表示永久重定向，<code>302</code>、<code>303</code>、<code>307</code> 表示临时重定向。</p>
+<p>那我们来说一下什么是重定向？</p>
+<p>重定向(Redirect)就是通过各种方法将各种网络请求重新定个方向转到其它位置（如：网页重定向、域名的重定向、路由选择的变化也是对数据报文经由路径的一种重定向）。</p>
+<p>举个例子，你要去 A 机构办理一个证件，等你去了之后A机构的某人告诉你他们不再受理此事了，需要你去 B 机构办理，然后你就自己去了 B 机构。这个过程就类似于重定向。</p>
+<p>那么，HTTP 协议中定义的这些30X响应状态码就好比 <code>A机构的某人</code> 它们告诉客户端，你需要访问另外一个地址了。</p>
+<p>重定向做了两次 HTTP 请求， 第一次，客户端请求 A 服务器，A 响应告诉浏览器，你应该去 B 服务器访问。此时就去访问服务器 B，这个时候你可以看到浏览器中的网址变了，这就是第二次 HTTP 请求。</p>
+<p><strong>重定向过程：</strong></p>
+<p>Step-1、浏览器（客户端）发送 HTTP 请求；</p>
+<p>Step-2、Web服务器A接收后发送 <code>302</code> 状态码响应，并在响应头中把对应的 <code>Location</code> 给浏览器；</p>
+<p>Step-3、浏览器收到服务器返回的 <code>302</code> 响应码，就自动再发送一个新的 HTTP 请求（请求URL是新的 <code>Location</code> 中的地址）；</p>
+<p>Step-4、Web服务器（可能是 A 也可能是其他服务器）根据此请求寻找资源并发送给浏览器，最终展示给用户。</p>
+<p>关于 <code>Location</code> 可以看下面的截图（这是一个重定向的 HTTP 请求示例），它是被放在响应头中的，其值是需要重定向的网址 <code>http://www.veryitman.com</code>，从这个过程来看可以看出重定向是客户端（浏览器）行为。</p>
+<p><img class="lazy" src="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAABGdBTUEAALGPC/xhBQAAADhlWElmTU0AKgAAAAgAAYdpAAQAAAABAAAAGgAAAAAAAqACAAQAAAABAAAAAaADAAQAAAABAAAAAQAAAADa6r/EAAAAC0lEQVQIHWNgAAIAAAUAAY27m/MAAAAASUVORK5CYII=" data-src="/upload/images/2019/11/24/1.png"></p>
+<p>还有个叫转发的技术，这个和重定向是不一样的，转发是服务器行为，还拿上面的 A 机构例子来说，你要去 A 机构办理一个证件，等你去了之后 A 机构的某人告诉你他们不再受理此事了，但是 A 机构可以自己协调资源帮你完成而不需要你去其他机构办理了。这个过程就类似于转发。</p>
+<h2 id="模拟重定向"><a href="#模拟重定向" class="headerlink" title="模拟重定向"></a>模拟重定向</h2><p>现在使用 SpringBoot 模拟一下重定向，我用的 SpringBoot 是 <code>2.2.0.RELEASE</code> 版本。</p>
+<p><strong>①、</strong>新建 SpringBoot Web 工程，可以参考 <a target="_blank" rel="noopener" href="http://www.veryitman.com/2019/06/02/%E5%BE%AE%E6%9C%8D%E5%8A%A1-%E6%83%B3%E5%8A%9E%E6%B3%95%E8%AE%A9%E9%A1%B9%E7%9B%AE%E8%BF%90%E8%A1%8C%E8%B5%B7%E6%9D%A5/">微服务-想办法让项目运行起来</a> 这篇文章。</p>
+<p><strong>②、</strong>修改 pom 文件，增加 <code>fastjson</code>，示例如下：</p>
+<figure class="highlight xml"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br></pre></td><td class="code"><pre><span class="line"><span class="tag">&lt;<span class="name">dependency</span>&gt;</span></span><br><span class="line">	<span class="tag">&lt;<span class="name">groupId</span>&gt;</span>com.alibaba<span class="tag">&lt;/<span class="name">groupId</span>&gt;</span></span><br><span class="line">	<span class="tag">&lt;<span class="name">artifactId</span>&gt;</span>fastjson<span class="tag">&lt;/<span class="name">artifactId</span>&gt;</span></span><br><span class="line">	<span class="tag">&lt;<span class="name">version</span>&gt;</span>1.2.62<span class="tag">&lt;/<span class="name">version</span>&gt;</span></span><br><span class="line"><span class="tag">&lt;/<span class="name">dependency</span>&gt;</span></span><br></pre></td></tr></table></figure>
+
+<p><strong>③、</strong>新建 <code>MSTestRedirectController</code> 文件，源码如下：</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">import</span> com.alibaba.fastjson.JSON;</span><br><span class="line"><span class="keyword">import</span> org.springframework.stereotype.Controller;</span><br><span class="line"><span class="keyword">import</span> org.springframework.web.bind.annotation.GetMapping;</span><br><span class="line"><span class="keyword">import</span> org.springframework.web.bind.annotation.RequestMapping;</span><br><span class="line"><span class="keyword">import</span> org.springframework.web.bind.annotation.ResponseBody;</span><br><span class="line"></span><br><span class="line"><span class="keyword">import</span> javax.servlet.http.HttpServletRequest;</span><br><span class="line"></span><br><span class="line"><span class="meta">@Controller</span></span><br><span class="line"><span class="meta">@RequestMapping(value = &quot;testredirect&quot;)</span></span><br><span class="line"><span class="keyword">public</span> <span class="keyword">class</span> <span class="title class_">MSTestRedirectController</span> &#123;</span><br><span class="line"></span><br><span class="line">    <span class="meta">@GetMapping(value = &quot;/access/web&quot;)</span></span><br><span class="line">    <span class="keyword">public</span> String <span class="title function_">redirect</span><span class="params">()</span> &#123;</span><br><span class="line">        <span class="keyword">return</span> <span class="string">&quot;redirect:/testredirect/index/realweb?parameter=coming&quot;</span>;</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    <span class="meta">@ResponseBody</span></span><br><span class="line">    <span class="meta">@GetMapping(value = &quot;/index/realweb&quot;)</span></span><br><span class="line">    <span class="keyword">public</span> String <span class="title function_">real</span><span class="params">(HttpServletRequest request)</span> &#123;</span><br><span class="line">        <span class="keyword">return</span> <span class="string">&quot;redirect happened：&quot;</span> + JSON.toJSONString(request.getParameterMap());</span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<p>这里要注意几个问题：</p>
+<ul>
+<li><p>既然是重定向，该 Controller 不能使用 <code>@RestController</code> 注解而要使用 <code>@Controller</code> 注解；</p>
+</li>
+<li><p>这里使用了关键字 <code>redirect</code> 实现重定向；</p>
+</li>
+</ul>
+<p><strong>④、</strong>启动工程，并在浏览器访问下面的网址</p>
+<figure class="highlight http"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">http://localhost:8080/testredirect/access/web</span><br></pre></td></tr></table></figure>
+
+<p>可以看到浏览器发生了重定向，截图如下：</p>
+<p><img class="lazy" src="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAABGdBTUEAALGPC/xhBQAAADhlWElmTU0AKgAAAAgAAYdpAAQAAAABAAAAGgAAAAAAAqACAAQAAAABAAAAAaADAAQAAAABAAAAAQAAAADa6r/EAAAAC0lEQVQIHWNgAAIAAAUAAY27m/MAAAAASUVORK5CYII=" data-src="/upload/images/2019/11/24/2.png"></p>
+<p>除了上面的方法可以实现重定向外还可使用 <code>HttpServletResponse</code> 的 <code>sendRedirect</code> 方法，示例如下：</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br></pre></td><td class="code"><pre><span class="line"><span class="meta">@GetMapping(value = &quot;/access/web2&quot;)</span></span><br><span class="line"><span class="keyword">public</span> String <span class="title function_">redirect2</span><span class="params">(HttpServletResponse response)</span> &#123;</span><br><span class="line">    <span class="keyword">try</span> &#123;</span><br><span class="line">        <span class="comment">// 方法1：自定义状态码方式</span></span><br><span class="line">        <span class="comment">// String url = &quot;http://localhost:8080/testredirect/index/realweb?parameter=coming&quot;;</span></span><br><span class="line">        <span class="comment">//response.setHeader(&quot;Location&quot;, url);</span></span><br><span class="line">        <span class="comment">//response.sendError(301);</span></span><br><span class="line">        </span><br><span class="line">        <span class="comment">// 方法2：sendRedirect，默认返回的状态码是 302</span></span><br><span class="line">        response.sendRedirect(<span class="string">&quot;/testredirect/index/realweb?parameter=coming&quot;</span>);</span><br><span class="line">    &#125; <span class="keyword">catch</span> (IOException e) &#123;</span><br><span class="line">        e.printStackTrace();</span><br><span class="line">    &#125; <span class="keyword">finally</span> &#123;</span><br><span class="line">        <span class="keyword">return</span> <span class="string">&quot;&quot;</span>;</span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<h2 id="请求短地址过程"><a href="#请求短地址过程" class="headerlink" title="请求短地址过程"></a>请求短地址过程</h2><p>我拿网址 <code>http://www.veryitman.com/</code> 来举实例，使用百度短地址服务。</p>
+<p>在 <a target="_blank" rel="noopener" href="http://dwz.cn/">百度短地址页面</a> 去生成 <code>http://www.veryitman.com/</code> 对应的短地址，如下图所示：</p>
+<p><img class="lazy" src="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAABGdBTUEAALGPC/xhBQAAADhlWElmTU0AKgAAAAgAAYdpAAQAAAABAAAAGgAAAAAAAqACAAQAAAABAAAAAaADAAQAAAABAAAAAQAAAADa6r/EAAAAC0lEQVQIHWNgAAIAAAUAAY27m/MAAAAASUVORK5CYII=" data-src="/upload/images/2019/11/24/3.png"></p>
+<p>得到短地址是 <code>https://dwz.cn/hnmau4Zs</code> 复制该地址拷贝到浏览器（我用的是 Chrome 浏览器）的地址栏中，并打开 Chrome 的审查视图。切换到 Network 选项，此时回车打开短网址。</p>
+<p><img class="lazy" src="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAABGdBTUEAALGPC/xhBQAAADhlWElmTU0AKgAAAAgAAYdpAAQAAAABAAAAGgAAAAAAAqACAAQAAAABAAAAAaADAAQAAAABAAAAAQAAAADa6r/EAAAAC0lEQVQIHWNgAAIAAAUAAY27m/MAAAAASUVORK5CYII=" data-src="/upload/images/2019/11/24/4.png"></p>
+<p>HTTP 发送了 GET 请求（<strong>红色1</strong>），请求地址是  <code>https://dwz.cn/hnmau4Zs</code> ，服务器（百度的短地址服务）返回给 Chrome 浏览器 <code>302</code> 状态码，浏览器发现是该重定向码就再次用 <code>Location</code> 里面包含的地址发送了第二次请求即重定向请求。</p>
+<p>你也可以使用微博的短地址服务，提醒一点，微博的短地址请求返回码是 <code>301</code> 而百度返回的是 <code>302</code> 响应码。<code>302</code> 状态码允许各种各样的重定向，一般情况下都会实现为到 GET 的重定向，但是不能确保 POST 会重定向为 POST，<code>302</code> 表示旧地址A的资源还在（仍然可以访问），这个重定向只是临时地从旧地址A跳转到地址B；而 <code>301</code> 状态码表明目标资源被永久的移动到了一个新的 URI，任何未来对这个资源的引用都应该使用新的 URI。</p>
+<h2 id="短地址原理"><a href="#短地址原理" class="headerlink" title="短地址原理"></a>短地址原理</h2><p>刚开始我很好奇，为什么我把长地址 A 转换为短地址 B，然后用 B 去访问居然还是 A 地址的内容，浏览器是怎么做到的？</p>
+<p>通过上面的请求过程示例，相信大家应该大概理解了请求短地址的原理了。</p>
+<p>在百度短地址服务中，我们将 <code>http://www.veryitman.com/</code> 转换为 <code>https://dwz.cn/hnmau4Zs</code>  ，此时百度短地址服务维持了 <code>短-长</code> 地址的映射关系了而且是唯一的，当我们去访问 <code>https://dwz.cn/hnmau4Zs</code> ，其实请求的是百度短地址服务，该服务将短地址对应的长地址（放在响应头的 <code>Location</code> 中）返回给我们的浏览器，并返回 302 状态码，此时浏览器就重定向到了 <code>http://www.veryitman.com/</code> 这个网址上了。</p>
+<p><strong>简单总结一下其步骤如下：</strong></p>
+<p>Step-1、用户在浏览器里输入 <code>https://dwz.cn/hnmau4Zs</code>  这个网址去访问;</p>
+<p>Step-2、浏览器解析 DNS，获取该域名对应的 IP 地址;</p>
+<p>Step-3、获取到 IP 后，浏览器发送 HTTP GET 请求查询 <code>hnmau4Zs</code> 并获取到 <code>https://dwz.cn/hnmau4Zs</code>  对应的长地址;</p>
+<p>Step-4、HTTP 通过 <code>302</code> 状态码转到去请求对应的长地址  <code>http://www.veryitman.com/</code> 上面了。</p>
+<p>我把 <code>http://www.veryitman.com/</code> 放到百度和微博的短地址生成分别是：</p>
+<figure class="highlight http"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line">// 百度短地址</span><br><span class="line">https://dwz.cn/hnmau4Zs</span><br></pre></td></tr></table></figure>
+
+<figure class="highlight http"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line">// 微博段地址</span><br><span class="line">http://1t.click/aMtD</span><br></pre></td></tr></table></figure>
+
+<p>可以看出百度生成较复杂，首先协议变成了 <code>HTTPS</code>，其次生成代码是 8 位（<code>hnmau4Zs</code>），而微博生成的是 4 位（<code>aMtD</code>）代码。</p>
+<p>短地址码一般都是由26个大写字母  <code>A-Z</code> 、26个小写字母 <code>a-z</code> 和10个数字  <code>0-9</code> 共62个字符随机组合而成，那么可以这样来生成短地址码，我们定义一个62进制，把这62个字符按照10进制数转成62进制数，那么就可以得到每个字符对应的62进制数了。同理，将短地址还原的时候把62进制转换为对应的10进制就可以了。</p>
+<p>根据上面算法，可以看出百度可以支持 62^8 个短地址，微博可以支持 62^4 个短地址。</p>
+<p>关于短地址生成的算法，大家可以用SpringBoot自己撸一个或者去网上找找别人已经实现的。</p>
+<hr>
+<p><strong>活着不是靠泪水搏取同情，而是靠汗水获得掌声~</strong></p>
+<p><img class="lazy" src="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAABGdBTUEAALGPC/xhBQAAADhlWElmTU0AKgAAAAgAAYdpAAQAAAABAAAAGgAAAAAAAqACAAQAAAABAAAAAaADAAQAAAABAAAAAQAAAADa6r/EAAAAC0lEQVQIHWNgAAIAAAUAAY27m/MAAAAASUVORK5CYII=" data-src="/upload/me/qrcode_wx.jpg"></p>
+
+
+
+
+</article>
+
+<div class="related-wrap reveal" id="read-next"><section class="header cap theme"><span>接下来阅读</span></section><section class="body fs14"><a id="next" href="/2019/11/23/OpenSSL-%E5%AE%8C%E6%88%90VS2017%E7%9A%84%E9%85%8D%E7%BD%AE/">OpenSSL: 完成VS2017的配置<span class="note">较早</span></a><div class="line"></div><a id="prev" href="/2019/12/07/%E5%BE%AE%E6%9C%8D%E5%8A%A1-MySQL%E5%9F%BA%E6%9C%AC%E6%93%8D%E4%BD%9C/">微服务: MySQL基本操作<span class="note">较新</span></a></section></div>
+
+
+
+
+
+
+  <div class='related-wrap md reveal' id="comments">
+    <div class='cmt-title cap theme'>
+      快来参与讨论吧
+    </div>
+    <div class='cmt-body valine'>
+      
+
+<div id="valine_container" class="valine_thread"><svg class="loading" style="vertical-align: middle;fill: currentColor;overflow: hidden;" viewBox="0 0 1024 1024" version="1.1" xmlns="http://www.w3.org/2000/svg" p-id="2709"><path d="M832 512c0-176-144-320-320-320V128c211.2 0 384 172.8 384 384h-64zM192 512c0 176 144 320 320 320v64C300.8 896 128 723.2 128 512h64z" p-id="2710"></path></svg></div>
+
+    </div>
+  </div>
+
+
+
+      
+<footer class="page-footer reveal fs12"><hr><div class="text"><p>本博客所有文章除特别声明外，均采用 <a target="_blank" rel="noopener" href="https://creativecommons.org/licenses/by-nc-sa/4.0/">CC BY-NC-SA 4.0</a> 许可协议，转载请注明出处。</p>
+<p>veryitman</p>
+</div></footer>
+
+      <div class='float-panel mobile-only blur' style='display:none'>
+  <button type='button' class='sidebar-toggle mobile' onclick='sidebar.toggle()'>
+    <svg class="icon" style="width: 1em; height: 1em;vertical-align: middle;fill: currentColor;overflow: hidden;" viewBox="0 0 1024 1024" version="1.1" xmlns="http://www.w3.org/2000/svg" p-id="15301"><path d="M566.407 808.3c26.9-0.1 49.3-20.8 51.6-47.6-1.9-27.7-23.9-49.7-51.6-51.6h-412.6c-28.2-1.4-52.6 19.5-55.5 47.6 2.3 26.8 24.6 47.5 51.6 47.6h416.5v4z m309.3-249.9c26.9-0.1 49.3-20.8 51.6-47.6-2.2-26.8-24.6-47.5-51.6-47.6h-721.9c-27.7-2.8-52.5 17.4-55.3 45.1-0.1 0.8-0.1 1.7-0.2 2.5 0.9 27.2 23.6 48.5 50.7 47.6H875.707z m-103.1-245.9c26.9-0.1 49.3-20.8 51.6-47.6-0.4-28.3-23.2-51.1-51.5-51.6h-618.9c-29.5-1.1-54.3 21.9-55.5 51.4v0.2c1.4 27.8 25.2 49.2 53 47.8 0.8 0 1.7-0.1 2.5-0.2h618.8z" p-id="15302"></path><path d="M566.407 808.3c26.9-0.1 49.3-20.8 51.6-47.6-1.9-27.7-23.9-49.7-51.6-51.6h-412.6c-28.2-1.4-52.6 19.5-55.5 47.6 1.9 27.7 23.9 49.7 51.6 51.6h416.5z m309.3-249.9c26.9-0.1 49.3-20.8 51.6-47.6-2.2-26.8-24.6-47.5-51.6-47.6h-721.9c-27.7-2.8-52.5 17.4-55.3 45.1-0.1 0.8-0.1 1.7-0.2 2.5 0.9 27.2 23.6 48.5 50.7 47.6H875.707z m-103.1-245.9c26.9-0.1 49.3-20.8 51.6-47.6-0.4-28.3-23.2-51.1-51.5-51.6h-618.9c-29.5-1.1-54.3 21.9-55.5 51.4v0.2c1.4 27.8 25.2 49.2 53 47.8 0.8 0 1.7-0.1 2.5-0.2h618.8z" p-id="15303"></path></svg>
+  </button>
+</div>
+
+    </div>
+  </div>
+  <div class='scripts'>
+    <script type="text/javascript">
+  stellar = {
+    // 懒加载 css https://github.com/filamentgroup/loadCSS
+    loadCSS: (href, before, media, attributes) => {
+      var doc = window.document;
+      var ss = doc.createElement("link");
+      var ref;
+      if (before) {
+        ref = before;
+      } else {
+        var refs = (doc.body || doc.getElementsByTagName("head")[0]).childNodes;
+        ref = refs[refs.length - 1];
+      }
+      var sheets = doc.styleSheets;
+      if (attributes) {
+        for (var attributeName in attributes) {
+          if (attributes.hasOwnProperty(attributeName)) {
+            ss.setAttribute(attributeName, attributes[attributeName]);
+          }
+        }
+      }
+      ss.rel = "stylesheet";
+      ss.href = href;
+      ss.media = "only x";
+      function ready(cb) {
+        if (doc.body) {
+          return cb();
+        }
+        setTimeout(function () {
+          ready(cb);
+        });
+      }
+      ready(function () {
+        ref.parentNode.insertBefore(ss, before ? ref : ref.nextSibling);
+      });
+      var onloadcssdefined = function (cb) {
+        var resolvedHref = ss.href;
+        var i = sheets.length;
+        while (i--) {
+          if (sheets[i].href === resolvedHref) {
+            return cb();
+          }
+        }
+        setTimeout(function () {
+          onloadcssdefined(cb);
+        });
+      };
+      function loadCB() {
+        if (ss.addEventListener) {
+          ss.removeEventListener("load", loadCB);
+        }
+        ss.media = media || "all";
+      }
+      if (ss.addEventListener) {
+        ss.addEventListener("load", loadCB);
+      }
+      ss.onloadcssdefined = onloadcssdefined;
+      onloadcssdefined(loadCB);
+      return ss;
+    },
+
+    // 从 butterfly 和 volantis 获得灵感
+    loadScript: (src, opt) => new Promise((resolve, reject) => {
+      var script = document.createElement('script');
+      script.src = src;
+      if (opt) {
+        for (let key of Object.keys(opt)) {
+          script[key] = opt[key]
+        }
+      } else {
+        // 默认异步，如果需要同步，第二个参数传入 {} 即可
+        script.async = true
+      }
+      script.onerror = reject
+      script.onload = script.onreadystatechange = function() {
+        const loadState = this.readyState
+        if (loadState && loadState !== 'loaded' && loadState !== 'complete') return
+        script.onload = script.onreadystatechange = null
+        resolve()
+      }
+      document.head.appendChild(script)
+    }),
+
+    // https://github.com/jerryc127/hexo-theme-butterfly
+    jQuery: (fn) => {
+      if (typeof jQuery === 'undefined') {
+        stellar.loadScript(stellar.plugins.jQuery).then(fn)
+      } else {
+        fn()
+      }
+    }
+  };
+  stellar.github = 'https://github.com/xaoxuu/hexo-theme-stellar/tree/1.6.1';
+  stellar.config = {
+    date_suffix: {
+      just: '刚刚',
+      min: '分钟前',
+      hour: '小时前',
+      day: '天前',
+      month: '个月前',
+    },
+  };
+
+  // required plugins (only load if needs)
+  stellar.plugins = {
+    jQuery: 'https://cdn.jsdelivr.net/npm/jquery@3.5.1/dist/jquery.min.js',
+    sitesjs: '/js/plugins/sites.js',
+    friendsjs: '/js/plugins/friends.js',
+  };
+
+  // optional plugins
+  if ('true' == 'true') {
+    stellar.plugins.lazyload = Object.assign({"enable":true,"js":"https://cdn.jsdelivr.net/npm/vanilla-lazyload@17.3.1/dist/lazyload.min.js","transition":"blur"});
+  }
+  if ('true' == 'true') {
+    stellar.plugins.swiper = Object.assign({"enable":true,"css":"https://unpkg.com/swiper@6/swiper-bundle.min.css","js":"https://unpkg.com/swiper@6/swiper-bundle.min.js"});
+  }
+  if ('' == 'true') {
+    stellar.plugins.scrollreveal = Object.assign({"enable":null,"js":"https://cdn.jsdelivr.net/npm/scrollreveal@4.0.9/dist/scrollreveal.min.js","distance":"8px","duration":500,"interval":100,"scale":1});
+  }
+  if ('true' == 'true') {
+    stellar.plugins.preload = Object.assign({"enable":true,"service":"flying_pages","instant_page":"https://cdn.jsdelivr.net/gh/volantis-x/cdn-volantis@4.1.2/js/instant_page.js","flying_pages":"https://cdn.jsdelivr.net/gh/gijo-varghese/flying-pages@2.1.2/flying-pages.min.js"});
+  }
+</script>
+
+<!-- required -->
+
+  
+<script src="/js/main.js" async></script>
+
+
+
+<!-- optional -->
+
+  <script>
+  function getEmojiMaps() {
+    function emoji(path, idx, ext) {
+      return path + "/" + path + "-" + idx + "." + ext;
+    }
+    var emojiMaps = {};
+    for (var i = 1; i <= 54; i++) {
+      emojiMaps['tieba-' + i] = emoji('tieba', i, 'png');
+    }
+    for (var i = 1; i <= 101; i++) {
+      emojiMaps['qq-' + i] = emoji('qq', i, 'gif');
+    }
+    for (var i = 1; i <= 116; i++) {
+      emojiMaps['aru-' + i] = emoji('aru', i, 'gif');
+    }
+    for (var i = 1; i <= 125; i++) {
+      emojiMaps['twemoji-' + i] = emoji('twemoji', i, 'png');
+    }
+    for (var i = 1; i <= 4; i++) {
+      emojiMaps['weibo-' + i] = emoji('weibo', i, 'png');
+    }
+    return emojiMaps;
+  }
+  function load_comment(){
+    if(!document.getElementById("valine_container"))return;
+    stellar.loadScript('https://cdn.jsdelivr.net/gh/XuxuGood/simple-blog-cdn@main/js/Valine.min.js', {defer:true}).then(function () {
+      const el = document.getElementById("valine_container");
+      var path = el.getAttribute('comment_id');
+      const placeholder = "欢迎您留言~";
+      if (!path) {
+        path = decodeURI(window.location.pathname);
+      }
+      var valine = new Valine();
+      valine.init(Object.assign({"js":"https://cdn.jsdelivr.net/gh/XuxuGood/simple-blog-cdn@main/js/Valine.min.js","appId":"FY2C9UCttYNaE1j8umenqdCE-gzGzoHsz","appKey":"4i7xMwkfSEGmEDhi6SceKFxz","placeholder":"欢迎您留言~","requiredFields":["nick","mail"],"enableQQ":true,"recordIP":false,"avatar":"robohash","pageSize":10,"lang":"zh-cn","highlight":true,"mathJax":false,"tagMeta":["博主","小伙伴","访客"],"metaPlaceholder":{"nick":"昵称/QQ号(必填)","mail":"邮箱（必填，完全保密）"},"master":["6783037F2DF30EAB99F9FC256157D875"],"friends":["6783037F2DF30EAB99F9FC256157D875"],"comment_count":true}, {
+        el: '#valine_container',
+        path: path,
+        placeholder: placeholder,
+        emojiCDN: 'https://cdn.jsdelivr.net/gh/volantis-x/cdn-emoji/valine/',
+        emojiMaps: getEmojiMaps(),
+      }));
+    });
+  }
+  window.addEventListener('DOMContentLoaded', (event) => {
+    console.log('DOM fully loaded and parsed');
+    load_comment();
+  });
+
+</script>
+
+
+
+
+<!-- inject -->
+
+
+  </div>
+</body>
+</html>

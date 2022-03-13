@@ -1,0 +1,376 @@
+<!DOCTYPE html>
+<html lang='zh-CN'>
+
+<head>
+  <meta name="generator" content="Hexo 6.0.0">
+  <meta charset="utf-8">
+  
+
+  <meta http-equiv='x-dns-prefetch-control' content='on' />
+  <link rel='dns-prefetch' href='https://cdn.jsdelivr.net'>
+  <link rel="preconnect" href="https://cdn.jsdelivr.net" crossorigin>
+
+  <meta name="renderer" content="webkit">
+  <meta name="force-rendering" content="webkit">
+  <meta http-equiv="X-UA-Compatible" content="IE=Edge,chrome=1">
+  <meta name="HandheldFriendly" content="True" >
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1">
+  <meta name="theme-color" content="#f8f8f8">
+  <title>微服务: 简单的用户名注册和登录 - Veryitman</title>
+
+  
+    <meta name="description" content="内容概要在本篇中我们要完成一个目标：提供注册、登录的接口给前端或者客户端来使用。 涉及到的内容主要有下面几个： 1、SpringBoot 中常用的注解如何使用？ 2、 如何对接口进行单元测试？ 其他相关的微服务文章，可以点击 微服务项目系列文章 了解。 常用注解控制器 Controller 是 Spring 中最基本的组件，主要是处理跟用户交互的，一般每个业务逻辑都会有一个 Controller，">
+<meta property="og:type" content="article">
+<meta property="og:title" content="微服务: 简单的用户名注册和登录">
+<meta property="og:url" content="http://example.com/2019/09/15/%E5%BE%AE%E6%9C%8D%E5%8A%A1-%E7%AE%80%E5%8D%95%E7%9A%84%E7%94%A8%E6%88%B7%E5%90%8D%E6%B3%A8%E5%86%8C%E5%92%8C%E7%99%BB%E5%BD%95/index.html">
+<meta property="og:site_name" content="Veryitman">
+<meta property="og:description" content="内容概要在本篇中我们要完成一个目标：提供注册、登录的接口给前端或者客户端来使用。 涉及到的内容主要有下面几个： 1、SpringBoot 中常用的注解如何使用？ 2、 如何对接口进行单元测试？ 其他相关的微服务文章，可以点击 微服务项目系列文章 了解。 常用注解控制器 Controller 是 Spring 中最基本的组件，主要是处理跟用户交互的，一般每个业务逻辑都会有一个 Controller，">
+<meta property="og:locale" content="zh_CN">
+<meta property="og:image" content="http://example.com/upload/images/2019/09/15/1.png">
+<meta property="og:image" content="http://example.com/upload/images/2019/09/15/2.png">
+<meta property="og:image" content="http://example.com/upload/me/qrcode_wx.jpg">
+<meta property="article:published_time" content="2019-09-15T06:53:53.000Z">
+<meta property="article:modified_time" content="2022-03-09T14:53:24.317Z">
+<meta property="article:author" content="veryitman">
+<meta property="article:tag" content="SpringBoot 微服务 项目">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:image" content="http://example.com/upload/images/2019/09/15/1.png">
+  
+  
+
+  <!-- feed -->
+  
+
+  
+    
+<link rel="stylesheet" href="/css/main.css">
+
+  
+
+  
+
+  
+</head>
+
+<body>
+  
+
+
+  <div class='l_body' id='start'>
+    <aside class='l_left' layout='post'>
+    
+
+
+<header class="header">
+
+<div class="logo-wrap"><a class="title" href="/"><div class="main">Veryitman</div></a></div>
+<nav class="menu dis-select"></nav></header>
+
+<div class="widgets">
+
+<div class="widget-wrap single" id="toc"><div class="widget-header cap dis-select"><span class="name">本文目录</span></div><div class="widget-body fs14"><div class="doc-tree active"><ol class="toc"><li class="toc-item toc-level-2"><a class="toc-link" href="#%E5%86%85%E5%AE%B9%E6%A6%82%E8%A6%81"><span class="toc-text">内容概要</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#%E5%B8%B8%E7%94%A8%E6%B3%A8%E8%A7%A3"><span class="toc-text">常用注解</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#%E7%BC%96%E5%86%99%E5%AE%9E%E4%BD%93"><span class="toc-text">编写实体</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#%E7%BC%96%E5%86%99%E6%8E%A5%E5%8F%A3"><span class="toc-text">编写接口</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#%E5%8D%95%E5%85%83%E6%B5%8B%E8%AF%95"><span class="toc-text">单元测试</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#%E5%89%8D%E7%AB%AF%E8%AF%B7%E6%B1%82"><span class="toc-text">前端请求</span></a></li></ol></div></div></div>
+
+
+</div>
+
+
+    </aside>
+    <div class='l_main'>
+      
+
+      
+
+
+<div class="bread-nav fs12"><div id="breadcrumb"><a class="cap breadcrumb" href="/">主页</a><span class="sep"></span><a class="cap breadcrumb" href="/">文章</a><span class="sep"></span><a class="cap breadcrumb-link" href="/categories/Server/">Server</a></div><div id="post-meta">发布于&nbsp;<time datetime="2019-09-15T06:53:53.000Z">2019-09-15</time></div></div>
+
+<article class='content md post'>
+<h1 class="article-title"><span>微服务: 简单的用户名注册和登录</span></h1>
+<h2 id="内容概要"><a href="#内容概要" class="headerlink" title="内容概要"></a>内容概要</h2><p>在本篇中我们要完成一个目标：<strong>提供注册、登录的接口给前端或者客户端来使用</strong>。</p>
+<p>涉及到的内容主要有下面几个：</p>
+<p><strong>1、</strong>SpringBoot 中常用的注解如何使用？</p>
+<p><strong>2、</strong> 如何对接口进行单元测试？</p>
+<p>其他相关的微服务文章，可以点击 <a target="_blank" rel="noopener" href="http://www.veryitman.com/2019/05/28/%E5%BE%AE%E6%9C%8D%E5%8A%A1%E9%A1%B9%E7%9B%AE%E7%B3%BB%E5%88%97%E6%96%87%E7%AB%A0/">微服务项目系列文章</a> 了解。</p>
+<h2 id="常用注解"><a href="#常用注解" class="headerlink" title="常用注解"></a>常用注解</h2><p>控制器 <code>Controller</code> 是 Spring 中最基本的组件，主要是处理跟用户交互的，一般每个业务逻辑都会有一个 <code>Controller</code>，提供 HTTP 请求接口，用户请求接口进行数据访问。</p>
+<p>跟 Controller 相关的几个注解主要有 <code>@Controller</code>，<code>@RestController</code>，<code>@RequestMapping</code>，<code>@PathVariable</code>，<code>@RequestParam</code>，<code>@GetMapping</code> 等。</p>
+<ul>
+<li><code>@Controller</code>：标注 <code>Controller</code> 类，处理  HTTP 请求。</li>
+<li><code>@RestController</code>：标注 <code>Controller</code> 类，Spring 4 新加注解，相当于 <code>@Controller</code> + <code>@ResponseBody</code> ，主要是为了使  HTTP 请求返回数据格式为 <code>json</code> 格式，正常情况下都是使用这个注解。</li>
+<li><code>@RequestMapping</code>：配置 URL 映射，即请求的地址。</li>
+<li><code>@PathVariable</code>，<code>@RequestParam</code> ，<code>@QueryParam</code> ，<code>@PathParam</code> 注解，可以参考 <a target="_blank" rel="noopener" href="http://www.veryitman.com/2019/08/04/%E5%BE%AE%E6%9C%8D%E5%8A%A1-%E5%AD%A6%E4%B9%A0%E5%87%A0%E4%B8%AA%E5%AE%B9%E6%98%93%E6%B7%B7%E6%B7%86%E7%9A%84URL%E6%B3%A8%E8%A7%A3/">微服务: 学习几个容易混淆的URL注解</a> 这篇文章。</li>
+<li><code>@GetMapping</code>，<code>@PostMapping</code>，<code>@PutMapping</code> 称之为组合注解，它们等价于 <code>@RequestMapping</code> 单独指定映射再指定请求方法。举个例子，如下:</li>
+</ul>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line"><span class="meta">@RequestMapping(value = &quot;/signup/name&quot;, method = RequestMethod.POST)</span></span><br></pre></td></tr></table></figure>
+
+<p>等价于下面的注解：</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line"><span class="meta">@PostMapping(value = &quot;/signup/name&quot;)</span></span><br></pre></td></tr></table></figure>
+
+<h2 id="编写实体"><a href="#编写实体" class="headerlink" title="编写实体"></a>编写实体</h2><p>不管是登录还是注册，都是每个用户进行的操作，我们先定义用户实体类 <code>MSUser</code>，代码如下：</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">import</span> lombok.Data;</span><br><span class="line"><span class="keyword">import</span> java.io.Serializable;</span><br><span class="line"></span><br><span class="line"><span class="meta">@Data</span></span><br><span class="line"><span class="keyword">public</span> <span class="keyword">class</span> <span class="title class_">MSUser</span> <span class="keyword">implements</span> <span class="title class_">Serializable</span> &#123;</span><br><span class="line">    <span class="keyword">private</span> String userID;</span><br><span class="line"></span><br><span class="line">    <span class="comment">// 账号名称，用于登录，不可以修改</span></span><br><span class="line">    <span class="keyword">private</span> String accountName;</span><br><span class="line"></span><br><span class="line">    <span class="comment">// 账号密码</span></span><br><span class="line">    <span class="keyword">private</span> String accountPwd;</span><br><span class="line"></span><br><span class="line">    <span class="comment">// 昵称默认和accountName一致，可以修改</span></span><br><span class="line">    <span class="keyword">private</span> String nickName;</span><br><span class="line"></span><br><span class="line">    <span class="keyword">private</span> Integer age;</span><br><span class="line"></span><br><span class="line">    <span class="keyword">private</span> Integer gender;</span><br><span class="line"></span><br><span class="line">    <span class="comment">// 座右铭；格言；箴言</span></span><br><span class="line">    <span class="keyword">private</span> String motto;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<p>大家可以看到，在实体类  <code>MSUser</code> 中，我们用到了注解 <code>@Data</code> ，该注解来源于 <code>lombok</code>，需要自己在IDEA中安装该插件，安装方法请大家自行搜索解决。</p>
+<p>注解 <code>@Data</code> 相当于给我们自动实现了 <code>Get</code> 、<code>Setter</code>、<code>toString</code>、 <code>equals</code> 和 <code>hashCode</code> 方法以及构造方法，不需要我们自己再去写这些代码。</p>
+<p>HTTP 的请求响应结果，也可以被封装为实体类，如下 <code>MSResponse</code> 就是用来承载HTTP返回的响应。</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">import</span> lombok.Data;</span><br><span class="line"></span><br><span class="line"><span class="meta">@Data</span></span><br><span class="line"><span class="keyword">public</span> <span class="keyword">class</span> <span class="title class_">MSResponse</span>&lt;T&gt; &#123;</span><br><span class="line">    <span class="keyword">private</span> <span class="type">int</span> code;</span><br><span class="line">    <span class="keyword">private</span> String msg;</span><br><span class="line">    <span class="keyword">private</span> T results;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<h2 id="编写接口"><a href="#编写接口" class="headerlink" title="编写接口"></a>编写接口</h2><p>一般来说，用户注册需要将用户的信息存下来，存到数据库中方便后续使用这份数据，这个行为称之为 <code>数据持久化</code> ，现在我们不做这个操作，只是纯粹的提供接口让用户可以注册、登录我们的系统，后续再来考虑和实现数据持久化。</p>
+<p>这个阶段注册功能只提供 <code>用户名+密码</code> 的方式，该请求是个 <code>POST</code> 请求，主要核心代码如下：</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br></pre></td><td class="code"><pre><span class="line"><span class="meta">@RestController</span></span><br><span class="line"><span class="meta">@RequestMapping(value = &quot;signup&quot;)</span></span><br><span class="line"><span class="keyword">public</span> <span class="keyword">class</span> <span class="title class_">MSSignupController</span> &#123;</span><br><span class="line"></span><br><span class="line">    <span class="meta">@CrossOrigin(origins = &#123;&quot;*&quot;&#125;)</span></span><br><span class="line">    <span class="meta">@PostMapping(value = &quot;/name&quot;)</span></span><br><span class="line">    <span class="keyword">public</span> MSResponse <span class="title function_">signup</span><span class="params">(<span class="meta">@RequestParam(value = &quot;username&quot;)</span> String userName, <span class="meta">@RequestParam(value = &quot;userpwd&quot;)</span> String userPwd)</span> &#123;</span><br><span class="line">        <span class="type">MSResponse</span> <span class="variable">response</span> <span class="operator">=</span> <span class="keyword">new</span> <span class="title class_">MSResponse</span>();</span><br><span class="line">        <span class="type">MSUser</span> <span class="variable">user</span> <span class="operator">=</span> <span class="literal">null</span>;</span><br><span class="line">        <span class="keyword">if</span> (<span class="literal">null</span> == userName || <span class="literal">null</span> == userPwd || userName.length() &lt;= <span class="number">0</span> || userPwd.length() &lt;= <span class="number">0</span>) &#123;</span><br><span class="line">            <span class="type">MSResponseEnum</span> <span class="variable">signupError</span> <span class="operator">=</span> MSResponseEnum.SignupInvalidInfo;</span><br><span class="line">            response.setMsg(signupError.getMsg());</span><br><span class="line">            response.setCode(signupError.getCode());</span><br><span class="line">        &#125; <span class="keyword">else</span> &#123;</span><br><span class="line">            response.setCode(MSResponseEnum.SUCCESS.getCode());</span><br><span class="line">            response.setMsg(MSResponseEnum.SUCCESS.getMsg());</span><br><span class="line">            user = MSUserUtil.createUser(userName, userPwd);</span><br><span class="line">        &#125;</span><br><span class="line"></span><br><span class="line">        response.setResults(user);</span><br><span class="line"></span><br><span class="line">        <span class="keyword">return</span> response;</span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<p>同理，登录功能也只提供 <code>用户名+密码</code> 的方式，该请求是个 <code>GET</code> 请求，主要核心代码如下：</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br></pre></td><td class="code"><pre><span class="line"><span class="meta">@RestController</span></span><br><span class="line"><span class="meta">@RequestMapping(value = &quot;signin&quot;)</span></span><br><span class="line"><span class="keyword">public</span> <span class="keyword">class</span> <span class="title class_">MSSigninController</span> &#123;</span><br><span class="line"></span><br><span class="line">    <span class="meta">@CrossOrigin(origins = &#123;&quot;*&quot;, &quot;http://localhost:8082&quot;&#125;)</span></span><br><span class="line">    <span class="meta">@RequestMapping(value = &quot;/name&quot;, method = RequestMethod.GET)</span></span><br><span class="line">    <span class="keyword">public</span> MSResponse <span class="title function_">sigin</span><span class="params">(<span class="meta">@RequestParam(value = &quot;username&quot;)</span> String userName, <span class="meta">@RequestParam(value = &quot;userpwd&quot;)</span> String userPwd)</span> &#123;</span><br><span class="line">        <span class="type">MSResponse</span> <span class="variable">response</span> <span class="operator">=</span> <span class="keyword">new</span> <span class="title class_">MSResponse</span>();</span><br><span class="line">        <span class="type">MSUser</span> <span class="variable">user</span> <span class="operator">=</span> <span class="literal">null</span>;</span><br><span class="line">        <span class="keyword">if</span> (<span class="literal">null</span> == userName || <span class="literal">null</span> == userPwd || userName.length() &lt;= <span class="number">0</span> || userPwd.length() &lt;= <span class="number">0</span>) &#123;</span><br><span class="line">            <span class="type">MSResponseEnum</span> <span class="variable">responseEnum</span> <span class="operator">=</span> MSResponseEnum.Login4SiginInvalidInfo;</span><br><span class="line">            response.setCode(responseEnum.getCode());</span><br><span class="line">            response.setMsg(responseEnum.getMsg());</span><br><span class="line">        &#125; <span class="keyword">else</span> &#123;</span><br><span class="line">            user = MSUserUtil.createUser(userName, userPwd);</span><br><span class="line">            <span class="type">MSResponseEnum</span> <span class="variable">rspEnum</span> <span class="operator">=</span> MSResponseEnum.SUCCESS;</span><br><span class="line">            response.setCode(rspEnum.getCode());</span><br><span class="line">            response.setMsg(rspEnum.getMsg());</span><br><span class="line">        &#125;</span><br><span class="line"></span><br><span class="line">        response.setResults(user);</span><br><span class="line"></span><br><span class="line">        <span class="keyword">return</span> response;</span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<h2 id="单元测试"><a href="#单元测试" class="headerlink" title="单元测试"></a>单元测试</h2><p>在 IDEA 中新建 SpringBoot 工程后，默认就会创建一个测试目录。</p>
+<p>即 <code>test</code> 目录下会有 <code>SpringbootApplicationTests</code> 类文件，其中 pom 文件中已经添加好了 <code>spring-boot-starter-test</code> 启动器。</p>
+<figure class="highlight xml"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br></pre></td><td class="code"><pre><span class="line"><span class="tag">&lt;<span class="name">dependency</span>&gt;</span></span><br><span class="line">	<span class="tag">&lt;<span class="name">groupId</span>&gt;</span>org.springframework.boot<span class="tag">&lt;/<span class="name">groupId</span>&gt;</span></span><br><span class="line">	<span class="tag">&lt;<span class="name">artifactId</span>&gt;</span>spring-boot-starter-test<span class="tag">&lt;/<span class="name">artifactId</span>&gt;</span></span><br><span class="line">	<span class="tag">&lt;<span class="name">scope</span>&gt;</span>test<span class="tag">&lt;/<span class="name">scope</span>&gt;</span></span><br><span class="line"><span class="tag">&lt;/<span class="name">dependency</span>&gt;</span></span><br></pre></td></tr></table></figure>
+
+<p><code>springboot－test</code> 包中已经包括了 <code>junit</code> 和 <code>mockito</code> 类库，不需要我们额外再去添加这些库。</p>
+<p>借助于 <code>MockMvc</code> 我们可以对接口进行简单的单元测试了。主要的测试核心代码如下：</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br><span class="line">39</span><br><span class="line">40</span><br><span class="line">41</span><br><span class="line">42</span><br><span class="line">43</span><br><span class="line">44</span><br></pre></td><td class="code"><pre><span class="line"><span class="meta">@RunWith(SpringRunner.class)</span></span><br><span class="line"><span class="meta">@AutoConfigureMockMvc</span></span><br><span class="line"><span class="meta">@SpringBootTest</span></span><br><span class="line"><span class="keyword">public</span> <span class="keyword">class</span> <span class="title class_">SpringbootApplicationTests</span> &#123;</span><br><span class="line"></span><br><span class="line">    <span class="meta">@Autowired</span></span><br><span class="line">    <span class="keyword">private</span> MockMvc mvc;</span><br><span class="line"></span><br><span class="line">    <span class="comment">/* 登录的接口测试，GET 请求 */</span></span><br><span class="line">    <span class="meta">@Test</span></span><br><span class="line">    <span class="keyword">public</span> <span class="keyword">void</span> <span class="title function_">signinTest</span><span class="params">()</span> <span class="keyword">throws</span> Exception &#123;</span><br><span class="line">        <span class="comment">//直接写接口的映射地址就可以了，不需要写host和port</span></span><br><span class="line">        <span class="type">String</span> <span class="variable">url</span> <span class="operator">=</span> <span class="string">&quot;/signin/name?username=itman&amp;userpwd=123&quot;</span>;</span><br><span class="line"></span><br><span class="line">        <span class="type">MvcResult</span> <span class="variable">mvcResult</span> <span class="operator">=</span> mvc.perform(MockMvcRequestBuilders.get(url)</span><br><span class="line">                .accept(MediaType.APPLICATION_JSON)) <span class="comment">//断言返回结果是json</span></span><br><span class="line">                .andReturn();</span><br><span class="line"></span><br><span class="line">        <span class="type">MockHttpServletResponse</span> <span class="variable">response</span> <span class="operator">=</span> mvcResult.getResponse();</span><br><span class="line">        <span class="comment">//HTTP响应的返回码</span></span><br><span class="line">        <span class="type">int</span> <span class="variable">status</span> <span class="operator">=</span> response.getStatus();</span><br><span class="line">        <span class="comment">//HTTP响应的内容</span></span><br><span class="line">        <span class="type">String</span> <span class="variable">contentAsString</span> <span class="operator">=</span> response.getContentAsString();</span><br><span class="line"></span><br><span class="line">        System.err.println(status);</span><br><span class="line">        System.err.println(contentAsString);</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    <span class="comment">/* 注册的接口测试，POST 请求 */</span></span><br><span class="line">    <span class="meta">@Test</span></span><br><span class="line">    <span class="keyword">public</span> <span class="keyword">void</span> <span class="title function_">signupTest</span><span class="params">()</span> <span class="keyword">throws</span> Exception &#123;</span><br><span class="line">        <span class="type">String</span> <span class="variable">url</span> <span class="operator">=</span> <span class="string">&quot;/signup/name&quot;</span>;</span><br><span class="line">        <span class="type">MvcResult</span> <span class="variable">mvcResult</span> <span class="operator">=</span> mvc.perform(MockMvcRequestBuilders.post(url)</span><br><span class="line">                .accept(MediaType.APPLICATION_JSON)</span><br><span class="line">                .param(<span class="string">&quot;username&quot;</span>, <span class="string">&quot;itman&quot;</span>)</span><br><span class="line">                .param(<span class="string">&quot;userpwd&quot;</span>, <span class="string">&quot;123567&quot;</span>))</span><br><span class="line">                .andReturn();</span><br><span class="line">        <span class="type">MockHttpServletResponse</span> <span class="variable">response</span> <span class="operator">=</span> mvcResult.getResponse();</span><br><span class="line">        <span class="type">int</span> <span class="variable">status</span> <span class="operator">=</span> response.getStatus();</span><br><span class="line">        <span class="type">String</span> <span class="variable">contentAsString</span> <span class="operator">=</span> response.getContentAsString();</span><br><span class="line">        System.err.println(status);</span><br><span class="line">        System.err.println(contentAsString);</span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<p>在上面编写的测试代码中，解释一下几个用到的注解和类。</p>
+<p><strong>1、@RunWith(SpringRunner.class)</strong> ，<code>SpringRunner</code> 是 <code>SpringJUnit4ClassRunner</code> 的简写，用于提供测试时的 Spring 应用上下文信息。</p>
+<p><strong>2、MockMvc</strong> ，<code>MockMvc</code> 是测试 Spring MVC 应用程序的主要入口，为我们的测试提供了一个模拟的应用上下文的环境。</p>
+<p><strong>3、@Autowired</strong>，可以对类成员变量、方法及构造函数进行标注，完成自动装配。不需要手动创建该对象，这个跟 Spring 的 IOC 机制有关。</p>
+<p>代码写好之后，就可以进行单元测试了，直接在 <code>signinTest</code> 或者 <code>signupTest</code> 右键运行即可，不需要启动整个工程。如下图所示：</p>
+<p><img class="lazy" src="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAABGdBTUEAALGPC/xhBQAAADhlWElmTU0AKgAAAAgAAYdpAAQAAAABAAAAGgAAAAAAAqACAAQAAAABAAAAAaADAAQAAAABAAAAAQAAAADa6r/EAAAAC0lEQVQIHWNgAAIAAAUAAY27m/MAAAAASUVORK5CYII=" data-src="/upload/images/2019/09/15/1.png" alt="1568529858131"></p>
+<p>运行之后，可以在输出的控制台中看到信息：</p>
+<p><img class="lazy" src="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAABGdBTUEAALGPC/xhBQAAADhlWElmTU0AKgAAAAgAAYdpAAQAAAABAAAAGgAAAAAAAqACAAQAAAABAAAAAaADAAQAAAABAAAAAQAAAADa6r/EAAAAC0lEQVQIHWNgAAIAAAUAAY27m/MAAAAASUVORK5CYII=" data-src="/upload/images/2019/09/15/2.png" alt="1568529940948"></p>
+<h2 id="前端请求"><a href="#前端请求" class="headerlink" title="前端请求"></a>前端请求</h2><p>在 <a target="_blank" rel="noopener" href="http://www.veryitman.com/2019/08/31/%E8%B7%A8%E5%9F%9F%E5%92%8COPTIONS%E8%BF%99%E5%AF%B9%E6%AC%A2%E5%96%9C%E5%86%A4%E5%AE%B6/">跨域和OPTIONS这对欢喜冤家</a> 和 <a target="_blank" rel="noopener" href="http://www.veryitman.com/2019/09/08/%E5%87%8F%E5%B0%91%E8%B7%A8%E5%9F%9F%E4%B8%AD%E7%9A%84OPTIONS%E8%AF%B7%E6%B1%82/">减少跨域中的OPTIONS请求</a> 这两篇文章中，已经跟大家分享过如何在前端页面中进行接口访问了，其中也重点讲解了如何在 SpringBoot 中解决跨域问题，这里不再赘述，感兴趣的朋友可以去看看这两篇文章。</p>
+<p>文中的完整示例代码都在 <a target="_blank" rel="noopener" href="https://github.com/veryitman/MSTutorial">Github</a> 上面，需要的可以自行clone，感谢您的阅读。</p>
+<hr>
+<p><strong>临渊羡鱼不如按退而结网~</strong></p>
+<p><img class="lazy" src="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAABGdBTUEAALGPC/xhBQAAADhlWElmTU0AKgAAAAgAAYdpAAQAAAABAAAAGgAAAAAAAqACAAQAAAABAAAAAaADAAQAAAABAAAAAQAAAADa6r/EAAAAC0lEQVQIHWNgAAIAAAUAAY27m/MAAAAASUVORK5CYII=" data-src="/upload/me/qrcode_wx.jpg"></p>
+
+
+
+
+</article>
+
+<div class="related-wrap reveal" id="read-next"><section class="header cap theme"><span>接下来阅读</span></section><section class="body fs14"><a id="next" href="/2019/09/08/%E5%87%8F%E5%B0%91%E8%B7%A8%E5%9F%9F%E4%B8%AD%E7%9A%84OPTIONS%E8%AF%B7%E6%B1%82/">减少跨域中的OPTIONS请求<span class="note">较早</span></a><div class="line"></div><a id="prev" href="/2019/09/22/%E5%BE%AE%E6%9C%8D%E5%8A%A1-Swagger%E8%AE%A9%E4%BD%A0%E5%8F%AF%E4%BB%A5%E5%A4%9A%E6%8A%BD%E4%B8%80%E6%94%AF%E7%83%9F/">微服务: Swagger让你可以多抽一支烟<span class="note">较新</span></a></section></div>
+
+
+
+
+
+
+  <div class='related-wrap md reveal' id="comments">
+    <div class='cmt-title cap theme'>
+      快来参与讨论吧
+    </div>
+    <div class='cmt-body valine'>
+      
+
+<div id="valine_container" class="valine_thread"><svg class="loading" style="vertical-align: middle;fill: currentColor;overflow: hidden;" viewBox="0 0 1024 1024" version="1.1" xmlns="http://www.w3.org/2000/svg" p-id="2709"><path d="M832 512c0-176-144-320-320-320V128c211.2 0 384 172.8 384 384h-64zM192 512c0 176 144 320 320 320v64C300.8 896 128 723.2 128 512h64z" p-id="2710"></path></svg></div>
+
+    </div>
+  </div>
+
+
+
+      
+<footer class="page-footer reveal fs12"><hr><div class="text"><p>本博客所有文章除特别声明外，均采用 <a target="_blank" rel="noopener" href="https://creativecommons.org/licenses/by-nc-sa/4.0/">CC BY-NC-SA 4.0</a> 许可协议，转载请注明出处。</p>
+<p>veryitman</p>
+</div></footer>
+
+      <div class='float-panel mobile-only blur' style='display:none'>
+  <button type='button' class='sidebar-toggle mobile' onclick='sidebar.toggle()'>
+    <svg class="icon" style="width: 1em; height: 1em;vertical-align: middle;fill: currentColor;overflow: hidden;" viewBox="0 0 1024 1024" version="1.1" xmlns="http://www.w3.org/2000/svg" p-id="15301"><path d="M566.407 808.3c26.9-0.1 49.3-20.8 51.6-47.6-1.9-27.7-23.9-49.7-51.6-51.6h-412.6c-28.2-1.4-52.6 19.5-55.5 47.6 2.3 26.8 24.6 47.5 51.6 47.6h416.5v4z m309.3-249.9c26.9-0.1 49.3-20.8 51.6-47.6-2.2-26.8-24.6-47.5-51.6-47.6h-721.9c-27.7-2.8-52.5 17.4-55.3 45.1-0.1 0.8-0.1 1.7-0.2 2.5 0.9 27.2 23.6 48.5 50.7 47.6H875.707z m-103.1-245.9c26.9-0.1 49.3-20.8 51.6-47.6-0.4-28.3-23.2-51.1-51.5-51.6h-618.9c-29.5-1.1-54.3 21.9-55.5 51.4v0.2c1.4 27.8 25.2 49.2 53 47.8 0.8 0 1.7-0.1 2.5-0.2h618.8z" p-id="15302"></path><path d="M566.407 808.3c26.9-0.1 49.3-20.8 51.6-47.6-1.9-27.7-23.9-49.7-51.6-51.6h-412.6c-28.2-1.4-52.6 19.5-55.5 47.6 1.9 27.7 23.9 49.7 51.6 51.6h416.5z m309.3-249.9c26.9-0.1 49.3-20.8 51.6-47.6-2.2-26.8-24.6-47.5-51.6-47.6h-721.9c-27.7-2.8-52.5 17.4-55.3 45.1-0.1 0.8-0.1 1.7-0.2 2.5 0.9 27.2 23.6 48.5 50.7 47.6H875.707z m-103.1-245.9c26.9-0.1 49.3-20.8 51.6-47.6-0.4-28.3-23.2-51.1-51.5-51.6h-618.9c-29.5-1.1-54.3 21.9-55.5 51.4v0.2c1.4 27.8 25.2 49.2 53 47.8 0.8 0 1.7-0.1 2.5-0.2h618.8z" p-id="15303"></path></svg>
+  </button>
+</div>
+
+    </div>
+  </div>
+  <div class='scripts'>
+    <script type="text/javascript">
+  stellar = {
+    // 懒加载 css https://github.com/filamentgroup/loadCSS
+    loadCSS: (href, before, media, attributes) => {
+      var doc = window.document;
+      var ss = doc.createElement("link");
+      var ref;
+      if (before) {
+        ref = before;
+      } else {
+        var refs = (doc.body || doc.getElementsByTagName("head")[0]).childNodes;
+        ref = refs[refs.length - 1];
+      }
+      var sheets = doc.styleSheets;
+      if (attributes) {
+        for (var attributeName in attributes) {
+          if (attributes.hasOwnProperty(attributeName)) {
+            ss.setAttribute(attributeName, attributes[attributeName]);
+          }
+        }
+      }
+      ss.rel = "stylesheet";
+      ss.href = href;
+      ss.media = "only x";
+      function ready(cb) {
+        if (doc.body) {
+          return cb();
+        }
+        setTimeout(function () {
+          ready(cb);
+        });
+      }
+      ready(function () {
+        ref.parentNode.insertBefore(ss, before ? ref : ref.nextSibling);
+      });
+      var onloadcssdefined = function (cb) {
+        var resolvedHref = ss.href;
+        var i = sheets.length;
+        while (i--) {
+          if (sheets[i].href === resolvedHref) {
+            return cb();
+          }
+        }
+        setTimeout(function () {
+          onloadcssdefined(cb);
+        });
+      };
+      function loadCB() {
+        if (ss.addEventListener) {
+          ss.removeEventListener("load", loadCB);
+        }
+        ss.media = media || "all";
+      }
+      if (ss.addEventListener) {
+        ss.addEventListener("load", loadCB);
+      }
+      ss.onloadcssdefined = onloadcssdefined;
+      onloadcssdefined(loadCB);
+      return ss;
+    },
+
+    // 从 butterfly 和 volantis 获得灵感
+    loadScript: (src, opt) => new Promise((resolve, reject) => {
+      var script = document.createElement('script');
+      script.src = src;
+      if (opt) {
+        for (let key of Object.keys(opt)) {
+          script[key] = opt[key]
+        }
+      } else {
+        // 默认异步，如果需要同步，第二个参数传入 {} 即可
+        script.async = true
+      }
+      script.onerror = reject
+      script.onload = script.onreadystatechange = function() {
+        const loadState = this.readyState
+        if (loadState && loadState !== 'loaded' && loadState !== 'complete') return
+        script.onload = script.onreadystatechange = null
+        resolve()
+      }
+      document.head.appendChild(script)
+    }),
+
+    // https://github.com/jerryc127/hexo-theme-butterfly
+    jQuery: (fn) => {
+      if (typeof jQuery === 'undefined') {
+        stellar.loadScript(stellar.plugins.jQuery).then(fn)
+      } else {
+        fn()
+      }
+    }
+  };
+  stellar.github = 'https://github.com/xaoxuu/hexo-theme-stellar/tree/1.6.1';
+  stellar.config = {
+    date_suffix: {
+      just: '刚刚',
+      min: '分钟前',
+      hour: '小时前',
+      day: '天前',
+      month: '个月前',
+    },
+  };
+
+  // required plugins (only load if needs)
+  stellar.plugins = {
+    jQuery: 'https://cdn.jsdelivr.net/npm/jquery@3.5.1/dist/jquery.min.js',
+    sitesjs: '/js/plugins/sites.js',
+    friendsjs: '/js/plugins/friends.js',
+  };
+
+  // optional plugins
+  if ('true' == 'true') {
+    stellar.plugins.lazyload = Object.assign({"enable":true,"js":"https://cdn.jsdelivr.net/npm/vanilla-lazyload@17.3.1/dist/lazyload.min.js","transition":"blur"});
+  }
+  if ('true' == 'true') {
+    stellar.plugins.swiper = Object.assign({"enable":true,"css":"https://unpkg.com/swiper@6/swiper-bundle.min.css","js":"https://unpkg.com/swiper@6/swiper-bundle.min.js"});
+  }
+  if ('' == 'true') {
+    stellar.plugins.scrollreveal = Object.assign({"enable":null,"js":"https://cdn.jsdelivr.net/npm/scrollreveal@4.0.9/dist/scrollreveal.min.js","distance":"8px","duration":500,"interval":100,"scale":1});
+  }
+  if ('true' == 'true') {
+    stellar.plugins.preload = Object.assign({"enable":true,"service":"flying_pages","instant_page":"https://cdn.jsdelivr.net/gh/volantis-x/cdn-volantis@4.1.2/js/instant_page.js","flying_pages":"https://cdn.jsdelivr.net/gh/gijo-varghese/flying-pages@2.1.2/flying-pages.min.js"});
+  }
+</script>
+
+<!-- required -->
+
+  
+<script src="/js/main.js" async></script>
+
+
+
+<!-- optional -->
+
+  <script>
+  function getEmojiMaps() {
+    function emoji(path, idx, ext) {
+      return path + "/" + path + "-" + idx + "." + ext;
+    }
+    var emojiMaps = {};
+    for (var i = 1; i <= 54; i++) {
+      emojiMaps['tieba-' + i] = emoji('tieba', i, 'png');
+    }
+    for (var i = 1; i <= 101; i++) {
+      emojiMaps['qq-' + i] = emoji('qq', i, 'gif');
+    }
+    for (var i = 1; i <= 116; i++) {
+      emojiMaps['aru-' + i] = emoji('aru', i, 'gif');
+    }
+    for (var i = 1; i <= 125; i++) {
+      emojiMaps['twemoji-' + i] = emoji('twemoji', i, 'png');
+    }
+    for (var i = 1; i <= 4; i++) {
+      emojiMaps['weibo-' + i] = emoji('weibo', i, 'png');
+    }
+    return emojiMaps;
+  }
+  function load_comment(){
+    if(!document.getElementById("valine_container"))return;
+    stellar.loadScript('https://cdn.jsdelivr.net/gh/XuxuGood/simple-blog-cdn@main/js/Valine.min.js', {defer:true}).then(function () {
+      const el = document.getElementById("valine_container");
+      var path = el.getAttribute('comment_id');
+      const placeholder = "欢迎您留言~";
+      if (!path) {
+        path = decodeURI(window.location.pathname);
+      }
+      var valine = new Valine();
+      valine.init(Object.assign({"js":"https://cdn.jsdelivr.net/gh/XuxuGood/simple-blog-cdn@main/js/Valine.min.js","appId":"FY2C9UCttYNaE1j8umenqdCE-gzGzoHsz","appKey":"4i7xMwkfSEGmEDhi6SceKFxz","placeholder":"欢迎您留言~","requiredFields":["nick","mail"],"enableQQ":true,"recordIP":false,"avatar":"robohash","pageSize":10,"lang":"zh-cn","highlight":true,"mathJax":false,"tagMeta":["博主","小伙伴","访客"],"metaPlaceholder":{"nick":"昵称/QQ号(必填)","mail":"邮箱（必填，完全保密）"},"master":["6783037F2DF30EAB99F9FC256157D875"],"friends":["6783037F2DF30EAB99F9FC256157D875"],"comment_count":true}, {
+        el: '#valine_container',
+        path: path,
+        placeholder: placeholder,
+        emojiCDN: 'https://cdn.jsdelivr.net/gh/volantis-x/cdn-emoji/valine/',
+        emojiMaps: getEmojiMaps(),
+      }));
+    });
+  }
+  window.addEventListener('DOMContentLoaded', (event) => {
+    console.log('DOM fully loaded and parsed');
+    load_comment();
+  });
+
+</script>
+
+
+
+
+<!-- inject -->
+
+
+  </div>
+</body>
+</html>

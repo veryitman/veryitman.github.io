@@ -1,0 +1,443 @@
+<!DOCTYPE html>
+<html lang='zh-CN'>
+
+<head>
+  <meta name="generator" content="Hexo 6.0.0">
+  <meta charset="utf-8">
+  
+
+  <meta http-equiv='x-dns-prefetch-control' content='on' />
+  <link rel='dns-prefetch' href='https://cdn.jsdelivr.net'>
+  <link rel="preconnect" href="https://cdn.jsdelivr.net" crossorigin>
+
+  <meta name="renderer" content="webkit">
+  <meta name="force-rendering" content="webkit">
+  <meta http-equiv="X-UA-Compatible" content="IE=Edge,chrome=1">
+  <meta name="HandheldFriendly" content="True" >
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1">
+  <meta name="theme-color" content="#f8f8f8">
+  <title>iOS: 谈谈 frame 和 bounds - Veryitman</title>
+
+  
+    <meta name="description" content="起因大家知道, 我们可以设置 view 的四个角或者其中一个或者几个为圆角. 使用的方法: 123+ (instancetype)bezierPathWithRoundedRect:(CGRect)rect 			byRoundingCorners:(UIRectCorner)corners 			cornerRadii:(CGSize)cornerRadii;  拖好界面元素之后, 在代码中来修">
+<meta property="og:type" content="article">
+<meta property="og:title" content="iOS: 谈谈 frame 和 bounds">
+<meta property="og:url" content="http://example.com/2016/10/22/iOS-%E8%B0%88%E8%B0%88-frame-%E5%92%8C-bounds/index.html">
+<meta property="og:site_name" content="Veryitman">
+<meta property="og:description" content="起因大家知道, 我们可以设置 view 的四个角或者其中一个或者几个为圆角. 使用的方法: 123+ (instancetype)bezierPathWithRoundedRect:(CGRect)rect 			byRoundingCorners:(UIRectCorner)corners 			cornerRadii:(CGSize)cornerRadii;  拖好界面元素之后, 在代码中来修">
+<meta property="og:locale" content="zh_CN">
+<meta property="og:image" content="http://example.com/upload/images/2016/10/23/02.png">
+<meta property="og:image" content="http://example.com/upload/images/2016/10/23/01.png">
+<meta property="og:image" content="http://example.com/upload/images/2016/10/23/02.png">
+<meta property="og:image" content="http://example.com/upload/images/2016/10/23/04.png">
+<meta property="og:image" content="http://example.com/upload/images/2016/10/23/03.jpg">
+<meta property="og:image" content="http://example.com/upload/images/2016/10/23/05.png">
+<meta property="og:image" content="http://example.com/upload/images/2016/10/23/06.png">
+<meta property="og:image" content="http://example.com/upload/images/2016/10/23/07.png">
+<meta property="og:image" content="http://example.com/upload/me/qrcode_wx.jpg">
+<meta property="article:published_time" content="2016-10-22T12:46:59.000Z">
+<meta property="article:modified_time" content="2022-03-09T14:53:24.352Z">
+<meta property="article:author" content="veryitman">
+<meta property="article:tag" content="iOS frame bounds">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:image" content="http://example.com/upload/images/2016/10/23/02.png">
+  
+  
+
+  <!-- feed -->
+  
+
+  
+    
+<link rel="stylesheet" href="/css/main.css">
+
+  
+
+  
+
+  
+</head>
+
+<body>
+  
+
+
+  <div class='l_body' id='start'>
+    <aside class='l_left' layout='post'>
+    
+
+
+<header class="header">
+
+<div class="logo-wrap"><a class="title" href="/"><div class="main">Veryitman</div></a></div>
+<nav class="menu dis-select"></nav></header>
+
+<div class="widgets">
+
+<div class="widget-wrap single" id="toc"><div class="widget-header cap dis-select"><span class="name">本文目录</span></div><div class="widget-body fs14"><div class="doc-tree active"><ol class="toc"><li class="toc-item toc-level-2"><a class="toc-link" href="#%E8%B5%B7%E5%9B%A0"><span class="toc-text">起因</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#%E8%AE%BE%E7%BD%AE%E5%9C%86%E8%A7%92"><span class="toc-text">设置圆角</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#VC-%E7%94%9F%E5%91%BD%E5%91%A8%E6%9C%9F%E5%87%BD%E6%95%B0"><span class="toc-text">VC 生命周期函数</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#frame-%E5%92%8C-bounds"><span class="toc-text">frame 和 bounds</span></a><ol class="toc-child"><li class="toc-item toc-level-3"><a class="toc-link" href="#%E6%A6%82%E5%BF%B5"><span class="toc-text">概念</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#%E6%95%88%E6%9E%9C%E5%9B%BE"><span class="toc-text">效果图:</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#%E5%AE%8C%E6%95%B4%E4%BB%A3%E7%A0%81"><span class="toc-text">完整代码</span></a></li></ol></li><li class="toc-item toc-level-2"><a class="toc-link" href="#%E6%80%BB%E7%BB%93"><span class="toc-text">总结</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#%E9%99%84%E5%BD%95"><span class="toc-text">附录</span></a></li></ol></div></div></div>
+
+
+</div>
+
+
+    </aside>
+    <div class='l_main'>
+      
+
+      
+
+
+<div class="bread-nav fs12"><div id="breadcrumb"><a class="cap breadcrumb" href="/">主页</a><span class="sep"></span><a class="cap breadcrumb" href="/">文章</a><span class="sep"></span><a class="cap breadcrumb-link" href="/categories/iOS/">iOS</a></div><div id="post-meta">发布于&nbsp;<time datetime="2016-10-22T12:46:59.000Z">2016-10-22</time></div></div>
+
+<article class='content md post'>
+<h1 class="article-title"><span>iOS: 谈谈 frame 和 bounds</span></h1>
+<h2 id="起因"><a href="#起因" class="headerlink" title="起因"></a>起因</h2><p>大家知道, 我们可以设置 view 的四个角或者其中一个或者几个为圆角.</p>
+<p>使用的方法:</p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line">+ (instancetype)bezierPathWithRoundedRect:(CGRect)rect </span><br><span class="line">			byRoundingCorners:(UIRectCorner)corners </span><br><span class="line">			cornerRadii:(CGSize)cornerRadii;</span><br></pre></td></tr></table></figure>
+
+<p>拖好界面元素之后, 在代码中来修改其为圆角, 居然失败了.</p>
+<p>想要的效果是这样的:<br><img class="lazy" src="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAABGdBTUEAALGPC/xhBQAAADhlWElmTU0AKgAAAAgAAYdpAAQAAAABAAAAGgAAAAAAAqACAAQAAAABAAAAAaADAAQAAAABAAAAAQAAAADa6r/EAAAAC0lEQVQIHWNgAAIAAAUAAY27m/MAAAAASUVORK5CYII=" data-src="/upload/images/2016/10/23/02.png" alt="1"></p>
+<p>但是最终是这样的:<br><img class="lazy" src="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAABGdBTUEAALGPC/xhBQAAADhlWElmTU0AKgAAAAgAAYdpAAQAAAABAAAAGgAAAAAAAqACAAQAAAABAAAAAaADAAQAAAABAAAAAQAAAADa6r/EAAAAC0lEQVQIHWNgAAIAAAUAAY27m/MAAAAASUVORK5CYII=" data-src="/upload/images/2016/10/23/01.png" alt="1"></p>
+<p>于是总结了一下, 分享给大家.</p>
+<h2 id="设置圆角"><a href="#设置圆角" class="headerlink" title="设置圆角"></a>设置圆角</h2><p>这里分两种情况.</p>
+<p><strong>第一种:</strong> 只放置控件, 不设置约束.</p>
+<p>1.storyboard 中拖好控件.</p>
+<p>注意: 这里我并没有设置任何约束.</p>
+<p>2.vc 代码</p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br></pre></td><td class="code"><pre><span class="line">@interface ViewController ()</span><br><span class="line"></span><br><span class="line">@property (strong, nonatomic) IBOutlet UILabel *lb;</span><br><span class="line"></span><br><span class="line">@end</span><br><span class="line"></span><br><span class="line">@implementation ViewController</span><br><span class="line"></span><br><span class="line">- (void)viewDidLoad</span><br><span class="line">&#123;</span><br><span class="line">    [super viewDidLoad];</span><br><span class="line">    </span><br><span class="line">    [self changeLbCorner];</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line">- (void)changeLbCorner</span><br><span class="line">&#123;</span><br><span class="line">   UIBezierPath *maskPath = [UIBezierPath bezierPathWithRoundedRect:self.lb.frame</span><br><span class="line">                                                  byRoundingCorners:UIRectCornerTopRight|UIRectCornerBottomRight</span><br><span class="line">                                                        cornerRadii:CGSizeMake(7, 7)];</span><br><span class="line">   CAShapeLayer *maskLayer = [[CAShapeLayer alloc] init];</span><br><span class="line">   maskLayer.frame = _lb.bounds;</span><br><span class="line">   maskLayer.path = maskPath.CGPath;</span><br><span class="line">   self.lb.layer.mask  = maskLayer;</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line">@end</span><br></pre></td></tr></table></figure>
+
+<p>代码编译运行到模拟器(iphone6), 看不到任何东西.</p>
+<p>log 日志显示 lb 的信息如下:</p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line">[ViewController viewDidLoad]:</span><br><span class="line">lb.bounds: &#123;&#123;0, 0&#125;, &#123;136, 39&#125;&#125; </span><br><span class="line">lb.frame: &#123;&#123;39, 89&#125;, &#123;136, 39&#125;&#125;</span><br></pre></td></tr></table></figure>
+
+<p>位置信息是正确的, 咨询检查发现是参数传入错误, 修改 changeLbCorner 方法:</p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br></pre></td><td class="code"><pre><span class="line">- (void)changeLbCorner</span><br><span class="line">&#123;</span><br><span class="line">    UIBezierPath *maskPath = [UIBezierPath bezierPathWithRoundedRect:self.lb.bounds</span><br><span class="line">                                                   byRoundingCorners:UIRectCornerTopRight|UIRectCornerBottomRight</span><br><span class="line">                                                         cornerRadii:CGSizeMake(7, 7)];</span><br><span class="line">    CAShapeLayer *maskLayer = [[CAShapeLayer alloc] init];</span><br><span class="line">    maskLayer.frame = _lb.bounds;</span><br><span class="line">    maskLayer.path = maskPath.CGPath;</span><br><span class="line">    self.lb.layer.mask  = maskLayer;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<p>这里只是将 <code>self.lb.frame</code> 改成了 <code>self.lb.bounds</code>.</p>
+<p>再次运行可以看到效果:<br><img class="lazy" src="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAABGdBTUEAALGPC/xhBQAAADhlWElmTU0AKgAAAAgAAYdpAAQAAAABAAAAGgAAAAAAAqACAAQAAAABAAAAAaADAAQAAAABAAAAAQAAAADa6r/EAAAAC0lEQVQIHWNgAAIAAAUAAY27m/MAAAAASUVORK5CYII=" data-src="/upload/images/2016/10/23/02.png" alt="1"></p>
+<p><strong>第二种:</strong> 放置控件并设置约束.</p>
+<p>1.设置 lb 距离父 view 左边和上边的约束.<br>2.运行上面的代码, 发现, lb 并没有被设置为圆角.<br>并且 lb 的宽度和高度变小了, 变成了文字的实际的宽高.<br><img class="lazy" src="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAABGdBTUEAALGPC/xhBQAAADhlWElmTU0AKgAAAAgAAYdpAAQAAAABAAAAGgAAAAAAAqACAAQAAAABAAAAAaADAAQAAAABAAAAAQAAAADa6r/EAAAAC0lEQVQIHWNgAAIAAAUAAY27m/MAAAAASUVORK5CYII=" data-src="/upload/images/2016/10/23/04.png" alt="1"></p>
+<p>看 log:</p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line">[ViewController viewDidLoad]:</span><br><span class="line">lb.bounds: &#123;&#123;0, 0&#125;, &#123;136, 39&#125;&#125; </span><br><span class="line">lb.frame: &#123;&#123;39, 89&#125;, &#123;136, 39&#125;&#125;</span><br></pre></td></tr></table></figure>
+
+<p>其实这个时候, (从上面图中可以看出) 这里的信息是错误的.</p>
+<p>正确的信息应该是这样的(在 viewDidAppear 中)打印信息:</p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line">[ViewController viewDidAppear]:</span><br><span class="line">lb.bounds: &#123;&#123;0, 0&#125;, &#123;58.5, 19.5&#125;&#125; </span><br><span class="line">lb.frame: &#123;&#123;39, 89&#125;, &#123;58.5, 19.5&#125;&#125;</span><br></pre></td></tr></table></figure>
+
+<p>于是, 将</p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">[self changeLbCorner];</span><br></pre></td></tr></table></figure>
+
+<p>放到 viewDidAppear 中, 圆角就正常了.</p>
+<p>接下来, 我们把 lb 的宽高(136*39)约束也加上.</p>
+<p>看一下, viewDidLoad 和 viewDidAppear 方法中打印的信息:</p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br></pre></td><td class="code"><pre><span class="line">[ViewController viewDidLoad]</span><br><span class="line">lb.bounds: &#123;&#123;0, 0&#125;, &#123;1000, 1000&#125;&#125; </span><br><span class="line">lb.frame: &#123;&#123;0, 0&#125;, &#123;1000, 1000&#125;&#125;</span><br><span class="line">[ViewController viewDidAppear:]</span><br><span class="line">lb.bounds: &#123;&#123;0, 0&#125;, &#123;136, 39&#125;&#125; </span><br><span class="line">lb.frame: &#123;&#123;39, 89&#125;, &#123;136, 39&#125;&#125;</span><br></pre></td></tr></table></figure>
+
+<p>可以看出, viewDidLoad 中错的一塌糊涂.</p>
+<p>这里也说明一个问题:</p>
+<blockquote>
+<p>xib 或者 storyboard 中设置过约束(现实开发中, 基本都会设置约束)的组件, 在 viewDidLoad 中并没有完全 layout, 只是预加载了这些组件.<br>想获取组件如 frame 何 bounds 信息, 在 viewDidLoad 中是不合适甚至是错误的.</p>
+</blockquote>
+<p>那么, 问题来了, 哪里合适哪里正确.</p>
+<p>上面如果你认真看了, 在 viewDidAppear 中是可以正确获取的, 那么还有没有其他方法可以获取呢?</p>
+<h2 id="VC-生命周期函数"><a href="#VC-生命周期函数" class="headerlink" title="VC 生命周期函数"></a>VC 生命周期函数</h2><p>要回答上面的问题, 大家要知道 vc 的生命周期函数.</p>
+<p>上面的例子, 可以看出: 当函数 ViewDidLoad 被调用的时候，IBQutlets 已经被连接，但View 还没有被加载出来，无法获取 frame 等信息.<br>可以在 viewDidLoad 中完成在 IB 中不能完成的 view 的自定义。</p>
+<p>关于 loadView 和 viewDidLoad 在后面博客跟大家分享.</p>
+<p>今天要说的是</p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">viewDidLayoutSubviews</span><br></pre></td></tr></table></figure>
+
+<p><code>viewDidLayoutSubviews</code> 在 VC 子视图位置或者尺寸 (position|size) 被改变的时候被调用.</p>
+<p>直到 AutoLayout 已经完成工作的时候才会被确定，所以在执行完 AutoLayout 之后会调用此方法. 换句话说, view 的 frame 和 bounds 这个时候是正确可以获取的.</p>
+<p><code>viewDidLayoutSubviews</code> 这个方法在 <code>viewDidAppear</code> 之前被调用, 有可能会被调用多次.</p>
+<p>即依赖 bounds 或者 frame 的操作，都应该放在<code>viewDidLayoutSubviews</code> 中，而不是 <code>viewDidLoad</code> 或 <code>viewWillAppear</code> 中.</p>
+<p>改变后的代码如下:</p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br><span class="line">39</span><br><span class="line">40</span><br><span class="line">41</span><br><span class="line">42</span><br><span class="line">43</span><br><span class="line">44</span><br><span class="line">45</span><br><span class="line">46</span><br><span class="line">47</span><br><span class="line">48</span><br><span class="line">49</span><br><span class="line">50</span><br><span class="line">51</span><br><span class="line">52</span><br><span class="line">53</span><br><span class="line">54</span><br><span class="line">55</span><br><span class="line">56</span><br><span class="line">57</span><br><span class="line">58</span><br><span class="line">59</span><br><span class="line">60</span><br><span class="line">61</span><br><span class="line">62</span><br><span class="line">63</span><br><span class="line">64</span><br><span class="line">65</span><br><span class="line">66</span><br></pre></td><td class="code"><pre><span class="line">#import &quot;ViewController.h&quot;</span><br><span class="line"></span><br><span class="line">#define MZLog(fmt, ...) NSLog((@&quot;%s\n&quot; fmt), __FUNCTION__, ##__VA_ARGS__)</span><br><span class="line">#define MZLogLbInfo \</span><br><span class="line">MZLog(@&quot;lb.bounds: %@ \nlb.frame: %@&quot;, NSStringFromCGRect(self.lb.bounds), NSStringFromCGRect(self.lb.frame))</span><br><span class="line"></span><br><span class="line">@interface ViewController ()</span><br><span class="line"></span><br><span class="line">@property (strong, nonatomic) IBOutlet UILabel *lb;</span><br><span class="line">@property (strong, nonatomic) IBOutlet UILabel *displayedText;</span><br><span class="line"></span><br><span class="line">@end</span><br><span class="line"></span><br><span class="line">@implementation ViewController</span><br><span class="line"></span><br><span class="line">- (void)viewDidLoad</span><br><span class="line">&#123;</span><br><span class="line">    [super viewDidLoad];</span><br><span class="line">    </span><br><span class="line">    MZLogLbInfo;</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line">- (void)viewWillAppear:(BOOL)animated</span><br><span class="line">&#123;</span><br><span class="line">    [super viewWillAppear:animated];</span><br><span class="line">    </span><br><span class="line">    MZLogLbInfo;</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line">- (void)viewWillLayoutSubviews</span><br><span class="line">&#123;</span><br><span class="line">    [super viewWillLayoutSubviews];</span><br><span class="line">    </span><br><span class="line">    MZLogLbInfo;</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line">- (void)viewDidLayoutSubviews</span><br><span class="line">&#123;</span><br><span class="line">    [super viewDidLayoutSubviews];</span><br><span class="line">    </span><br><span class="line">    MZLogLbInfo;</span><br><span class="line">    </span><br><span class="line">    [self changeLbCorner];</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line">- (void)viewDidAppear:(BOOL)animated</span><br><span class="line">&#123;</span><br><span class="line">    [super viewDidAppear:animated];</span><br><span class="line">    </span><br><span class="line">    MZLogLbInfo;</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line">#pragma mark Callback.</span><br><span class="line"></span><br><span class="line">- (void)changeLbCorner</span><br><span class="line">&#123;</span><br><span class="line">    UIBezierPath *maskPath = [UIBezierPath bezierPathWithRoundedRect:self.lb.bounds</span><br><span class="line">                                                   byRoundingCorners:UIRectCornerTopRight|UIRectCornerBottomRight</span><br><span class="line">                                                         cornerRadii:CGSizeMake(7, 7)];</span><br><span class="line">    CAShapeLayer *maskLayer = [[CAShapeLayer alloc] init];</span><br><span class="line">    maskLayer.frame = _lb.bounds;</span><br><span class="line">    maskLayer.path = maskPath.CGPath;</span><br><span class="line">    self.lb.layer.mask  = maskLayer;</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line">@end</span><br></pre></td></tr></table></figure>
+
+<p>打印的 log 如下:</p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br></pre></td><td class="code"><pre><span class="line">[ViewController viewDidLoad]</span><br><span class="line">lb.bounds: &#123;&#123;0, 0&#125;, &#123;1000, 1000&#125;&#125; </span><br><span class="line">lb.frame: &#123;&#123;0, 0&#125;, &#123;1000, 1000&#125;&#125;</span><br><span class="line">[ViewController viewWillAppear:]</span><br><span class="line">lb.bounds: &#123;&#123;0, 0&#125;, &#123;1000, 1000&#125;&#125; </span><br><span class="line">lb.frame: &#123;&#123;0, 0&#125;, &#123;1000, 1000&#125;&#125;</span><br><span class="line">[ViewController viewWillLayoutSubviews]</span><br><span class="line">lb.bounds: &#123;&#123;0, 0&#125;, &#123;1000, 1000&#125;&#125; </span><br><span class="line">lb.frame: &#123;&#123;0, 0&#125;, &#123;1000, 1000&#125;&#125;</span><br><span class="line">[ViewController viewDidLayoutSubviews]</span><br><span class="line">lb.bounds: &#123;&#123;0, 0&#125;, &#123;136, 39&#125;&#125; </span><br><span class="line">lb.frame: &#123;&#123;39, 89&#125;, &#123;136, 39&#125;&#125;</span><br><span class="line">[ViewController viewWillLayoutSubviews]</span><br><span class="line">lb.bounds: &#123;&#123;0, 0&#125;, &#123;136, 39&#125;&#125; </span><br><span class="line">lb.frame: &#123;&#123;39, 89&#125;, &#123;136, 39&#125;&#125;</span><br><span class="line">[ViewController viewDidLayoutSubviews]</span><br><span class="line">lb.bounds: &#123;&#123;0, 0&#125;, &#123;136, 39&#125;&#125; </span><br><span class="line">lb.frame: &#123;&#123;39, 89&#125;, &#123;136, 39&#125;&#125;</span><br><span class="line">[ViewController viewDidAppear:]</span><br><span class="line">lb.bounds: &#123;&#123;0, 0&#125;, &#123;136, 39&#125;&#125; </span><br><span class="line">lb.frame: &#123;&#123;39, 89&#125;, &#123;136, 39&#125;&#125;</span><br></pre></td></tr></table></figure>
+
+<h2 id="frame-和-bounds"><a href="#frame-和-bounds" class="headerlink" title="frame 和 bounds"></a>frame 和 bounds</h2><p>上面的例子, 大家看到由于传入了 frame 而不是 bounds 造成设置圆角失败.</p>
+<p>下面说说 frame 和 bounds.</p>
+<h3 id="概念"><a href="#概念" class="headerlink" title="概念"></a>概念</h3><p>从网上”偷”过来的图</p>
+<p><img class="lazy" src="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAABGdBTUEAALGPC/xhBQAAADhlWElmTU0AKgAAAAgAAYdpAAQAAAABAAAAGgAAAAAAAqACAAQAAAABAAAAAaADAAQAAAABAAAAAQAAAADa6r/EAAAAC0lEQVQIHWNgAAIAAAUAAY27m/MAAAAASUVORK5CYII=" data-src="/upload/images/2016/10/23/03.jpg" alt="1"></p>
+<blockquote>
+<p>1.frame</p>
+</blockquote>
+<p>该 view 在父 view 坐标系统中的位置和大小(参照点是，父坐标系统).</p>
+<blockquote>
+<p>2.bounds</p>
+</blockquote>
+<p>该 view 在本地坐标系统中的位置和大小(参照点是，本地坐标系统，就相当于 view 自己的坐标系统，以(0,0)点为起点).<br>其实本地坐标系统的关键就是要知道的它的原点(0,0).</p>
+<p>bounds 默认值是(0, 0, width, height).除非手动改变 bounds 的值.</p>
+<p>单纯的从概念上面, 很难理解二者的区别.</p>
+<p>提供一个例子, 例子大概是这样的:<br>redView 是 yellowView 的父视图, yellowView 是 blueView 的父视图.</p>
+<p>通过改变 redView 的 bounds 会影响子视图的位置(不是frame).<br>将 redView 的 bounds 起点设为(-20, -20), 子视图相对于 redView 的本地坐标(0, 0), 也就需要往下增加20, 这样, yellowView 就往下移动了.</p>
+<h3 id="效果图"><a href="#效果图" class="headerlink" title="效果图:"></a>效果图:</h3><p><img class="lazy" src="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAABGdBTUEAALGPC/xhBQAAADhlWElmTU0AKgAAAAgAAYdpAAQAAAABAAAAGgAAAAAAAqACAAQAAAABAAAAAaADAAQAAAABAAAAAQAAAADa6r/EAAAAC0lEQVQIHWNgAAIAAAUAAY27m/MAAAAASUVORK5CYII=" data-src="/upload/images/2016/10/23/05.png" alt="1"></p>
+<p><img class="lazy" src="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAABGdBTUEAALGPC/xhBQAAADhlWElmTU0AKgAAAAgAAYdpAAQAAAABAAAAGgAAAAAAAqACAAQAAAABAAAAAaADAAQAAAABAAAAAQAAAADa6r/EAAAAC0lEQVQIHWNgAAIAAAUAAY27m/MAAAAASUVORK5CYII=" data-src="/upload/images/2016/10/23/06.png" alt="1"></p>
+<p><img class="lazy" src="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAABGdBTUEAALGPC/xhBQAAADhlWElmTU0AKgAAAAgAAYdpAAQAAAABAAAAGgAAAAAAAqACAAQAAAABAAAAAaADAAQAAAABAAAAAQAAAADa6r/EAAAAC0lEQVQIHWNgAAIAAAUAAY27m/MAAAAASUVORK5CYII=" data-src="/upload/images/2016/10/23/07.png" alt="1"></p>
+<h3 id="完整代码"><a href="#完整代码" class="headerlink" title="完整代码"></a>完整代码</h3><figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br><span class="line">39</span><br><span class="line">40</span><br><span class="line">41</span><br><span class="line">42</span><br><span class="line">43</span><br><span class="line">44</span><br><span class="line">45</span><br><span class="line">46</span><br><span class="line">47</span><br><span class="line">48</span><br><span class="line">49</span><br><span class="line">50</span><br><span class="line">51</span><br><span class="line">52</span><br><span class="line">53</span><br><span class="line">54</span><br><span class="line">55</span><br><span class="line">56</span><br><span class="line">57</span><br><span class="line">58</span><br><span class="line">59</span><br><span class="line">60</span><br><span class="line">61</span><br><span class="line">62</span><br><span class="line">63</span><br><span class="line">64</span><br><span class="line">65</span><br><span class="line">66</span><br><span class="line">67</span><br><span class="line">68</span><br><span class="line">69</span><br><span class="line">70</span><br><span class="line">71</span><br><span class="line">72</span><br><span class="line">73</span><br><span class="line">74</span><br><span class="line">75</span><br><span class="line">76</span><br><span class="line">77</span><br><span class="line">78</span><br><span class="line">79</span><br><span class="line">80</span><br><span class="line">81</span><br><span class="line">82</span><br><span class="line">83</span><br><span class="line">84</span><br><span class="line">85</span><br><span class="line">86</span><br><span class="line">87</span><br><span class="line">88</span><br><span class="line">89</span><br><span class="line">90</span><br><span class="line">91</span><br><span class="line">92</span><br><span class="line">93</span><br><span class="line">94</span><br><span class="line">95</span><br><span class="line">96</span><br><span class="line">97</span><br><span class="line">98</span><br><span class="line">99</span><br><span class="line">100</span><br><span class="line">101</span><br><span class="line">102</span><br><span class="line">103</span><br><span class="line">104</span><br><span class="line">105</span><br><span class="line">106</span><br><span class="line">107</span><br><span class="line">108</span><br><span class="line">109</span><br><span class="line">110</span><br><span class="line">111</span><br><span class="line">112</span><br><span class="line">113</span><br><span class="line">114</span><br><span class="line">115</span><br><span class="line">116</span><br><span class="line">117</span><br><span class="line">118</span><br><span class="line">119</span><br><span class="line">120</span><br><span class="line">121</span><br><span class="line">122</span><br><span class="line">123</span><br><span class="line">124</span><br><span class="line">125</span><br><span class="line">126</span><br><span class="line">127</span><br><span class="line">128</span><br><span class="line">129</span><br><span class="line">130</span><br><span class="line">131</span><br><span class="line">132</span><br><span class="line">133</span><br><span class="line">134</span><br><span class="line">135</span><br><span class="line">136</span><br><span class="line">137</span><br><span class="line">138</span><br><span class="line">139</span><br><span class="line">140</span><br><span class="line">141</span><br><span class="line">142</span><br><span class="line">143</span><br></pre></td><td class="code"><pre><span class="line">#import &quot;ViewController.h&quot;</span><br><span class="line"></span><br><span class="line">#define MZLog(fmt, ...) NSLog((@&quot;%s\n&quot; fmt), __FUNCTION__, ##__VA_ARGS__)</span><br><span class="line">#define MZLogLbInfo \</span><br><span class="line">MZLog(@&quot;lb.bounds: %@ \nlb.frame: %@&quot;, NSStringFromCGRect(self.lb.bounds), NSStringFromCGRect(self.lb.frame))</span><br><span class="line"></span><br><span class="line">@interface ViewController ()</span><br><span class="line"></span><br><span class="line">@property (strong, nonatomic) IBOutlet UILabel *lb;</span><br><span class="line">@property (strong, nonatomic) IBOutlet UILabel *displayedText;</span><br><span class="line"></span><br><span class="line">@end</span><br><span class="line"></span><br><span class="line">@implementation ViewController</span><br><span class="line">&#123;</span><br><span class="line">    UIView *redView;</span><br><span class="line">    UIView *yellowView;</span><br><span class="line">    UIView *blueView;</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line">- (void)viewDidLoad</span><br><span class="line">&#123;</span><br><span class="line">    [super viewDidLoad];</span><br><span class="line">    </span><br><span class="line">    MZLogLbInfo;</span><br><span class="line">    </span><br><span class="line">    </span><br><span class="line">    // 将 redView 添加到 self.view</span><br><span class="line">    &#123;</span><br><span class="line">        redView = [[UIView alloc] initWithFrame:CGRectMake(100, 200, 120, 120)];</span><br><span class="line">        redView.backgroundColor = [UIColor redColor];</span><br><span class="line">        [self.view addSubview:redView];</span><br><span class="line">    &#125;</span><br><span class="line">    </span><br><span class="line">    // 将 yellowView 添加到 redView</span><br><span class="line">    &#123;</span><br><span class="line">        yellowView = [[UIView alloc] initWithFrame:CGRectMake(0, 0, 90, 90)];</span><br><span class="line">        yellowView.backgroundColor = [UIColor yellowColor];</span><br><span class="line">        [redView addSubview:yellowView];</span><br><span class="line">    &#125;</span><br><span class="line">    </span><br><span class="line">    // 将 blueView 添加到 yellowView</span><br><span class="line">    &#123;</span><br><span class="line">        blueView = [[UIView alloc] initWithFrame:CGRectMake(0, 0, 60, 60)];</span><br><span class="line">        blueView.backgroundColor = [UIColor blueColor];</span><br><span class="line">        [yellowView addSubview:blueView];</span><br><span class="line">    &#125;</span><br><span class="line">    </span><br><span class="line">    [self logViewInfo];</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line">- (void)viewWillAppear:(BOOL)animated</span><br><span class="line">&#123;</span><br><span class="line">    [super viewWillAppear:animated];</span><br><span class="line">    </span><br><span class="line">    MZLogLbInfo;</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line">- (void)viewWillLayoutSubviews</span><br><span class="line">&#123;</span><br><span class="line">    [super viewWillLayoutSubviews];</span><br><span class="line">    </span><br><span class="line">    MZLogLbInfo;</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line">- (void)viewDidLayoutSubviews</span><br><span class="line">&#123;</span><br><span class="line">    [super viewDidLayoutSubviews];</span><br><span class="line">    </span><br><span class="line">    MZLogLbInfo;</span><br><span class="line">    </span><br><span class="line">    [self changeLbCorner];</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line">- (void)viewDidAppear:(BOOL)animated</span><br><span class="line">&#123;</span><br><span class="line">    [super viewDidAppear:animated];</span><br><span class="line">    </span><br><span class="line">    MZLogLbInfo;</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line">#pragma mark Callback.</span><br><span class="line"></span><br><span class="line">- (void)changeLbCorner</span><br><span class="line">&#123;</span><br><span class="line">    UIBezierPath *maskPath = [UIBezierPath bezierPathWithRoundedRect:self.lb.bounds</span><br><span class="line">                                                   byRoundingCorners:UIRectCornerTopRight|UIRectCornerBottomRight</span><br><span class="line">                                                         cornerRadii:CGSizeMake(7, 7)];</span><br><span class="line">    CAShapeLayer *maskLayer = [[CAShapeLayer alloc] init];</span><br><span class="line">    maskLayer.frame = _lb.bounds;</span><br><span class="line">    maskLayer.path = maskPath.CGPath;</span><br><span class="line">    self.lb.layer.mask  = maskLayer;</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line">- (IBAction)doResetAction:(id)sender</span><br><span class="line">&#123;</span><br><span class="line">    [UIView animateWithDuration:1.0f animations:^&#123;</span><br><span class="line">        [redView setBounds:CGRectMake(0, 0, 120, 120)];</span><br><span class="line">        [yellowView setBounds:CGRectMake(0, 0, 90, 90)];</span><br><span class="line">    &#125; completion:^(BOOL finished) &#123;</span><br><span class="line">        [self logViewInfo];</span><br><span class="line">    &#125;];</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line">- (IBAction)doChangeRedViewBounds:(id)sender</span><br><span class="line">&#123;</span><br><span class="line">    [UIView animateWithDuration:1.0f animations:^&#123;</span><br><span class="line">        [redView setBounds:CGRectMake(-20, -20, 120, 120)];</span><br><span class="line">    &#125; completion:^(BOOL finished) &#123;</span><br><span class="line">        [self logViewInfo];</span><br><span class="line">    &#125;];</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line">- (IBAction)doChangeYellowViewBounds:(id)sender</span><br><span class="line">&#123;</span><br><span class="line">    [UIView animateWithDuration:1.0f animations:^&#123;</span><br><span class="line">        [yellowView setBounds:CGRectMake(-20, -20, 90, 90)];</span><br><span class="line">    &#125; completion:^(BOOL finished) &#123;</span><br><span class="line">        [self logViewInfo];</span><br><span class="line">    &#125;];</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line">#pragma mark Display Debug Info.</span><br><span class="line"></span><br><span class="line">- (void)logViewInfo</span><br><span class="line">&#123;</span><br><span class="line">    NSString *log4rView = [NSString stringWithFormat:@&quot;RedView\nframe:%@ \nbounds:%@&quot;,</span><br><span class="line">                           NSStringFromCGRect(redView.frame), NSStringFromCGRect(redView.bounds)];</span><br><span class="line">    NSString *log4yView = [NSString stringWithFormat:@&quot;YellowView\nframe:%@ \nbounds:%@&quot;,</span><br><span class="line">                           NSStringFromCGRect(yellowView.frame), NSStringFromCGRect(yellowView.bounds)];</span><br><span class="line">    NSString *log4bView = [NSString stringWithFormat:@&quot;BlueView\nframe:%@ \nbounds:%@&quot;,</span><br><span class="line">                           NSStringFromCGRect(blueView.frame), NSStringFromCGRect(blueView.bounds)];</span><br><span class="line">    </span><br><span class="line">    NSString *log = [NSString stringWithFormat:@&quot;%@\n%@\n%@&quot;, log4rView, log4yView, log4bView];</span><br><span class="line">    [self display:log];</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line">- (void)display:(NSString *)content</span><br><span class="line">&#123;</span><br><span class="line">    self.displayedText.text = content;</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line">@end</span><br></pre></td></tr></table></figure>
+
+<h2 id="总结"><a href="#总结" class="headerlink" title="总结"></a>总结</h2><ul>
+<li>frame, 描述的是当前视图在其父视图中的位置和大小.<br>bounds, 描述的是当前视图在其自身坐标系统中的位置和大小.</li>
+</ul>
+<p>所以, bounds 默认是 <code>(0, 0, frame.size.width, frame.size.height)</code></p>
+<p>另外, 还有一个 <code>center</code> 描述的是当前视图的中心点在其父视图中的位置.</p>
+<ul>
+<li>bounds 和 frame 是两个不等同的概念, 改变 bounds 会影响子视图的位置(人眼看到其改变了位置), 设置 bounds 可以修改自己坐标系的原点位置. 但是不会改变子视图的 bounds 和 frame.</li>
+</ul>
+<blockquote>
+<p>明白上面的道理很重要, iOS 中滚动视图能让你看到其中的内容, 正是利用了 contentoffset 和 bounds 属性.</p>
+</blockquote>
+<blockquote>
+<p>这里以 tableView 为例子, 当我们向上滚动 tableView, tableView 的 contentOffset 和 bounds 的坐标都是正数, 相当于其本地坐标(0, 0)改变了即增加了(坐标系往下为增加), 那么其子视图就会向上去.</p>
+</blockquote>
+<blockquote>
+<p>向下滑动时, 也是同一个道理.<br>可以通过运行 <a target="_blank" rel="noopener" href="https://github.com/veryitman/iOSDemo/tree/master/na">完整 Demo</a> 中[查看 TableView]按钮来打开例子, 看日志.</p>
+</blockquote>
+<ul>
+<li><p>改变子视图所有父视图的 bounds, 子视图的位置是累加改变的.<br>如上面改变 redView 和 yellowView 的 bounds, blueView 的位置相对 redView 往下移动了 40.</p>
+</li>
+<li><p>当同一个视图的 bounds 大于 frame, 会导致 frame 被撑大，frame 的 x, y, width, height 都会被改变. 反之, bounds 小于 frame, frame 也会变小.</p>
+</li>
+</ul>
+<h2 id="附录"><a href="#附录" class="headerlink" title="附录"></a>附录</h2><ol>
+<li><p>GitHub 上面可以下载 <a target="_blank" rel="noopener" href="https://github.com/veryitman/iOSDemo/tree/master/na">完整 Demo</a></p>
+</li>
+<li><p>推荐之前写在 CSDN 上的博文: <a target="_blank" rel="noopener" href="http://blog.csdn.net/veryitman/article/details/51622235">iOS UI 技巧: 视图无法被点击
+</a></p>
+</li>
+</ol>
+<p>可关注我的微信公众号:<br><img class="lazy" src="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAABGdBTUEAALGPC/xhBQAAADhlWElmTU0AKgAAAAgAAYdpAAQAAAABAAAAGgAAAAAAAqACAAQAAAABAAAAAaADAAQAAAABAAAAAQAAAADa6r/EAAAAC0lEQVQIHWNgAAIAAAUAAY27m/MAAAAASUVORK5CYII=" data-src="/upload/me/qrcode_wx.jpg" alt="1"></p>
+
+
+
+
+</article>
+
+<div class="related-wrap reveal" id="read-next"><section class="header cap theme"><span>接下来阅读</span></section><section class="body fs14"><a id="next" href="/2016/10/11/RN-%E6%A8%A1%E6%8B%9F-Mobx/">RN: 模拟 Mobx<span class="note">较早</span></a><div class="line"></div><a id="prev" href="/2016/11/01/Cocoapods-%E7%AE%A1%E7%90%86%E5%BC%80%E6%BA%90%E9%A1%B9%E7%9B%AE/">Cocoapods 管理开源项目<span class="note">较新</span></a></section></div>
+
+
+
+
+
+
+  <div class='related-wrap md reveal' id="comments">
+    <div class='cmt-title cap theme'>
+      快来参与讨论吧
+    </div>
+    <div class='cmt-body valine'>
+      
+
+<div id="valine_container" class="valine_thread"><svg class="loading" style="vertical-align: middle;fill: currentColor;overflow: hidden;" viewBox="0 0 1024 1024" version="1.1" xmlns="http://www.w3.org/2000/svg" p-id="2709"><path d="M832 512c0-176-144-320-320-320V128c211.2 0 384 172.8 384 384h-64zM192 512c0 176 144 320 320 320v64C300.8 896 128 723.2 128 512h64z" p-id="2710"></path></svg></div>
+
+    </div>
+  </div>
+
+
+
+      
+<footer class="page-footer reveal fs12"><hr><div class="text"><p>本博客所有文章除特别声明外，均采用 <a target="_blank" rel="noopener" href="https://creativecommons.org/licenses/by-nc-sa/4.0/">CC BY-NC-SA 4.0</a> 许可协议，转载请注明出处。</p>
+<p>veryitman</p>
+</div></footer>
+
+      <div class='float-panel mobile-only blur' style='display:none'>
+  <button type='button' class='sidebar-toggle mobile' onclick='sidebar.toggle()'>
+    <svg class="icon" style="width: 1em; height: 1em;vertical-align: middle;fill: currentColor;overflow: hidden;" viewBox="0 0 1024 1024" version="1.1" xmlns="http://www.w3.org/2000/svg" p-id="15301"><path d="M566.407 808.3c26.9-0.1 49.3-20.8 51.6-47.6-1.9-27.7-23.9-49.7-51.6-51.6h-412.6c-28.2-1.4-52.6 19.5-55.5 47.6 2.3 26.8 24.6 47.5 51.6 47.6h416.5v4z m309.3-249.9c26.9-0.1 49.3-20.8 51.6-47.6-2.2-26.8-24.6-47.5-51.6-47.6h-721.9c-27.7-2.8-52.5 17.4-55.3 45.1-0.1 0.8-0.1 1.7-0.2 2.5 0.9 27.2 23.6 48.5 50.7 47.6H875.707z m-103.1-245.9c26.9-0.1 49.3-20.8 51.6-47.6-0.4-28.3-23.2-51.1-51.5-51.6h-618.9c-29.5-1.1-54.3 21.9-55.5 51.4v0.2c1.4 27.8 25.2 49.2 53 47.8 0.8 0 1.7-0.1 2.5-0.2h618.8z" p-id="15302"></path><path d="M566.407 808.3c26.9-0.1 49.3-20.8 51.6-47.6-1.9-27.7-23.9-49.7-51.6-51.6h-412.6c-28.2-1.4-52.6 19.5-55.5 47.6 1.9 27.7 23.9 49.7 51.6 51.6h416.5z m309.3-249.9c26.9-0.1 49.3-20.8 51.6-47.6-2.2-26.8-24.6-47.5-51.6-47.6h-721.9c-27.7-2.8-52.5 17.4-55.3 45.1-0.1 0.8-0.1 1.7-0.2 2.5 0.9 27.2 23.6 48.5 50.7 47.6H875.707z m-103.1-245.9c26.9-0.1 49.3-20.8 51.6-47.6-0.4-28.3-23.2-51.1-51.5-51.6h-618.9c-29.5-1.1-54.3 21.9-55.5 51.4v0.2c1.4 27.8 25.2 49.2 53 47.8 0.8 0 1.7-0.1 2.5-0.2h618.8z" p-id="15303"></path></svg>
+  </button>
+</div>
+
+    </div>
+  </div>
+  <div class='scripts'>
+    <script type="text/javascript">
+  stellar = {
+    // 懒加载 css https://github.com/filamentgroup/loadCSS
+    loadCSS: (href, before, media, attributes) => {
+      var doc = window.document;
+      var ss = doc.createElement("link");
+      var ref;
+      if (before) {
+        ref = before;
+      } else {
+        var refs = (doc.body || doc.getElementsByTagName("head")[0]).childNodes;
+        ref = refs[refs.length - 1];
+      }
+      var sheets = doc.styleSheets;
+      if (attributes) {
+        for (var attributeName in attributes) {
+          if (attributes.hasOwnProperty(attributeName)) {
+            ss.setAttribute(attributeName, attributes[attributeName]);
+          }
+        }
+      }
+      ss.rel = "stylesheet";
+      ss.href = href;
+      ss.media = "only x";
+      function ready(cb) {
+        if (doc.body) {
+          return cb();
+        }
+        setTimeout(function () {
+          ready(cb);
+        });
+      }
+      ready(function () {
+        ref.parentNode.insertBefore(ss, before ? ref : ref.nextSibling);
+      });
+      var onloadcssdefined = function (cb) {
+        var resolvedHref = ss.href;
+        var i = sheets.length;
+        while (i--) {
+          if (sheets[i].href === resolvedHref) {
+            return cb();
+          }
+        }
+        setTimeout(function () {
+          onloadcssdefined(cb);
+        });
+      };
+      function loadCB() {
+        if (ss.addEventListener) {
+          ss.removeEventListener("load", loadCB);
+        }
+        ss.media = media || "all";
+      }
+      if (ss.addEventListener) {
+        ss.addEventListener("load", loadCB);
+      }
+      ss.onloadcssdefined = onloadcssdefined;
+      onloadcssdefined(loadCB);
+      return ss;
+    },
+
+    // 从 butterfly 和 volantis 获得灵感
+    loadScript: (src, opt) => new Promise((resolve, reject) => {
+      var script = document.createElement('script');
+      script.src = src;
+      if (opt) {
+        for (let key of Object.keys(opt)) {
+          script[key] = opt[key]
+        }
+      } else {
+        // 默认异步，如果需要同步，第二个参数传入 {} 即可
+        script.async = true
+      }
+      script.onerror = reject
+      script.onload = script.onreadystatechange = function() {
+        const loadState = this.readyState
+        if (loadState && loadState !== 'loaded' && loadState !== 'complete') return
+        script.onload = script.onreadystatechange = null
+        resolve()
+      }
+      document.head.appendChild(script)
+    }),
+
+    // https://github.com/jerryc127/hexo-theme-butterfly
+    jQuery: (fn) => {
+      if (typeof jQuery === 'undefined') {
+        stellar.loadScript(stellar.plugins.jQuery).then(fn)
+      } else {
+        fn()
+      }
+    }
+  };
+  stellar.github = 'https://github.com/xaoxuu/hexo-theme-stellar/tree/1.6.1';
+  stellar.config = {
+    date_suffix: {
+      just: '刚刚',
+      min: '分钟前',
+      hour: '小时前',
+      day: '天前',
+      month: '个月前',
+    },
+  };
+
+  // required plugins (only load if needs)
+  stellar.plugins = {
+    jQuery: 'https://cdn.jsdelivr.net/npm/jquery@3.5.1/dist/jquery.min.js',
+    sitesjs: '/js/plugins/sites.js',
+    friendsjs: '/js/plugins/friends.js',
+  };
+
+  // optional plugins
+  if ('true' == 'true') {
+    stellar.plugins.lazyload = Object.assign({"enable":true,"js":"https://cdn.jsdelivr.net/npm/vanilla-lazyload@17.3.1/dist/lazyload.min.js","transition":"blur"});
+  }
+  if ('true' == 'true') {
+    stellar.plugins.swiper = Object.assign({"enable":true,"css":"https://unpkg.com/swiper@6/swiper-bundle.min.css","js":"https://unpkg.com/swiper@6/swiper-bundle.min.js"});
+  }
+  if ('' == 'true') {
+    stellar.plugins.scrollreveal = Object.assign({"enable":null,"js":"https://cdn.jsdelivr.net/npm/scrollreveal@4.0.9/dist/scrollreveal.min.js","distance":"8px","duration":500,"interval":100,"scale":1});
+  }
+  if ('true' == 'true') {
+    stellar.plugins.preload = Object.assign({"enable":true,"service":"flying_pages","instant_page":"https://cdn.jsdelivr.net/gh/volantis-x/cdn-volantis@4.1.2/js/instant_page.js","flying_pages":"https://cdn.jsdelivr.net/gh/gijo-varghese/flying-pages@2.1.2/flying-pages.min.js"});
+  }
+</script>
+
+<!-- required -->
+
+  
+<script src="/js/main.js" async></script>
+
+
+
+<!-- optional -->
+
+  <script>
+  function getEmojiMaps() {
+    function emoji(path, idx, ext) {
+      return path + "/" + path + "-" + idx + "." + ext;
+    }
+    var emojiMaps = {};
+    for (var i = 1; i <= 54; i++) {
+      emojiMaps['tieba-' + i] = emoji('tieba', i, 'png');
+    }
+    for (var i = 1; i <= 101; i++) {
+      emojiMaps['qq-' + i] = emoji('qq', i, 'gif');
+    }
+    for (var i = 1; i <= 116; i++) {
+      emojiMaps['aru-' + i] = emoji('aru', i, 'gif');
+    }
+    for (var i = 1; i <= 125; i++) {
+      emojiMaps['twemoji-' + i] = emoji('twemoji', i, 'png');
+    }
+    for (var i = 1; i <= 4; i++) {
+      emojiMaps['weibo-' + i] = emoji('weibo', i, 'png');
+    }
+    return emojiMaps;
+  }
+  function load_comment(){
+    if(!document.getElementById("valine_container"))return;
+    stellar.loadScript('https://cdn.jsdelivr.net/gh/XuxuGood/simple-blog-cdn@main/js/Valine.min.js', {defer:true}).then(function () {
+      const el = document.getElementById("valine_container");
+      var path = el.getAttribute('comment_id');
+      const placeholder = "欢迎您留言~";
+      if (!path) {
+        path = decodeURI(window.location.pathname);
+      }
+      var valine = new Valine();
+      valine.init(Object.assign({"js":"https://cdn.jsdelivr.net/gh/XuxuGood/simple-blog-cdn@main/js/Valine.min.js","appId":"FY2C9UCttYNaE1j8umenqdCE-gzGzoHsz","appKey":"4i7xMwkfSEGmEDhi6SceKFxz","placeholder":"欢迎您留言~","requiredFields":["nick","mail"],"enableQQ":true,"recordIP":false,"avatar":"robohash","pageSize":10,"lang":"zh-cn","highlight":true,"mathJax":false,"tagMeta":["博主","小伙伴","访客"],"metaPlaceholder":{"nick":"昵称/QQ号(必填)","mail":"邮箱（必填，完全保密）"},"master":["6783037F2DF30EAB99F9FC256157D875"],"friends":["6783037F2DF30EAB99F9FC256157D875"],"comment_count":true}, {
+        el: '#valine_container',
+        path: path,
+        placeholder: placeholder,
+        emojiCDN: 'https://cdn.jsdelivr.net/gh/volantis-x/cdn-emoji/valine/',
+        emojiMaps: getEmojiMaps(),
+      }));
+    });
+  }
+  window.addEventListener('DOMContentLoaded', (event) => {
+    console.log('DOM fully loaded and parsed');
+    load_comment();
+  });
+
+</script>
+
+
+
+
+<!-- inject -->
+
+
+  </div>
+</body>
+</html>

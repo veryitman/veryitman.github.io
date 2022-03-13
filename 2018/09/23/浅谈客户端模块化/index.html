@@ -1,0 +1,368 @@
+<!DOCTYPE html>
+<html lang='zh-CN'>
+
+<head>
+  <meta name="generator" content="Hexo 6.0.0">
+  <meta charset="utf-8">
+  
+
+  <meta http-equiv='x-dns-prefetch-control' content='on' />
+  <link rel='dns-prefetch' href='https://cdn.jsdelivr.net'>
+  <link rel="preconnect" href="https://cdn.jsdelivr.net" crossorigin>
+
+  <meta name="renderer" content="webkit">
+  <meta name="force-rendering" content="webkit">
+  <meta http-equiv="X-UA-Compatible" content="IE=Edge,chrome=1">
+  <meta name="HandheldFriendly" content="True" >
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1">
+  <meta name="theme-color" content="#f8f8f8">
+  <title>浅谈客户端模块化 - Veryitman</title>
+
+  
+    <meta name="description" content="回忆大学那会喜欢跟着老师在实验室折腾，感觉每天大脑中都有新知识鱼贯而入。 当我被告知要做一个最小单片机系统的时候，兴奋而又紧张！ 最小单片机系统示意图： 从画 PCB 到制板、洗板，再到选择元器件，最后组装调试和写代码，我花费了两个多月的时间，当板子上面的跑马灯亮起来的那一刻，我激动的无法言语。 大家可以看到这个最小单片机系统上面有很多组件组成，有电阻、电容、电阻、二极管和卡槽等，当然还有最核心的">
+<meta property="og:type" content="article">
+<meta property="og:title" content="浅谈客户端模块化">
+<meta property="og:url" content="http://example.com/2018/09/23/%E6%B5%85%E8%B0%88%E5%AE%A2%E6%88%B7%E7%AB%AF%E6%A8%A1%E5%9D%97%E5%8C%96/index.html">
+<meta property="og:site_name" content="Veryitman">
+<meta property="og:description" content="回忆大学那会喜欢跟着老师在实验室折腾，感觉每天大脑中都有新知识鱼贯而入。 当我被告知要做一个最小单片机系统的时候，兴奋而又紧张！ 最小单片机系统示意图： 从画 PCB 到制板、洗板，再到选择元器件，最后组装调试和写代码，我花费了两个多月的时间，当板子上面的跑马灯亮起来的那一刻，我激动的无法言语。 大家可以看到这个最小单片机系统上面有很多组件组成，有电阻、电容、电阻、二极管和卡槽等，当然还有最核心的">
+<meta property="og:locale" content="zh_CN">
+<meta property="og:image" content="http://example.com/upload/images/2018/09/23/1.jpg">
+<meta property="og:image" content="http://example.com/upload/images/2018/09/23/2.jpg">
+<meta property="og:image" content="http://example.com/upload/images/2018/09/23/3.jpg">
+<meta property="og:image" content="http://example.com/upload/images/2018/09/23/4.jpg">
+<meta property="og:image" content="http://example.com/upload/me/qrcode_wx.jpg">
+<meta property="article:published_time" content="2018-09-23T10:31:19.000Z">
+<meta property="article:modified_time" content="2022-03-09T14:53:24.347Z">
+<meta property="article:author" content="veryitman">
+<meta property="article:tag" content="架构 模块化 组件化 热更新 插件化">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:image" content="http://example.com/upload/images/2018/09/23/1.jpg">
+  
+  
+
+  <!-- feed -->
+  
+
+  
+    
+<link rel="stylesheet" href="/css/main.css">
+
+  
+
+  
+
+  
+</head>
+
+<body>
+  
+
+
+  <div class='l_body' id='start'>
+    <aside class='l_left' layout='post'>
+    
+
+
+<header class="header">
+
+<div class="logo-wrap"><a class="title" href="/"><div class="main">Veryitman</div></a></div>
+<nav class="menu dis-select"></nav></header>
+
+<div class="widgets">
+
+<div class="widget-wrap single" id="toc"><div class="widget-header cap dis-select"><span class="name">本文目录</span></div><div class="widget-body fs14"><div class="doc-tree active"><ol class="toc"><li class="toc-item toc-level-2"><a class="toc-link" href="#%E5%9B%9E%E5%BF%86"><span class="toc-text">回忆</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#%E6%A8%A1%E5%9D%97%E5%8C%96%E5%92%8C%E7%BB%84%E4%BB%B6%E5%8C%96"><span class="toc-text">模块化和组件化</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#%E9%80%9A%E4%BF%A1%E6%9C%BA%E5%88%B6"><span class="toc-text">通信机制</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#%E6%8F%92%E4%BB%B6%E5%8C%96"><span class="toc-text">插件化</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#%E7%83%AD%E6%9B%B4%E6%96%B0"><span class="toc-text">热更新</span></a></li></ol></div></div></div>
+
+
+</div>
+
+
+    </aside>
+    <div class='l_main'>
+      
+
+      
+
+
+<div class="bread-nav fs12"><div id="breadcrumb"><a class="cap breadcrumb" href="/">主页</a><span class="sep"></span><a class="cap breadcrumb" href="/">文章</a><span class="sep"></span><a class="cap breadcrumb-link" href="/categories/Philosophy/">Philosophy</a></div><div id="post-meta">发布于&nbsp;<time datetime="2018-09-23T10:31:19.000Z">2018-09-23</time></div></div>
+
+<article class='content md post'>
+<h1 class="article-title"><span>浅谈客户端模块化</span></h1>
+<h2 id="回忆"><a href="#回忆" class="headerlink" title="回忆"></a>回忆</h2><p>大学那会喜欢跟着老师在实验室折腾，感觉每天大脑中都有新知识鱼贯而入。</p>
+<p>当我被告知要做一个最小单片机系统的时候，兴奋而又紧张！</p>
+<p>最小单片机系统示意图：<br><img class="lazy" src="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAABGdBTUEAALGPC/xhBQAAADhlWElmTU0AKgAAAAgAAYdpAAQAAAABAAAAGgAAAAAAAqACAAQAAAABAAAAAaADAAQAAAABAAAAAQAAAADa6r/EAAAAC0lEQVQIHWNgAAIAAAUAAY27m/MAAAAASUVORK5CYII=" data-src="/upload/images/2018/09/23/1.jpg"></p>
+<p>从画 <a target="_blank" rel="noopener" href="https://baike.baidu.com/item/PCB/146397?fr=aladdin">PCB</a> 到制板、洗板，再到选择元器件，最后组装调试和写代码，我花费了两个多月的时间，当板子上面的跑马灯亮起来的那一刻，我激动的无法言语。</p>
+<p>大家可以看到这个最小单片机系统上面有很多组件组成，有电阻、电容、电阻、二极管和卡槽等，当然还有最核心的组件就是单片机，当时用的是51单片机。</p>
+<p>各个元器件就好比组件，功能单一，职责明显，组件之间遵循协议构成模块，最终组合成为（最小单片机）系统。</p>
+<p>上面的回忆是为了引出今天的分享，分享的主要内容是客户端开发中常用的<strong>模块化</strong>、<strong>组件化</strong>、<strong>插件化</strong>以及<strong>热更新</strong>等技术辞藻，并没有涉及到具体的技术问题。</p>
+<h2 id="模块化和组件化"><a href="#模块化和组件化" class="headerlink" title="模块化和组件化"></a>模块化和组件化</h2><p>从程序设计的角度出发，无论是模块化还是组件化，都是指软件架构的范畴，是一种设计思想。两者并没有严格意义上面的区分，二者的目的一致，就是将工程结构化，达到可复用可伸缩的能力，最终提供工作效率。</p>
+<p>在说模块化和组件化之前，先解释一下什么是高内聚低耦合。</p>
+<p>高内聚：组件内尽可能独立完成自己的功能，坚持单一职责的原则 <a target="_blank" rel="noopener" href="https://baike.baidu.com/item/%E5%8D%95%E4%B8%80%E8%81%8C%E8%B4%A3%E5%8E%9F%E5%88%99/9456515">SRP</a>，不依赖于其他组件的代码。</p>
+<p>低耦合：模块与模块之间尽量不要互相引用，模块之间联系越复杂耦合度越高，修改的成本就越高。</p>
+<p><strong>组件</strong>更加强调可替换可复用的特性，职责和功能比较单一、独立，与其他组件之间没有耦合性。</p>
+<p><strong>模块</strong>更加强调组合特性，更加偏重于业务，比如一个社区项目，登录注册、论坛和个人中心都是模块，这些业务模块又是有很多个组件组合而成。</p>
+<p>下图展示的是一个简易的论坛系统示例图，如下：<br><img class="lazy" src="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAABGdBTUEAALGPC/xhBQAAADhlWElmTU0AKgAAAAgAAYdpAAQAAAABAAAAGgAAAAAAAqACAAQAAAABAAAAAaADAAQAAAABAAAAAQAAAADa6r/EAAAAC0lEQVQIHWNgAAIAAAUAAY27m/MAAAAASUVORK5CYII=" data-src="/upload/images/2018/09/23/2.jpg"></p>
+<p>可以看出，各个组件可以单独使用到其他模块当中，各个模块之间相对独立，只要定义好模块之间的通信协议，就可以做到并行开发，各个模块甚至可以复用到其他系统之中。</p>
+<h2 id="通信机制"><a href="#通信机制" class="headerlink" title="通信机制"></a>通信机制</h2><p>这里说的通信机制并不是指 HTTP 或 TCP 的通信方式，而是指组件与组件之间，模块和模块之间的交互方式。</p>
+<p>正常情况下，写业务功能的代码，在不同组件之间需要相互调用，这样就需要 <strong>import</strong> 其他组件，无形之中就增加了组件之间的耦合度。</p>
+<p>有开发经验的同学，可能会用到类似 java 的反射机制，或者一些动态语言的运行时机制如 Objective-C Runtime，对它们不进行 <strong>import</strong>，而是动态的解析代码，达到组件之间或者是类之间相互调用的目的。</p>
+<p>现在提倡也是比较热门的技术是通过<strong>路由</strong>通信机制，来进行组件之间的通信。这里举一个实际使用场景。</p>
+<p>用户安装了我们的 APP，运营同事在某个节日来临之际做一个促活跃的活动，期望用户点在打开推送通知的时候，打开 APP 后可以直接跳转到对应的活动详情页面。大致流程如下：<br><img class="lazy" src="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAABGdBTUEAALGPC/xhBQAAADhlWElmTU0AKgAAAAgAAYdpAAQAAAABAAAAGgAAAAAAAqACAAQAAAABAAAAAaADAAQAAAABAAAAAQAAAADa6r/EAAAAC0lEQVQIHWNgAAIAAAUAAY27m/MAAAAASUVORK5CYII=" data-src="/upload/images/2018/09/23/3.jpg"></p>
+<p>这是一个再常规不过的需求了，相信经历过产品开发的朋友都见过这种需求。</p>
+<p>很显然，我们可以使用<strong>路由</strong>的通信机制来完成这个需求，开发的流程图大致如下：<br><img class="lazy" src="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAABGdBTUEAALGPC/xhBQAAADhlWElmTU0AKgAAAAgAAYdpAAQAAAABAAAAGgAAAAAAAqACAAQAAAABAAAAAaADAAQAAAABAAAAAQAAAADa6r/EAAAAC0lEQVQIHWNgAAIAAAUAAY27m/MAAAAASUVORK5CYII=" data-src="/upload/images/2018/09/23/4.jpg"></p>
+<p>这里关键的核心得益于 iOS 和 Android 平台的 <strong>scheme</strong> 机制，对于 <strong>scheme</strong>，通俗的讲就是一种可以跨进程或者进程内的通信协议，例如可以在 APP 中打开某个应用商店。</p>
+<p>例如下面的 URL：</p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">bbs://page/activity/activity_detail?id=8978&amp;user_id=67890432</span><br></pre></td></tr></table></figure>
+
+<p>其中，<code>bbs</code> 就是 <strong>scheme</strong>，可以看到该 URL 完全可以被各自平台来解析。</p>
+<p>iOS 和 Android 平台各有很多开源的路由方案，实现手法各有差异，但是思想是一样的，建议大家去了解和学习。</p>
+<p>不过，现在你只要知道，路由的通信机制大大降低了组件之间的耦合性就够了。</p>
+<h2 id="插件化"><a href="#插件化" class="headerlink" title="插件化"></a>插件化</h2><p><strong>插件</strong>这个词，大家应该很熟悉，例如 Chrome 浏览器中可以安装各种小工具，这些小工具就是插件，还有各种开发使用的 IDE 也支持插件安装，便于提高我们的工作效率。Chrome 和 IDE 被称之为宿主，插件寄生于他们。</p>
+<p>支付宝和微信里面的小程序也可以看成是一个个插件，但是他们不能脱离支付宝和微信独立运行。</p>
+<p>可以发现这些插件即使被卸载或者被删除，并不会让 Chrome 或者 IDE 受到影响，换句话说，插件让宿主锦上添花。 </p>
+<p>这种插件思想当然可以运用到 APP 中来，试想一下，如果某个 APP 在线上经过动态下载就具有了一个强大或者好用的功能，岂不美哉？！</p>
+<p><strong>插件化</strong>，将 APP 拆分成很多模块，这些模块包括一个宿主和多个插件，宿主提供插件的管理和通信协议及规范，每个模块都是一个的库或者功能包。</p>
+<p><strong>插件化</strong>是一种编程和解决问题的思想，没有统一的定义。在 Android 上面运用比较多，iOS 上面很少，并不是 iOS 没有这样的技术，主要是因为苹果审核等各方面的限制。在 iOS8 上的 <code>App Extension</code> 功能，也可以看做是插件化了。</p>
+<p>在 Android 平台中，插件化已经不是很新鲜的技术了，<strong>VirtualAPK、Atlas、Replugin</strong> 等框架相继开源，插件化技术已经进入了比较成熟的阶段了。</p>
+<p>插件化的编程思想和实现，在不同的平台有所差异，即使在同一个平台上面都会有不同的实现手段，建议选择一个开源方案去了解其原理，然后试着动手去实现一个，千里之行始于足下！</p>
+<h2 id="热更新"><a href="#热更新" class="headerlink" title="热更新"></a>热更新</h2><p>“不好了，昨天有很多用户反馈我们的 APP 出现闪退。“ 小王一大早的开始撕喊，坐在他旁边的开发大神们顿时微笑凝固，马上去后台看上报的崩溃日志，紧接着开始复现和解决问题，最终得出结论，需要重新提审 APP，并周知渠道部门做好更新准备。</p>
+<p>试想一下，如果一个游戏几G的大小，你让用户为了你的一个小失误来整包更新游戏，用户和你估计都要疯了。</p>
+<p>最近几年，随着业务发展的需求，<strong>热更新</strong>技术也是得到了突飞猛进的发展。类似于上面的场景，能在用户神不知鬼不觉的情况下使用热更新的技术解决崩溃的问题，岂不是两全其美。</p>
+<p>Android 的热更新技术如火如荼的发展着，而苹果这边严厉禁止<strong>热更新</strong>，一旦检查到立即会责令你修改或者下架 APP。我们还是从技术的角度来看这个问题，学习和了解一下对应的技术总归没有错，<a target="_blank" rel="noopener" href="https://juejin.im/post/5a5821b6f265da3e3f4c9e2a">这里</a> 有 iOS 上面的热更新方案，另外 <a target="_blank" rel="noopener" href="https://www.jianshu.com/p/eec0ab6800a4">Android热修复方案比较</a> 介绍了很多 Android 热更新的开源的方案，可以了解学习一下。</p>
+<p>站在跨平台的角度，我个人比较推荐使用 Lua 实现<strong>热更新</strong>，Lua 不仅简单高效，而且可以很好的和 C&#x2F;C++ 结合在一起，而 Android 上面通过 JNI 又能与 C&#x2F;C++ 通信，iOS 上面就更加不用说了。这只是我个人的一点看法，不喜勿喷。</p>
+<hr>
+<p><strong>扫码关注，你我就各多一个朋友~</strong></p>
+<p><img class="lazy" src="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAABGdBTUEAALGPC/xhBQAAADhlWElmTU0AKgAAAAgAAYdpAAQAAAABAAAAGgAAAAAAAqACAAQAAAABAAAAAaADAAQAAAABAAAAAQAAAADa6r/EAAAAC0lEQVQIHWNgAAIAAAUAAY27m/MAAAAASUVORK5CYII=" data-src="/upload/me/qrcode_wx.jpg"></p>
+
+
+
+
+</article>
+
+<div class="related-wrap reveal" id="read-next"><section class="header cap theme"><span>接下来阅读</span></section><section class="body fs14"><a id="next" href="/2018/09/16/HTTP-%E6%BC%94%E8%BF%9B%E5%8F%B2/">HTTP 演进史<span class="note">较早</span></a><div class="line"></div><a id="prev" href="/2018/09/24/Cocoapods-%E7%A7%81%E6%9C%89%E4%BB%93%E5%BA%93/">Cocoapods: 私有仓库<span class="note">较新</span></a></section></div>
+
+
+
+
+
+
+  <div class='related-wrap md reveal' id="comments">
+    <div class='cmt-title cap theme'>
+      快来参与讨论吧
+    </div>
+    <div class='cmt-body valine'>
+      
+
+<div id="valine_container" class="valine_thread"><svg class="loading" style="vertical-align: middle;fill: currentColor;overflow: hidden;" viewBox="0 0 1024 1024" version="1.1" xmlns="http://www.w3.org/2000/svg" p-id="2709"><path d="M832 512c0-176-144-320-320-320V128c211.2 0 384 172.8 384 384h-64zM192 512c0 176 144 320 320 320v64C300.8 896 128 723.2 128 512h64z" p-id="2710"></path></svg></div>
+
+    </div>
+  </div>
+
+
+
+      
+<footer class="page-footer reveal fs12"><hr><div class="text"><p>本博客所有文章除特别声明外，均采用 <a target="_blank" rel="noopener" href="https://creativecommons.org/licenses/by-nc-sa/4.0/">CC BY-NC-SA 4.0</a> 许可协议，转载请注明出处。</p>
+<p>veryitman</p>
+</div></footer>
+
+      <div class='float-panel mobile-only blur' style='display:none'>
+  <button type='button' class='sidebar-toggle mobile' onclick='sidebar.toggle()'>
+    <svg class="icon" style="width: 1em; height: 1em;vertical-align: middle;fill: currentColor;overflow: hidden;" viewBox="0 0 1024 1024" version="1.1" xmlns="http://www.w3.org/2000/svg" p-id="15301"><path d="M566.407 808.3c26.9-0.1 49.3-20.8 51.6-47.6-1.9-27.7-23.9-49.7-51.6-51.6h-412.6c-28.2-1.4-52.6 19.5-55.5 47.6 2.3 26.8 24.6 47.5 51.6 47.6h416.5v4z m309.3-249.9c26.9-0.1 49.3-20.8 51.6-47.6-2.2-26.8-24.6-47.5-51.6-47.6h-721.9c-27.7-2.8-52.5 17.4-55.3 45.1-0.1 0.8-0.1 1.7-0.2 2.5 0.9 27.2 23.6 48.5 50.7 47.6H875.707z m-103.1-245.9c26.9-0.1 49.3-20.8 51.6-47.6-0.4-28.3-23.2-51.1-51.5-51.6h-618.9c-29.5-1.1-54.3 21.9-55.5 51.4v0.2c1.4 27.8 25.2 49.2 53 47.8 0.8 0 1.7-0.1 2.5-0.2h618.8z" p-id="15302"></path><path d="M566.407 808.3c26.9-0.1 49.3-20.8 51.6-47.6-1.9-27.7-23.9-49.7-51.6-51.6h-412.6c-28.2-1.4-52.6 19.5-55.5 47.6 1.9 27.7 23.9 49.7 51.6 51.6h416.5z m309.3-249.9c26.9-0.1 49.3-20.8 51.6-47.6-2.2-26.8-24.6-47.5-51.6-47.6h-721.9c-27.7-2.8-52.5 17.4-55.3 45.1-0.1 0.8-0.1 1.7-0.2 2.5 0.9 27.2 23.6 48.5 50.7 47.6H875.707z m-103.1-245.9c26.9-0.1 49.3-20.8 51.6-47.6-0.4-28.3-23.2-51.1-51.5-51.6h-618.9c-29.5-1.1-54.3 21.9-55.5 51.4v0.2c1.4 27.8 25.2 49.2 53 47.8 0.8 0 1.7-0.1 2.5-0.2h618.8z" p-id="15303"></path></svg>
+  </button>
+</div>
+
+    </div>
+  </div>
+  <div class='scripts'>
+    <script type="text/javascript">
+  stellar = {
+    // 懒加载 css https://github.com/filamentgroup/loadCSS
+    loadCSS: (href, before, media, attributes) => {
+      var doc = window.document;
+      var ss = doc.createElement("link");
+      var ref;
+      if (before) {
+        ref = before;
+      } else {
+        var refs = (doc.body || doc.getElementsByTagName("head")[0]).childNodes;
+        ref = refs[refs.length - 1];
+      }
+      var sheets = doc.styleSheets;
+      if (attributes) {
+        for (var attributeName in attributes) {
+          if (attributes.hasOwnProperty(attributeName)) {
+            ss.setAttribute(attributeName, attributes[attributeName]);
+          }
+        }
+      }
+      ss.rel = "stylesheet";
+      ss.href = href;
+      ss.media = "only x";
+      function ready(cb) {
+        if (doc.body) {
+          return cb();
+        }
+        setTimeout(function () {
+          ready(cb);
+        });
+      }
+      ready(function () {
+        ref.parentNode.insertBefore(ss, before ? ref : ref.nextSibling);
+      });
+      var onloadcssdefined = function (cb) {
+        var resolvedHref = ss.href;
+        var i = sheets.length;
+        while (i--) {
+          if (sheets[i].href === resolvedHref) {
+            return cb();
+          }
+        }
+        setTimeout(function () {
+          onloadcssdefined(cb);
+        });
+      };
+      function loadCB() {
+        if (ss.addEventListener) {
+          ss.removeEventListener("load", loadCB);
+        }
+        ss.media = media || "all";
+      }
+      if (ss.addEventListener) {
+        ss.addEventListener("load", loadCB);
+      }
+      ss.onloadcssdefined = onloadcssdefined;
+      onloadcssdefined(loadCB);
+      return ss;
+    },
+
+    // 从 butterfly 和 volantis 获得灵感
+    loadScript: (src, opt) => new Promise((resolve, reject) => {
+      var script = document.createElement('script');
+      script.src = src;
+      if (opt) {
+        for (let key of Object.keys(opt)) {
+          script[key] = opt[key]
+        }
+      } else {
+        // 默认异步，如果需要同步，第二个参数传入 {} 即可
+        script.async = true
+      }
+      script.onerror = reject
+      script.onload = script.onreadystatechange = function() {
+        const loadState = this.readyState
+        if (loadState && loadState !== 'loaded' && loadState !== 'complete') return
+        script.onload = script.onreadystatechange = null
+        resolve()
+      }
+      document.head.appendChild(script)
+    }),
+
+    // https://github.com/jerryc127/hexo-theme-butterfly
+    jQuery: (fn) => {
+      if (typeof jQuery === 'undefined') {
+        stellar.loadScript(stellar.plugins.jQuery).then(fn)
+      } else {
+        fn()
+      }
+    }
+  };
+  stellar.github = 'https://github.com/xaoxuu/hexo-theme-stellar/tree/1.6.1';
+  stellar.config = {
+    date_suffix: {
+      just: '刚刚',
+      min: '分钟前',
+      hour: '小时前',
+      day: '天前',
+      month: '个月前',
+    },
+  };
+
+  // required plugins (only load if needs)
+  stellar.plugins = {
+    jQuery: 'https://cdn.jsdelivr.net/npm/jquery@3.5.1/dist/jquery.min.js',
+    sitesjs: '/js/plugins/sites.js',
+    friendsjs: '/js/plugins/friends.js',
+  };
+
+  // optional plugins
+  if ('true' == 'true') {
+    stellar.plugins.lazyload = Object.assign({"enable":true,"js":"https://cdn.jsdelivr.net/npm/vanilla-lazyload@17.3.1/dist/lazyload.min.js","transition":"blur"});
+  }
+  if ('true' == 'true') {
+    stellar.plugins.swiper = Object.assign({"enable":true,"css":"https://unpkg.com/swiper@6/swiper-bundle.min.css","js":"https://unpkg.com/swiper@6/swiper-bundle.min.js"});
+  }
+  if ('' == 'true') {
+    stellar.plugins.scrollreveal = Object.assign({"enable":null,"js":"https://cdn.jsdelivr.net/npm/scrollreveal@4.0.9/dist/scrollreveal.min.js","distance":"8px","duration":500,"interval":100,"scale":1});
+  }
+  if ('true' == 'true') {
+    stellar.plugins.preload = Object.assign({"enable":true,"service":"flying_pages","instant_page":"https://cdn.jsdelivr.net/gh/volantis-x/cdn-volantis@4.1.2/js/instant_page.js","flying_pages":"https://cdn.jsdelivr.net/gh/gijo-varghese/flying-pages@2.1.2/flying-pages.min.js"});
+  }
+</script>
+
+<!-- required -->
+
+  
+<script src="/js/main.js" async></script>
+
+
+
+<!-- optional -->
+
+  <script>
+  function getEmojiMaps() {
+    function emoji(path, idx, ext) {
+      return path + "/" + path + "-" + idx + "." + ext;
+    }
+    var emojiMaps = {};
+    for (var i = 1; i <= 54; i++) {
+      emojiMaps['tieba-' + i] = emoji('tieba', i, 'png');
+    }
+    for (var i = 1; i <= 101; i++) {
+      emojiMaps['qq-' + i] = emoji('qq', i, 'gif');
+    }
+    for (var i = 1; i <= 116; i++) {
+      emojiMaps['aru-' + i] = emoji('aru', i, 'gif');
+    }
+    for (var i = 1; i <= 125; i++) {
+      emojiMaps['twemoji-' + i] = emoji('twemoji', i, 'png');
+    }
+    for (var i = 1; i <= 4; i++) {
+      emojiMaps['weibo-' + i] = emoji('weibo', i, 'png');
+    }
+    return emojiMaps;
+  }
+  function load_comment(){
+    if(!document.getElementById("valine_container"))return;
+    stellar.loadScript('https://cdn.jsdelivr.net/gh/XuxuGood/simple-blog-cdn@main/js/Valine.min.js', {defer:true}).then(function () {
+      const el = document.getElementById("valine_container");
+      var path = el.getAttribute('comment_id');
+      const placeholder = "欢迎您留言~";
+      if (!path) {
+        path = decodeURI(window.location.pathname);
+      }
+      var valine = new Valine();
+      valine.init(Object.assign({"js":"https://cdn.jsdelivr.net/gh/XuxuGood/simple-blog-cdn@main/js/Valine.min.js","appId":"FY2C9UCttYNaE1j8umenqdCE-gzGzoHsz","appKey":"4i7xMwkfSEGmEDhi6SceKFxz","placeholder":"欢迎您留言~","requiredFields":["nick","mail"],"enableQQ":true,"recordIP":false,"avatar":"robohash","pageSize":10,"lang":"zh-cn","highlight":true,"mathJax":false,"tagMeta":["博主","小伙伴","访客"],"metaPlaceholder":{"nick":"昵称/QQ号(必填)","mail":"邮箱（必填，完全保密）"},"master":["6783037F2DF30EAB99F9FC256157D875"],"friends":["6783037F2DF30EAB99F9FC256157D875"],"comment_count":true}, {
+        el: '#valine_container',
+        path: path,
+        placeholder: placeholder,
+        emojiCDN: 'https://cdn.jsdelivr.net/gh/volantis-x/cdn-emoji/valine/',
+        emojiMaps: getEmojiMaps(),
+      }));
+    });
+  }
+  window.addEventListener('DOMContentLoaded', (event) => {
+    console.log('DOM fully loaded and parsed');
+    load_comment();
+  });
+
+</script>
+
+
+
+
+<!-- inject -->
+
+
+  </div>
+</body>
+</html>

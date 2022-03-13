@@ -1,0 +1,378 @@
+<!DOCTYPE html>
+<html lang='zh-CN'>
+
+<head>
+  <meta name="generator" content="Hexo 6.0.0">
+  <meta charset="utf-8">
+  
+
+  <meta http-equiv='x-dns-prefetch-control' content='on' />
+  <link rel='dns-prefetch' href='https://cdn.jsdelivr.net'>
+  <link rel="preconnect" href="https://cdn.jsdelivr.net" crossorigin>
+
+  <meta name="renderer" content="webkit">
+  <meta name="force-rendering" content="webkit">
+  <meta http-equiv="X-UA-Compatible" content="IE=Edge,chrome=1">
+  <meta name="HandheldFriendly" content="True" >
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1">
+  <meta name="theme-color" content="#f8f8f8">
+  <title>ATS: HTTP/HTTPS 协议介绍 - Veryitman</title>
+
+  
+    <meta name="description" content="苹果在2017年要求 App 必须支持 HTTPS，不过, 这个要求,，最后又被苹果自己延期了。我只能说，苹果的开发哥哥们真会玩…但是不管怎么说，作为一名合格的程序员还是有义务和责任了解并理解 HTTPS 整个通信过程以及原理的。 该系列博客介绍 iOS 上面的 ATS 以及相关的 HTTPS 知识，分为两篇来分享。 本篇是第一篇，第二篇：ATS: HTTPS 认证 。 今天先简单了解一下 HTT">
+<meta property="og:type" content="article">
+<meta property="og:title" content="ATS: HTTP&#x2F;HTTPS 协议介绍">
+<meta property="og:url" content="http://example.com/2017/02/06/ATS-HTTP-HTTPS-%E5%8D%8F%E8%AE%AE%E4%BB%8B%E7%BB%8D/index.html">
+<meta property="og:site_name" content="Veryitman">
+<meta property="og:description" content="苹果在2017年要求 App 必须支持 HTTPS，不过, 这个要求,，最后又被苹果自己延期了。我只能说，苹果的开发哥哥们真会玩…但是不管怎么说，作为一名合格的程序员还是有义务和责任了解并理解 HTTPS 整个通信过程以及原理的。 该系列博客介绍 iOS 上面的 ATS 以及相关的 HTTPS 知识，分为两篇来分享。 本篇是第一篇，第二篇：ATS: HTTPS 认证 。 今天先简单了解一下 HTT">
+<meta property="og:locale" content="zh_CN">
+<meta property="og:image" content="http://example.com/upload/images/2017/02/06/HTTP+SSL.png">
+<meta property="og:image" content="http://example.com/upload/images/2017/02/06/tcp-ip-model.png">
+<meta property="article:published_time" content="2017-02-06T13:23:24.000Z">
+<meta property="article:modified_time" content="2022-03-09T14:53:24.298Z">
+<meta property="article:author" content="veryitman">
+<meta property="article:tag" content="ATS HTTP HTTPS SSL TLS">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:image" content="http://example.com/upload/images/2017/02/06/HTTP+SSL.png">
+  
+  
+
+  <!-- feed -->
+  
+
+  
+    
+<link rel="stylesheet" href="/css/main.css">
+
+  
+
+  
+
+  
+</head>
+
+<body>
+  
+
+
+  <div class='l_body' id='start'>
+    <aside class='l_left' layout='post'>
+    
+
+
+<header class="header">
+
+<div class="logo-wrap"><a class="title" href="/"><div class="main">Veryitman</div></a></div>
+<nav class="menu dis-select"></nav></header>
+
+<div class="widgets">
+
+<div class="widget-wrap single" id="toc"><div class="widget-header cap dis-select"><span class="name">本文目录</span></div><div class="widget-body fs14"><div class="doc-tree active"><ol class="toc"><li class="toc-item toc-level-2"><a class="toc-link" href="#%E7%9B%B8%E5%85%B3%E5%90%8D%E8%AF%8D"><span class="toc-text">相关名词</span></a><ol class="toc-child"><li class="toc-item toc-level-4"><a class="toc-link" href="#1-HTTP"><span class="toc-text">1.HTTP</span></a></li><li class="toc-item toc-level-4"><a class="toc-link" href="#2-HTTPS"><span class="toc-text">2.HTTPS</span></a></li><li class="toc-item toc-level-4"><a class="toc-link" href="#3-SSL"><span class="toc-text">3.SSL</span></a></li><li class="toc-item toc-level-4"><a class="toc-link" href="#4-TLS"><span class="toc-text">4.TLS</span></a></li><li class="toc-item toc-level-4"><a class="toc-link" href="#5-ATS"><span class="toc-text">5.ATS</span></a></li></ol></li></ol></li><li class="toc-item toc-level-2"><a class="toc-link" href="#%E5%8D%8F%E8%AE%AE%E4%BB%8B%E7%BB%8D"><span class="toc-text">协议介绍</span></a><ol class="toc-child"><li class="toc-item toc-level-3"><a class="toc-link" href="#HTTP"><span class="toc-text">HTTP</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#HTTPS"><span class="toc-text">HTTPS</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#%E6%8B%86%E5%88%86-HTTPS"><span class="toc-text">拆分 HTTPS</span></a><ol class="toc-child"><li class="toc-item toc-level-4"><a class="toc-link" href="#SSL-%E5%8D%8F%E8%AE%AE%E5%8A%A0%E5%AF%86%E6%96%B9%E5%BC%8F"><span class="toc-text">SSL 协议加密方式</span></a></li><li class="toc-item toc-level-4"><a class="toc-link" href="#HTTP-SSL"><span class="toc-text">HTTP+SSL</span></a></li><li class="toc-item toc-level-4"><a class="toc-link" href="#HTTPS-1"><span class="toc-text">HTTPS</span></a></li><li class="toc-item toc-level-4"><a class="toc-link" href="#SSL-Secure-Socket-Layer"><span class="toc-text">SSL(Secure Socket Layer)</span></a></li><li class="toc-item toc-level-4"><a class="toc-link" href="#TLS"><span class="toc-text">TLS</span></a></li></ol></li></ol></li><li class="toc-item toc-level-2"><a class="toc-link" href="#HTTP-%E5%92%8C-HTTPS-%E5%8C%BA%E5%88%AB"><span class="toc-text">HTTP 和 HTTPS 区别</span></a></li></ol></div></div></div>
+
+
+</div>
+
+
+    </aside>
+    <div class='l_main'>
+      
+
+      
+
+
+<div class="bread-nav fs12"><div id="breadcrumb"><a class="cap breadcrumb" href="/">主页</a><span class="sep"></span><a class="cap breadcrumb" href="/">文章</a><span class="sep"></span><a class="cap breadcrumb-link" href="/categories/iOS/">iOS</a> <span class="sep"></span> <a class="cap breadcrumb-link" href="/categories/%E7%BD%91%E7%BB%9C%E5%8D%8F%E8%AE%AE/">网络协议</a></div><div id="post-meta">发布于&nbsp;<time datetime="2017-02-06T13:23:24.000Z">2017-02-06</time></div></div>
+
+<article class='content md post'>
+<h1 class="article-title"><span>ATS: HTTP/HTTPS 协议介绍</span></h1>
+<p>苹果在2017年要求 App 必须支持 <code>HTTPS</code>，不过, 这个要求,，最后又被苹果自己延期了。我只能说，苹果的开发哥哥们真会玩…<br>但是不管怎么说，作为一名合格的程序员还是有义务和责任了解并理解 HTTPS 整个通信过程以及原理的。</p>
+<p>该系列博客介绍 iOS 上面的 ATS 以及相关的 HTTPS 知识，分为两篇来分享。</p>
+<p>本篇是第一篇，第二篇：<a target="_blank" rel="noopener" href="http://www.veryitman.com/2017/02/08/ATS-HTTPS-%E8%AE%A4%E8%AF%81/">ATS: HTTPS 认证</a> 。</p>
+<p>今天先简单了解一下 HTTPS 以及相关的知识。</p>
+<h2 id="相关名词"><a href="#相关名词" class="headerlink" title="相关名词"></a>相关名词</h2><p>先了解一下相关的常用名词。</p>
+<h4 id="1-HTTP"><a href="#1-HTTP" class="headerlink" title="1.HTTP"></a>1.HTTP</h4><p>HyperText Transfer Protocol，超文本传输协议。</p>
+<h4 id="2-HTTPS"><a href="#2-HTTPS" class="headerlink" title="2.HTTPS"></a>2.HTTPS</h4><p>Hyper Text Transfer Protocol over Secure Socket Layer，安全的超文本传输协议。</p>
+<h4 id="3-SSL"><a href="#3-SSL" class="headerlink" title="3.SSL"></a>3.SSL</h4><p>Secure Socket Layer，安全套接字层。</p>
+<h4 id="4-TLS"><a href="#4-TLS" class="headerlink" title="4.TLS"></a>4.TLS</h4><p>Transport Layer Security，传输层安全.其前身就是 SSL.</p>
+<h4 id="5-ATS"><a href="#5-ATS" class="headerlink" title="5.ATS"></a>5.ATS</h4><p>App Transport Security，应用传输安全。</p>
+<h2 id="协议介绍"><a href="#协议介绍" class="headerlink" title="协议介绍"></a>协议介绍</h2><h3 id="HTTP"><a href="#HTTP" class="headerlink" title="HTTP"></a>HTTP</h3><p>HTTP 全称是 <code>HyperText Transfer Protocol</code>，即超文本传输协议，是互联网上使用最广泛的一种协议，所有 WWW 文件必须遵循的标准。</p>
+<p>HTTP 协议传输的数据都是未加密的, 也就是明文的，因此使用 HTTP 协议传输隐私信息非常不安全。默认使用 TCP 端口 <code>80</code>.</p>
+<h3 id="HTTPS"><a href="#HTTPS" class="headerlink" title="HTTPS"></a>HTTPS</h3><p>安全的超文本传输协议，<code>Hyper Text Transfer Protocol over Secure Socket Layer</code>，网景公式设计了 SSL(Secure Socket Layer) 协议用于对 HTTP 协议传输的数据进行加密，保证会话过程中的安全性。</p>
+<p>HTTPS 协议默认使用 TCP 的 <code>443</code>  端口。</p>
+<h3 id="拆分-HTTPS"><a href="#拆分-HTTPS" class="headerlink" title="拆分 HTTPS"></a>拆分 HTTPS</h3><h4 id="SSL-协议加密方式"><a href="#SSL-协议加密方式" class="headerlink" title="SSL 协议加密方式"></a>SSL 协议加密方式</h4><p>SSL 协议即用到了对称加密也用到了非对称加密(公钥加密)，在建立传输链路时，SSL 首先对对称加密的密钥使用公钥进行非对称加密（主要用于证书校验，这里指的证书是CA认证机构颁发的证书也就是常说的数字证书），链路建立好之后，SSL 对传输内容使用对称加密。</p>
+<blockquote>
+<p>1、对称加密（通信双方使用同一个密钥解密）<br>速度高，可加密内容较大，用来加密会话过程中的消息。</p>
+</blockquote>
+<blockquote>
+<p>2、非对称加密（通信双方使用不同密钥解密或者解密）<br>加密速度较慢，但能提供更好的身份认证技术，用来加密对称加密的密钥。</p>
+</blockquote>
+<h4 id="HTTP-SSL"><a href="#HTTP-SSL" class="headerlink" title="HTTP+SSL"></a>HTTP+SSL</h4><p>HTTPS，可以看做是 HTTP+SSL，所以我们应该把重点在 SSL 上面。</p>
+<h4 id="HTTPS-1"><a href="#HTTPS-1" class="headerlink" title="HTTPS"></a>HTTPS</h4><p>在 HTTP 基础上提出的一种安全的 HTTP 协议，因此可以称为安全的超文本传输协议。</p>
+<p>HTTP 协议直接放置在 TCP 协议之上，而 HTTPS 提出在 HTTP 和 TCP 中间加上一层加密层。</p>
+<p>从发送端看，这一层负责把 HTTP 的内容加密后送到下层的 TCP，从接收方看，这一层负责将 TCP 送来的数据解密还原成 HTTP 的内容。</p>
+<h4 id="SSL-Secure-Socket-Layer"><a href="#SSL-Secure-Socket-Layer" class="headerlink" title="SSL(Secure Socket Layer)"></a>SSL(Secure Socket Layer)</h4><p>是 Netscape 公司设计的主要用于 WEB 的安全传输协议.<br>它在 HTTPS 协议栈中负责实现上面提到的加密层.</p>
+<p>一个 HTTPS 协议栈大致是这样的：<br><img class="lazy" src="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAABGdBTUEAALGPC/xhBQAAADhlWElmTU0AKgAAAAgAAYdpAAQAAAABAAAAGgAAAAAAAqACAAQAAAABAAAAAaADAAQAAAABAAAAAQAAAADa6r/EAAAAC0lEQVQIHWNgAAIAAAUAAY27m/MAAAAASUVORK5CYII=" data-src="/upload/images/2017/02/06/HTTP+SSL.png" alt="1"></p>
+<h4 id="TLS"><a href="#TLS" class="headerlink" title="TLS"></a>TLS</h4><p>HTTPS，也称作 HTTP over TLS.</p>
+<p>TLS (传输层安全, Transport Layer Security) 的前身是 SSL，<code>TLS 1.0</code> 通常被标示为 <code>SSL 3.1</code>，<code>TLS 1.1</code> 为 <code>SSL 3.2</code>，<code>TLS 1.2</code> 为 <code>SSL 3.3</code>.</p>
+<blockquote>
+<p>苹果 ATS (App Transport Security)，要求支持 HTTPS 的 TLS 版本最低为 V1.2.</p>
+</blockquote>
+<p>下图描述了在 TCP&#x2F;IP 协议栈中 TLS(各子协议）和 HTTP 的关系:<br><img class="lazy" src="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAABGdBTUEAALGPC/xhBQAAADhlWElmTU0AKgAAAAgAAYdpAAQAAAABAAAAGgAAAAAAAqACAAQAAAABAAAAAaADAAQAAAABAAAAAQAAAADa6r/EAAAAC0lEQVQIHWNgAAIAAAUAAY27m/MAAAAASUVORK5CYII=" data-src="/upload/images/2017/02/06/tcp-ip-model.png" alt="1"></p>
+<p>其中 Handshake protocol，Change Ciper Spec protocol 和 Alert protocol 组成了 SSL Handshaking Protocols.</p>
+<p>SSL 和 TLS 的发展历史:</p>
+<blockquote>
+<p>1994年，NetScape 公司设计了 SSL 协议（Secure Sockets Layer）的 1.0 版，但是未发布。</p>
+</blockquote>
+<blockquote>
+<p>1995年，NetScape 公司发布 SSL 2.0 版，很快发现有严重漏洞。</p>
+</blockquote>
+<blockquote>
+<p>1996年，SSL 3.0 版问世，得到大规模应用。</p>
+</blockquote>
+<blockquote>
+<p>1999年，互联网标准化组织 ISOC 接替 NetScape 公司，发布了 SSL 的升级版 TLS 1.0 版。</p>
+</blockquote>
+<blockquote>
+<p>2006年和2008年，TLS 进行了两次升级，分别为 TLS 1.1 版和 TLS 1.2 版.最新的变动是2011年 TLS 1.2 的修订版。</p>
+</blockquote>
+<blockquote>
+<p>TLS 1.3 改动会比较大，目前还在草案阶段。</p>
+</blockquote>
+<h2 id="HTTP-和-HTTPS-区别"><a href="#HTTP-和-HTTPS-区别" class="headerlink" title="HTTP 和 HTTPS 区别"></a>HTTP 和 HTTPS 区别</h2><p>HTTPS 和 HTTP 的区别主要为以下四点:</p>
+<p>1、HTTPS 协议需要到 CA 申请证书，一般免费证书很少，需要交费，费用越高那么安全性会越好，所谓一分价钱一分货在这里被体现的淋漓尽致。</p>
+<p>2、HTTP 是超文本传输协议，信息是明文传输，HTTPS 则是具有安全性的 SLL&#x2F;TLS 加密传输协议(非对称加密)。</p>
+<p>3、HTTP 和 HTTPS 不同的连接方式，用的端口也不一样，前者是 80，后者是 443.</p>
+<p>4、HTTP 的连接很简单，是无状态的；HTTPS 协议是由 SSL+HTTP 协议构建的可进行加密传输、身份认证的网络协议，比 HTTP 协议更加安全。</p>
+
+
+
+
+</article>
+
+<div class="related-wrap reveal" id="read-next"><section class="header cap theme"><span>接下来阅读</span></section><section class="body fs14"><a id="next" href="/2017/02/05/RN-Yarn/">RN: Yarn<span class="note">较早</span></a><div class="line"></div><a id="prev" href="/2017/02/08/ATS-HTTPS-%E8%AE%A4%E8%AF%81/">ATS: HTTPS 认证<span class="note">较新</span></a></section></div>
+
+
+
+
+
+
+  <div class='related-wrap md reveal' id="comments">
+    <div class='cmt-title cap theme'>
+      快来参与讨论吧
+    </div>
+    <div class='cmt-body valine'>
+      
+
+<div id="valine_container" class="valine_thread"><svg class="loading" style="vertical-align: middle;fill: currentColor;overflow: hidden;" viewBox="0 0 1024 1024" version="1.1" xmlns="http://www.w3.org/2000/svg" p-id="2709"><path d="M832 512c0-176-144-320-320-320V128c211.2 0 384 172.8 384 384h-64zM192 512c0 176 144 320 320 320v64C300.8 896 128 723.2 128 512h64z" p-id="2710"></path></svg></div>
+
+    </div>
+  </div>
+
+
+
+      
+<footer class="page-footer reveal fs12"><hr><div class="text"><p>本博客所有文章除特别声明外，均采用 <a target="_blank" rel="noopener" href="https://creativecommons.org/licenses/by-nc-sa/4.0/">CC BY-NC-SA 4.0</a> 许可协议，转载请注明出处。</p>
+<p>veryitman</p>
+</div></footer>
+
+      <div class='float-panel mobile-only blur' style='display:none'>
+  <button type='button' class='sidebar-toggle mobile' onclick='sidebar.toggle()'>
+    <svg class="icon" style="width: 1em; height: 1em;vertical-align: middle;fill: currentColor;overflow: hidden;" viewBox="0 0 1024 1024" version="1.1" xmlns="http://www.w3.org/2000/svg" p-id="15301"><path d="M566.407 808.3c26.9-0.1 49.3-20.8 51.6-47.6-1.9-27.7-23.9-49.7-51.6-51.6h-412.6c-28.2-1.4-52.6 19.5-55.5 47.6 2.3 26.8 24.6 47.5 51.6 47.6h416.5v4z m309.3-249.9c26.9-0.1 49.3-20.8 51.6-47.6-2.2-26.8-24.6-47.5-51.6-47.6h-721.9c-27.7-2.8-52.5 17.4-55.3 45.1-0.1 0.8-0.1 1.7-0.2 2.5 0.9 27.2 23.6 48.5 50.7 47.6H875.707z m-103.1-245.9c26.9-0.1 49.3-20.8 51.6-47.6-0.4-28.3-23.2-51.1-51.5-51.6h-618.9c-29.5-1.1-54.3 21.9-55.5 51.4v0.2c1.4 27.8 25.2 49.2 53 47.8 0.8 0 1.7-0.1 2.5-0.2h618.8z" p-id="15302"></path><path d="M566.407 808.3c26.9-0.1 49.3-20.8 51.6-47.6-1.9-27.7-23.9-49.7-51.6-51.6h-412.6c-28.2-1.4-52.6 19.5-55.5 47.6 1.9 27.7 23.9 49.7 51.6 51.6h416.5z m309.3-249.9c26.9-0.1 49.3-20.8 51.6-47.6-2.2-26.8-24.6-47.5-51.6-47.6h-721.9c-27.7-2.8-52.5 17.4-55.3 45.1-0.1 0.8-0.1 1.7-0.2 2.5 0.9 27.2 23.6 48.5 50.7 47.6H875.707z m-103.1-245.9c26.9-0.1 49.3-20.8 51.6-47.6-0.4-28.3-23.2-51.1-51.5-51.6h-618.9c-29.5-1.1-54.3 21.9-55.5 51.4v0.2c1.4 27.8 25.2 49.2 53 47.8 0.8 0 1.7-0.1 2.5-0.2h618.8z" p-id="15303"></path></svg>
+  </button>
+</div>
+
+    </div>
+  </div>
+  <div class='scripts'>
+    <script type="text/javascript">
+  stellar = {
+    // 懒加载 css https://github.com/filamentgroup/loadCSS
+    loadCSS: (href, before, media, attributes) => {
+      var doc = window.document;
+      var ss = doc.createElement("link");
+      var ref;
+      if (before) {
+        ref = before;
+      } else {
+        var refs = (doc.body || doc.getElementsByTagName("head")[0]).childNodes;
+        ref = refs[refs.length - 1];
+      }
+      var sheets = doc.styleSheets;
+      if (attributes) {
+        for (var attributeName in attributes) {
+          if (attributes.hasOwnProperty(attributeName)) {
+            ss.setAttribute(attributeName, attributes[attributeName]);
+          }
+        }
+      }
+      ss.rel = "stylesheet";
+      ss.href = href;
+      ss.media = "only x";
+      function ready(cb) {
+        if (doc.body) {
+          return cb();
+        }
+        setTimeout(function () {
+          ready(cb);
+        });
+      }
+      ready(function () {
+        ref.parentNode.insertBefore(ss, before ? ref : ref.nextSibling);
+      });
+      var onloadcssdefined = function (cb) {
+        var resolvedHref = ss.href;
+        var i = sheets.length;
+        while (i--) {
+          if (sheets[i].href === resolvedHref) {
+            return cb();
+          }
+        }
+        setTimeout(function () {
+          onloadcssdefined(cb);
+        });
+      };
+      function loadCB() {
+        if (ss.addEventListener) {
+          ss.removeEventListener("load", loadCB);
+        }
+        ss.media = media || "all";
+      }
+      if (ss.addEventListener) {
+        ss.addEventListener("load", loadCB);
+      }
+      ss.onloadcssdefined = onloadcssdefined;
+      onloadcssdefined(loadCB);
+      return ss;
+    },
+
+    // 从 butterfly 和 volantis 获得灵感
+    loadScript: (src, opt) => new Promise((resolve, reject) => {
+      var script = document.createElement('script');
+      script.src = src;
+      if (opt) {
+        for (let key of Object.keys(opt)) {
+          script[key] = opt[key]
+        }
+      } else {
+        // 默认异步，如果需要同步，第二个参数传入 {} 即可
+        script.async = true
+      }
+      script.onerror = reject
+      script.onload = script.onreadystatechange = function() {
+        const loadState = this.readyState
+        if (loadState && loadState !== 'loaded' && loadState !== 'complete') return
+        script.onload = script.onreadystatechange = null
+        resolve()
+      }
+      document.head.appendChild(script)
+    }),
+
+    // https://github.com/jerryc127/hexo-theme-butterfly
+    jQuery: (fn) => {
+      if (typeof jQuery === 'undefined') {
+        stellar.loadScript(stellar.plugins.jQuery).then(fn)
+      } else {
+        fn()
+      }
+    }
+  };
+  stellar.github = 'https://github.com/xaoxuu/hexo-theme-stellar/tree/1.6.1';
+  stellar.config = {
+    date_suffix: {
+      just: '刚刚',
+      min: '分钟前',
+      hour: '小时前',
+      day: '天前',
+      month: '个月前',
+    },
+  };
+
+  // required plugins (only load if needs)
+  stellar.plugins = {
+    jQuery: 'https://cdn.jsdelivr.net/npm/jquery@3.5.1/dist/jquery.min.js',
+    sitesjs: '/js/plugins/sites.js',
+    friendsjs: '/js/plugins/friends.js',
+  };
+
+  // optional plugins
+  if ('true' == 'true') {
+    stellar.plugins.lazyload = Object.assign({"enable":true,"js":"https://cdn.jsdelivr.net/npm/vanilla-lazyload@17.3.1/dist/lazyload.min.js","transition":"blur"});
+  }
+  if ('true' == 'true') {
+    stellar.plugins.swiper = Object.assign({"enable":true,"css":"https://unpkg.com/swiper@6/swiper-bundle.min.css","js":"https://unpkg.com/swiper@6/swiper-bundle.min.js"});
+  }
+  if ('' == 'true') {
+    stellar.plugins.scrollreveal = Object.assign({"enable":null,"js":"https://cdn.jsdelivr.net/npm/scrollreveal@4.0.9/dist/scrollreveal.min.js","distance":"8px","duration":500,"interval":100,"scale":1});
+  }
+  if ('true' == 'true') {
+    stellar.plugins.preload = Object.assign({"enable":true,"service":"flying_pages","instant_page":"https://cdn.jsdelivr.net/gh/volantis-x/cdn-volantis@4.1.2/js/instant_page.js","flying_pages":"https://cdn.jsdelivr.net/gh/gijo-varghese/flying-pages@2.1.2/flying-pages.min.js"});
+  }
+</script>
+
+<!-- required -->
+
+  
+<script src="/js/main.js" async></script>
+
+
+
+<!-- optional -->
+
+  <script>
+  function getEmojiMaps() {
+    function emoji(path, idx, ext) {
+      return path + "/" + path + "-" + idx + "." + ext;
+    }
+    var emojiMaps = {};
+    for (var i = 1; i <= 54; i++) {
+      emojiMaps['tieba-' + i] = emoji('tieba', i, 'png');
+    }
+    for (var i = 1; i <= 101; i++) {
+      emojiMaps['qq-' + i] = emoji('qq', i, 'gif');
+    }
+    for (var i = 1; i <= 116; i++) {
+      emojiMaps['aru-' + i] = emoji('aru', i, 'gif');
+    }
+    for (var i = 1; i <= 125; i++) {
+      emojiMaps['twemoji-' + i] = emoji('twemoji', i, 'png');
+    }
+    for (var i = 1; i <= 4; i++) {
+      emojiMaps['weibo-' + i] = emoji('weibo', i, 'png');
+    }
+    return emojiMaps;
+  }
+  function load_comment(){
+    if(!document.getElementById("valine_container"))return;
+    stellar.loadScript('https://cdn.jsdelivr.net/gh/XuxuGood/simple-blog-cdn@main/js/Valine.min.js', {defer:true}).then(function () {
+      const el = document.getElementById("valine_container");
+      var path = el.getAttribute('comment_id');
+      const placeholder = "欢迎您留言~";
+      if (!path) {
+        path = decodeURI(window.location.pathname);
+      }
+      var valine = new Valine();
+      valine.init(Object.assign({"js":"https://cdn.jsdelivr.net/gh/XuxuGood/simple-blog-cdn@main/js/Valine.min.js","appId":"FY2C9UCttYNaE1j8umenqdCE-gzGzoHsz","appKey":"4i7xMwkfSEGmEDhi6SceKFxz","placeholder":"欢迎您留言~","requiredFields":["nick","mail"],"enableQQ":true,"recordIP":false,"avatar":"robohash","pageSize":10,"lang":"zh-cn","highlight":true,"mathJax":false,"tagMeta":["博主","小伙伴","访客"],"metaPlaceholder":{"nick":"昵称/QQ号(必填)","mail":"邮箱（必填，完全保密）"},"master":["6783037F2DF30EAB99F9FC256157D875"],"friends":["6783037F2DF30EAB99F9FC256157D875"],"comment_count":true}, {
+        el: '#valine_container',
+        path: path,
+        placeholder: placeholder,
+        emojiCDN: 'https://cdn.jsdelivr.net/gh/volantis-x/cdn-emoji/valine/',
+        emojiMaps: getEmojiMaps(),
+      }));
+    });
+  }
+  window.addEventListener('DOMContentLoaded', (event) => {
+    console.log('DOM fully loaded and parsed');
+    load_comment();
+  });
+
+</script>
+
+
+
+
+<!-- inject -->
+
+
+  </div>
+</body>
+</html>

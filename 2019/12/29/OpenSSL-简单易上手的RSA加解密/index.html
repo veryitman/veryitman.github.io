@@ -1,0 +1,361 @@
+<!DOCTYPE html>
+<html lang='zh-CN'>
+
+<head>
+  <meta name="generator" content="Hexo 6.0.0">
+  <meta charset="utf-8">
+  
+
+  <meta http-equiv='x-dns-prefetch-control' content='on' />
+  <link rel='dns-prefetch' href='https://cdn.jsdelivr.net'>
+  <link rel="preconnect" href="https://cdn.jsdelivr.net" crossorigin>
+
+  <meta name="renderer" content="webkit">
+  <meta name="force-rendering" content="webkit">
+  <meta http-equiv="X-UA-Compatible" content="IE=Edge,chrome=1">
+  <meta name="HandheldFriendly" content="True" >
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1">
+  <meta name="theme-color" content="#f8f8f8">
+  <title>OpenSSL: 简单易上手的RSA加解密 - Veryitman</title>
+
+  
+    <meta name="description" content="简介这篇文章是继 OpenSSL: 用VS2017创建C工程、OpenSSL: 完成VS2017的配置 两篇文章的第3篇，前两篇分别跟大家分享了如何在 visual studio2017 中创建C工程，配置OpenSSL的开发环境以及使用 openssl 开源库实现base64的编解码。 本篇跟大家分享如何使用  openssl 开源库实现 RSA 的加密和解密，不过这一篇是对简单的数据进行加解密">
+<meta property="og:type" content="article">
+<meta property="og:title" content="OpenSSL: 简单易上手的RSA加解密">
+<meta property="og:url" content="http://example.com/2019/12/29/OpenSSL-%E7%AE%80%E5%8D%95%E6%98%93%E4%B8%8A%E6%89%8B%E7%9A%84RSA%E5%8A%A0%E8%A7%A3%E5%AF%86/index.html">
+<meta property="og:site_name" content="Veryitman">
+<meta property="og:description" content="简介这篇文章是继 OpenSSL: 用VS2017创建C工程、OpenSSL: 完成VS2017的配置 两篇文章的第3篇，前两篇分别跟大家分享了如何在 visual studio2017 中创建C工程，配置OpenSSL的开发环境以及使用 openssl 开源库实现base64的编解码。 本篇跟大家分享如何使用  openssl 开源库实现 RSA 的加密和解密，不过这一篇是对简单的数据进行加解密">
+<meta property="og:locale" content="zh_CN">
+<meta property="og:image" content="http://example.com/upload/me/qrcode_wx.jpg">
+<meta property="article:published_time" content="2019-12-29T14:03:55.000Z">
+<meta property="article:modified_time" content="2022-03-09T14:53:24.323Z">
+<meta property="article:author" content="veryitman">
+<meta property="article:tag" content="OpenSSL VS2017 RSA">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:image" content="http://example.com/upload/me/qrcode_wx.jpg">
+  
+  
+
+  <!-- feed -->
+  
+
+  
+    
+<link rel="stylesheet" href="/css/main.css">
+
+  
+
+  
+
+  
+</head>
+
+<body>
+  
+
+
+  <div class='l_body' id='start'>
+    <aside class='l_left' layout='post'>
+    
+
+
+<header class="header">
+
+<div class="logo-wrap"><a class="title" href="/"><div class="main">Veryitman</div></a></div>
+<nav class="menu dis-select"></nav></header>
+
+<div class="widgets">
+
+<div class="widget-wrap single" id="toc"><div class="widget-header cap dis-select"><span class="name">本文目录</span></div><div class="widget-body fs14"><div class="doc-tree active"><ol class="toc"><li class="toc-item toc-level-2"><a class="toc-link" href="#%E7%AE%80%E4%BB%8B"><span class="toc-text">简介</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#%E8%8E%B7%E5%8F%96%E5%85%AC%E3%80%81%E7%A7%81%E9%92%A5"><span class="toc-text">获取公、私钥</span></a><ol class="toc-child"><li class="toc-item toc-level-3"><a class="toc-link" href="#%E7%94%9F%E6%88%90%E7%A7%81%E9%92%A5"><span class="toc-text">生成私钥</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#%E7%94%9F%E6%88%90%E5%85%AC%E9%92%A5"><span class="toc-text">生成公钥</span></a></li></ol></li><li class="toc-item toc-level-2"><a class="toc-link" href="#RSA-%E5%AE%9E%E6%88%98"><span class="toc-text">RSA 实战</span></a></li></ol></div></div></div>
+
+
+</div>
+
+
+    </aside>
+    <div class='l_main'>
+      
+
+      
+
+
+<div class="bread-nav fs12"><div id="breadcrumb"><a class="cap breadcrumb" href="/">主页</a><span class="sep"></span><a class="cap breadcrumb" href="/">文章</a><span class="sep"></span><a class="cap breadcrumb-link" href="/categories/C-C/">C/C++</a></div><div id="post-meta">发布于&nbsp;<time datetime="2019-12-29T14:03:55.000Z">2019-12-29</time></div></div>
+
+<article class='content md post'>
+<h1 class="article-title"><span>OpenSSL: 简单易上手的RSA加解密</span></h1>
+<h2 id="简介"><a href="#简介" class="headerlink" title="简介"></a>简介</h2><p>这篇文章是继 <a href="%5Bhttp://www.veryitman.com/2019/11/23/OpenSSL-%E7%94%A8VS2017%E5%88%9B%E5%BB%BAC%E5%B7%A5%E7%A8%8B/">OpenSSL: 用VS2017创建C工程</a>、<a target="_blank" rel="noopener" href="http://www.veryitman.com/2019/11/23/OpenSSL-%E5%AE%8C%E6%88%90VS2017%E7%9A%84%E9%85%8D%E7%BD%AE/">OpenSSL: 完成VS2017的配置</a> 两篇文章的第3篇，前两篇分别跟大家分享了如何在 <code>visual studio2017</code> 中创建C工程，配置OpenSSL的开发环境以及使用 <code>openssl</code> 开源库实现base64的编解码。</p>
+<p>本篇跟大家分享如何使用  <code>openssl</code> 开源库实现 RSA 的加密和解密，不过这一篇是对简单的数据进行加解密，下一篇继续跟大家分享复杂一点的 RSA 加解密过程以及实例代码。</p>
+<p>2019 即将被画上句号，自己还有很多愿望没有实现。一拿起书就感觉困，一拿起手机觉得黑夜里阳光明媚，无药可救了呀！</p>
+<h2 id="获取公、私钥"><a href="#获取公、私钥" class="headerlink" title="获取公、私钥"></a>获取公、私钥</h2><p>在 <a target="_blank" rel="noopener" href="https://www.npcglib.org/~stathis/blog/precompiled-openssl/">precompiled-openssl</a> 获取的压缩包中，解压可以在 bin64或者bin（32位操作系统使用） 目录下面找到 <code>openssl.exe</code> 文件，双击打开即可。</p>
+<h3 id="生成私钥"><a href="#生成私钥" class="headerlink" title="生成私钥"></a>生成私钥</h3><p>执行下面代码，如下：</p>
+<figure class="highlight shell"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">genrsa -out rsa_private_key.pem 1024</span><br></pre></td></tr></table></figure>
+
+<p>此时在 bin64 目录下会生成 <code>rsa_private_key.pem</code> 文件，即私钥文件；</p>
+<p>将 RSA 私钥转换成 <code>PKCS8</code> 格式，执行如下代码：</p>
+<figure class="highlight shell"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">pkcs8 -topk8 -inform PEM -in rsa_private_key.pem -outform PEM -nocrypt</span><br></pre></td></tr></table></figure>
+
+<h3 id="生成公钥"><a href="#生成公钥" class="headerlink" title="生成公钥"></a>生成公钥</h3><p>执行下面代码，如下：</p>
+<figure class="highlight shell"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">rsa -in rsa_private_key.pem -pubout -out rsa_public_key.pem</span><br></pre></td></tr></table></figure>
+
+<p>此时在 bin64 目录下会生成 <code>rsa_public_key.pem</code> 文件，即公钥文件；</p>
+<p>用VS Code打开这两个文件，可以看到具体内容，在我的机器上生成的公钥：</p>
+<figure class="highlight shell"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br></pre></td><td class="code"><pre><span class="line">-----BEGIN PUBLIC KEY-----</span><br><span class="line">MIGfMA0GCSqGSIb3DQEBAQUAA4GNADCBiQKBgQCrPgCMJW17JN2DW7tZFk/FB6pU</span><br><span class="line">pLvLOo6G/EuND8XZptffXbyiY2VscMRhP+kKVeaLO9HuEYR3Zl78x8oR6prytstc</span><br><span class="line">/MueersWDxh4iGSHsZXGxA41hXrXLRElrSTRc43ea18o0zMxZoVZiR2JFt7QcgM+</span><br><span class="line">T6eOrvj59MhXv9O46QIDAQAB</span><br><span class="line">-----END PUBLIC KEY-----</span><br></pre></td></tr></table></figure>
+
+<p>私钥，如下：</p>
+<figure class="highlight shell"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br></pre></td><td class="code"><pre><span class="line">-----BEGIN PRIVATE KEY-----</span><br><span class="line">MIICdgIBADANBgkqhkiG9w0BAQEFAASCAmAwggJcAgEAAoGBAKs+AIwlbXsk3YNb</span><br><span class="line">u1kWT8UHqlSku8s6job8S40Pxdmm199dvKJjZWxwxGE/6QpV5os70e4RhHdmXvzH</span><br><span class="line">yhHqmvK2y1z8y556uxYPGHiIZIexlcbEDjWFetctESWtJNFzjd5rXyjTMzFmhVmJ</span><br><span class="line">HYkW3tByAz5Pp46u+Pn0yFe/07jpAgMBAAECgYBj1YH8MtXhNVzveEuBZMCc3hsv</span><br><span class="line">vdq+YSU3DV/+nXN7sQmp77xJ8CjxT80t5VS38dy2z+lUImJYOhamyNPGHkC2y84V</span><br><span class="line">7i5+e6ScQve1gnwHqRKGBjtSCaYOqm9rTDECCTT1oMU26sfYznWlJqMrkJp1jWn7</span><br><span class="line">aAwr+3FcX2XhD74ZAQJBAN34Y6fmHLRPv21MsdgGqUjKgyFvJfLUmtFFgb6sLEWc</span><br><span class="line">k22J3BAFAcNCTLYHFZwMhL/nwaw9/7rIUJD+lcl6n3cCQQDFfrN14qKC3GJfoBZ8</span><br><span class="line">k9S6F7Ss514DDPzIuenbafhoUjZDVcjLw9EmYZQjpfsQ3WdNICUKRrDHZay1Pz+s</span><br><span class="line">YkKfAkB+OKfaquS5t/t/2LPsxuTuipIEqiKnMjSTOfYsidVnBEFlcZZc2awF76aV</span><br><span class="line">f/PO1+OJCO2910ebXBtMSCi++GbDAkEAmc7zNPwsVH4OnyquWJdJNSUBMSd/sCCN</span><br><span class="line">PkaMOrVtINHmMMq+dvMqEBoupRS/U4Ma0JYYQsiLJL+qof2AOWDNQQJAcquLGHLT</span><br><span class="line">eGDDLluHo+kkIGwZi4aK/fDoylZ0NCEtYyMtShQ3JmllST9kmb9NJX2gMsejsirc</span><br><span class="line">H6ObxqZPbka6UA==</span><br><span class="line">-----END PRIVATE KEY-----</span><br></pre></td></tr></table></figure>
+
+<p>紧接着我会使用这对公私钥进行编码。</p>
+<h2 id="RSA-实战"><a href="#RSA-实战" class="headerlink" title="RSA 实战"></a>RSA 实战</h2><blockquote>
+<p>RSA加密算法是一种非对称加密算法。在公开密钥加密和电子商业中RSA被广泛使用。RSA是1977年由罗纳德·李维斯特（Ron Rivest）、阿迪·萨莫尔（Adi Shamir）和伦纳德·阿德曼（Leonard Adleman）一起提出的。当时他们三人都在麻省理工学院工作。RSA就是他们三人姓氏开头字母拼在一起组成的。</p>
+<p>1973年，在英国政府通讯总部工作的数学家克利福德·柯克斯（Clifford Cocks）在一个内部文件中提出了一个相同的算法，但他的发现被列入机密，一直到1997年才被发表。</p>
+<p>对极大整数做因数分解的难度决定了RSA算法的可靠性。换言之，对一极大整数做因数分解愈困难，RSA算法愈可靠。假如有人找到一种快速因数分解的算法的话，那么用RSA加密的信息的可靠性就肯定会极度下降。但找到这样的算法的可能性是非常小的。今天只有短的RSA钥匙才可能被强力方式解破。到目前为止，世界上还没有任何可靠的攻击RSA算法的方式。只要其钥匙的长度足够长，用RSA加密的信息实际上是不能被解破的。</p>
+<p>1983年麻省理工学院在美国为RSA算法申请了专利。这个专利2000年9月21日失效。由于该算法在申请专利前就已经被发表了，在世界上大多数其它地区这个专利权不被承认。</p>
+</blockquote>
+<p>新建头文件 <code>mzc_rsa.h</code>，声明几个函数，如下：</p>
+<figure class="highlight c"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br></pre></td><td class="code"><pre><span class="line"><span class="meta">#<span class="keyword">pragma</span> once</span></span><br><span class="line"></span><br><span class="line"><span class="comment">/* 公钥解密 */</span></span><br><span class="line"><span class="type">int</span> <span class="title function_">public_key_decrypt</span><span class="params">(<span class="type">unsigned</span> <span class="type">char</span> *enc_data, <span class="type">int</span> data_len, <span class="type">unsigned</span> <span class="type">char</span> *key, <span class="type">unsigned</span> <span class="type">char</span> *decrypted)</span>;</span><br><span class="line"></span><br><span class="line"><span class="comment">/* 私钥加密 */</span></span><br><span class="line"><span class="type">int</span> <span class="title function_">private_key_encrypt</span><span class="params">(<span class="type">unsigned</span> <span class="type">char</span> *data, <span class="type">int</span> data_len, <span class="type">unsigned</span> <span class="type">char</span> *key, <span class="type">unsigned</span> <span class="type">char</span> *encrypted)</span>;</span><br><span class="line"></span><br><span class="line"><span class="comment">/* 公钥加密 */</span></span><br><span class="line"><span class="type">int</span> <span class="title function_">public_key_encrypt</span><span class="params">(<span class="type">unsigned</span> <span class="type">char</span> *data, <span class="type">int</span> data_len, <span class="type">unsigned</span> <span class="type">char</span> *key, <span class="type">unsigned</span> <span class="type">char</span> *encrypted)</span>;</span><br><span class="line"></span><br><span class="line"><span class="comment">/* 私钥解密 */</span></span><br><span class="line"><span class="type">int</span> <span class="title function_">private_key_decrypt</span><span class="params">(<span class="type">unsigned</span> <span class="type">char</span> *enc_data, <span class="type">int</span> data_len, <span class="type">unsigned</span> <span class="type">char</span> *key, <span class="type">unsigned</span> <span class="type">char</span> *decrypted)</span>;</span><br><span class="line"></span><br></pre></td></tr></table></figure>
+
+<p>对应的实现文件 <code>mzc_rsa.c</code>，代码如下：</p>
+<figure class="highlight c"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br><span class="line">39</span><br><span class="line">40</span><br><span class="line">41</span><br><span class="line">42</span><br><span class="line">43</span><br><span class="line">44</span><br><span class="line">45</span><br><span class="line">46</span><br><span class="line">47</span><br><span class="line">48</span><br><span class="line">49</span><br><span class="line">50</span><br><span class="line">51</span><br><span class="line">52</span><br><span class="line">53</span><br><span class="line">54</span><br><span class="line">55</span><br><span class="line">56</span><br><span class="line">57</span><br><span class="line">58</span><br><span class="line">59</span><br><span class="line">60</span><br><span class="line">61</span><br><span class="line">62</span><br><span class="line">63</span><br><span class="line">64</span><br><span class="line">65</span><br><span class="line">66</span><br><span class="line">67</span><br></pre></td><td class="code"><pre><span class="line"><span class="meta">#<span class="keyword">include</span> <span class="string">&quot;mzc_rsa.h&quot;</span></span></span><br><span class="line"></span><br><span class="line"><span class="meta">#<span class="keyword">include</span> <span class="string">&lt;openssl/pem.h&gt;</span></span></span><br><span class="line"><span class="meta">#<span class="keyword">include</span> <span class="string">&lt;openssl/ssl.h&gt;</span></span></span><br><span class="line"><span class="meta">#<span class="keyword">include</span> <span class="string">&lt;openssl/rsa.h&gt;</span></span></span><br><span class="line"><span class="meta">#<span class="keyword">include</span> <span class="string">&lt;openssl/evp.h&gt;</span></span></span><br><span class="line"><span class="meta">#<span class="keyword">include</span> <span class="string">&lt;openssl/bio.h&gt;</span></span></span><br><span class="line"><span class="meta">#<span class="keyword">include</span> <span class="string">&lt;openssl/err.h&gt;</span></span></span><br><span class="line"><span class="meta">#<span class="keyword">include</span> <span class="string">&lt;openssl/buffer.h&gt;</span></span></span><br><span class="line"></span><br><span class="line"><span class="meta">#<span class="keyword">include</span> <span class="string">&lt;stdio.h&gt;</span></span></span><br><span class="line"></span><br><span class="line"><span class="type">const</span> <span class="type">int</span> PADDING = RSA_PKCS1_PADDING;</span><br><span class="line"></span><br><span class="line">RSA *<span class="title function_">createRSA</span><span class="params">(<span class="type">unsigned</span> <span class="type">char</span> *key, <span class="type">int</span> public_token)</span></span><br><span class="line">&#123;</span><br><span class="line">	RSA *rsa = <span class="literal">NULL</span>;</span><br><span class="line">	BIO *keybio;</span><br><span class="line">	keybio = BIO_new_mem_buf(key, <span class="number">-1</span>);</span><br><span class="line">	<span class="keyword">if</span> (keybio == <span class="literal">NULL</span>)</span><br><span class="line">	&#123;</span><br><span class="line">		<span class="built_in">printf</span>(<span class="string">&quot;Failed to create key BIO&quot;</span>);</span><br><span class="line">		<span class="keyword">return</span> <span class="number">0</span>;</span><br><span class="line">	&#125;</span><br><span class="line">	<span class="keyword">if</span> (public_token)</span><br><span class="line">	&#123;</span><br><span class="line">		rsa = PEM_read_bio_RSA_PUBKEY(keybio, &amp;rsa, <span class="literal">NULL</span>, <span class="literal">NULL</span>);</span><br><span class="line">	&#125;</span><br><span class="line">	<span class="keyword">else</span></span><br><span class="line">	&#123;</span><br><span class="line">		rsa = PEM_read_bio_RSAPrivateKey(keybio, &amp;rsa, <span class="literal">NULL</span>, <span class="literal">NULL</span>);</span><br><span class="line">	&#125;</span><br><span class="line">	<span class="keyword">if</span> (rsa == <span class="literal">NULL</span>)</span><br><span class="line">	&#123;</span><br><span class="line">		<span class="built_in">printf</span>(<span class="string">&quot;Failed to create RSA&quot;</span>);</span><br><span class="line">	&#125;</span><br><span class="line"></span><br><span class="line">	<span class="keyword">return</span> rsa;</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line"><span class="type">int</span> <span class="title function_">public_key_decrypt</span><span class="params">(<span class="type">unsigned</span> <span class="type">char</span> *enc_data, <span class="type">int</span> data_len, <span class="type">unsigned</span> <span class="type">char</span> *key, <span class="type">unsigned</span> <span class="type">char</span> *decrypted)</span></span><br><span class="line">&#123;</span><br><span class="line">	RSA *rsa = createRSA(key, <span class="number">1</span>);</span><br><span class="line">	<span class="type">int</span> result = RSA_public_decrypt(data_len, enc_data, decrypted, rsa, PADDING);</span><br><span class="line">	<span class="keyword">return</span> result;</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line"><span class="type">int</span> <span class="title function_">private_key_encrypt</span><span class="params">(<span class="type">unsigned</span> <span class="type">char</span> *data, <span class="type">int</span> data_len, <span class="type">unsigned</span> <span class="type">char</span> *key, <span class="type">unsigned</span> <span class="type">char</span> *encrypted)</span></span><br><span class="line">&#123;</span><br><span class="line">	RSA *rsa = createRSA(key, <span class="number">0</span>);</span><br><span class="line">	<span class="type">int</span> result = RSA_private_encrypt(data_len, data, encrypted, rsa, PADDING);</span><br><span class="line">	<span class="keyword">return</span> result;</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line"><span class="type">int</span> <span class="title function_">public_key_encrypt</span><span class="params">(<span class="type">unsigned</span> <span class="type">char</span> *data, <span class="type">int</span> data_len, <span class="type">unsigned</span> <span class="type">char</span> *key, <span class="type">unsigned</span> <span class="type">char</span> *encrypted)</span></span><br><span class="line">&#123;</span><br><span class="line">	RSA *rsa = createRSA(key, <span class="number">1</span>);</span><br><span class="line">	<span class="type">int</span> result = RSA_public_encrypt(data_len, data, encrypted, rsa, PADDING);</span><br><span class="line">	<span class="keyword">return</span> result;</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line"><span class="type">int</span> <span class="title function_">private_key_decrypt</span><span class="params">(<span class="type">unsigned</span> <span class="type">char</span> *enc_data, <span class="type">int</span> data_len, <span class="type">unsigned</span> <span class="type">char</span> *key, <span class="type">unsigned</span> <span class="type">char</span> *decrypted)</span></span><br><span class="line">&#123;</span><br><span class="line">	RSA *rsa = createRSA(key, <span class="number">0</span>);</span><br><span class="line">	<span class="type">int</span> result = RSA_private_decrypt(data_len, enc_data, decrypted, rsa, PADDING);</span><br><span class="line">	<span class="keyword">return</span> result;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<p>注意这里使用的 RSA 对齐模式是 <code>RSA_PKCS1_PADDING</code>。</p>
+<p>在测试的主函数（main）中，使用明文 <code>www.veryitman.com</code> 作为示例进行加密和解密操作，我在下面只列出关键实现。具体代码可以去 <a target="_blank" rel="noopener" href="https://github.com/veryitman/c-openssl">Github</a> 下载，<strong>注意</strong> clone <code>rsa-feature</code> 这个分支。</p>
+<figure class="highlight c"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br><span class="line">39</span><br><span class="line">40</span><br><span class="line">41</span><br><span class="line">42</span><br><span class="line">43</span><br><span class="line">44</span><br><span class="line">45</span><br><span class="line">46</span><br><span class="line">47</span><br><span class="line">48</span><br><span class="line">49</span><br><span class="line">50</span><br><span class="line">51</span><br><span class="line">52</span><br><span class="line">53</span><br><span class="line">54</span><br><span class="line">55</span><br><span class="line">56</span><br><span class="line">57</span><br><span class="line">58</span><br><span class="line">59</span><br><span class="line">60</span><br><span class="line">61</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment">/* 公钥加密， 私钥解密 */</span></span><br><span class="line"><span class="type">int</span> <span class="title function_">main</span><span class="params">()</span></span><br><span class="line">&#123;</span><br><span class="line">	<span class="comment">//原始数据为字符串：www.veryitman.com</span></span><br><span class="line">	<span class="type">unsigned</span> <span class="type">char</span> plainText[] = <span class="string">&quot;www.veryitman.com&quot;</span>;</span><br><span class="line"></span><br><span class="line">	<span class="type">unsigned</span> <span class="type">char</span> publicKey[] = <span class="string">&quot;-----BEGIN PUBLIC KEY-----\n&quot;</span></span><br><span class="line">		<span class="string">&quot;MIGfMA0GCSqGSIb3DQEBAQUAA4GNADCBiQKBgQCrPgCMJW17JN2DW7tZFk/FB6pU\n&quot;</span></span><br><span class="line">		<span class="string">&quot;pLvLOo6G/EuND8XZptffXbyiY2VscMRhP+kKVeaLO9HuEYR3Zl78x8oR6prytstc\n&quot;</span></span><br><span class="line">		<span class="string">&quot;/MueersWDxh4iGSHsZXGxA41hXrXLRElrSTRc43ea18o0zMxZoVZiR2JFt7QcgM+\n&quot;</span></span><br><span class="line">		<span class="string">&quot;T6eOrvj59MhXv9O46QIDAQAB\n&quot;</span></span><br><span class="line">		<span class="string">&quot;-----END PUBLIC KEY-----\n&quot;</span>;</span><br><span class="line"></span><br><span class="line">	<span class="type">unsigned</span> <span class="type">char</span> privateKey[] = <span class="string">&quot;-----BEGIN RSA PRIVATE KEY-----\n&quot;</span></span><br><span class="line">		<span class="string">&quot;MIICdgIBADANBgkqhkiG9w0BAQEFAASCAmAwggJcAgEAAoGBAKs+AIwlbXsk3YNb\n&quot;</span></span><br><span class="line">		<span class="string">&quot;u1kWT8UHqlSku8s6job8S40Pxdmm199dvKJjZWxwxGE/6QpV5os70e4RhHdmXvzH\n&quot;</span></span><br><span class="line">		<span class="string">&quot;yhHqmvK2y1z8y556uxYPGHiIZIexlcbEDjWFetctESWtJNFzjd5rXyjTMzFmhVmJ\n&quot;</span></span><br><span class="line">		<span class="string">&quot;HYkW3tByAz5Pp46u+Pn0yFe/07jpAgMBAAECgYBj1YH8MtXhNVzveEuBZMCc3hsv\n&quot;</span></span><br><span class="line">		<span class="string">&quot;vdq+YSU3DV/+nXN7sQmp77xJ8CjxT80t5VS38dy2z+lUImJYOhamyNPGHkC2y84V\n&quot;</span></span><br><span class="line">		<span class="string">&quot;7i5+e6ScQve1gnwHqRKGBjtSCaYOqm9rTDECCTT1oMU26sfYznWlJqMrkJp1jWn7\n&quot;</span></span><br><span class="line">		<span class="string">&quot;aAwr+3FcX2XhD74ZAQJBAN34Y6fmHLRPv21MsdgGqUjKgyFvJfLUmtFFgb6sLEWc\n&quot;</span></span><br><span class="line">		<span class="string">&quot;k22J3BAFAcNCTLYHFZwMhL/nwaw9/7rIUJD+lcl6n3cCQQDFfrN14qKC3GJfoBZ8\n&quot;</span></span><br><span class="line">		<span class="string">&quot;k9S6F7Ss514DDPzIuenbafhoUjZDVcjLw9EmYZQjpfsQ3WdNICUKRrDHZay1Pz+s\n&quot;</span></span><br><span class="line">		<span class="string">&quot;YkKfAkB+OKfaquS5t/t/2LPsxuTuipIEqiKnMjSTOfYsidVnBEFlcZZc2awF76aV\n&quot;</span></span><br><span class="line">		<span class="string">&quot;f/PO1+OJCO2910ebXBtMSCi++GbDAkEAmc7zNPwsVH4OnyquWJdJNSUBMSd/sCCN\n&quot;</span></span><br><span class="line">		<span class="string">&quot;PkaMOrVtINHmMMq+dvMqEBoupRS/U4Ma0JYYQsiLJL+qof2AOWDNQQJAcquLGHLT\n&quot;</span></span><br><span class="line">		<span class="string">&quot;eGDDLluHo+kkIGwZi4aK/fDoylZ0NCEtYyMtShQ3JmllST9kmb9NJX2gMsejsirc\n&quot;</span></span><br><span class="line">		<span class="string">&quot;H6ObxqZPbka6UA==\n&quot;</span></span><br><span class="line">		<span class="string">&quot;-----END RSA PRIVATE KEY-----\n&quot;</span>;</span><br><span class="line"></span><br><span class="line">	<span class="type">unsigned</span> <span class="type">char</span> encrypted_str[<span class="number">128</span>];</span><br><span class="line">	<span class="type">unsigned</span> <span class="type">char</span> decrypted_str[<span class="number">128</span>];</span><br><span class="line"></span><br><span class="line">	<span class="comment">// 需要初始化，否则解密出来的字符串会有多余的乱码</span></span><br><span class="line">	<span class="built_in">memset</span>(encrypted_str, <span class="string">&#x27;\0&#x27;</span>, <span class="keyword">sizeof</span>(encrypted_str));</span><br><span class="line">	<span class="built_in">memset</span>(decrypted_str, <span class="string">&#x27;\0&#x27;</span>, <span class="keyword">sizeof</span>(decrypted_str));</span><br><span class="line"></span><br><span class="line">	<span class="type">size_t</span> len = <span class="built_in">strlen</span>((<span class="type">const</span> <span class="type">char</span> *)plainText);</span><br><span class="line">	<span class="built_in">printf</span>(<span class="string">&quot;Encrypted length =%d\n&quot;</span>, len);</span><br><span class="line"></span><br><span class="line">	<span class="comment">// 公钥加密</span></span><br><span class="line">	<span class="type">int</span> encrypted_length = public_key_encrypt(plainText, len, publicKey, encrypted_str);</span><br><span class="line">	<span class="keyword">if</span> (encrypted_length == <span class="number">-1</span>)</span><br><span class="line">	&#123;</span><br><span class="line">		<span class="built_in">printf</span>(<span class="string">&quot;Private Encrypt failed\n&quot;</span>);</span><br><span class="line">		<span class="built_in">exit</span>(<span class="number">0</span>);</span><br><span class="line">	&#125;</span><br><span class="line"></span><br><span class="line">	<span class="comment">// 私钥解密</span></span><br><span class="line">	<span class="type">int</span> decrypted_length = private_key_decrypt(encrypted_str, encrypted_length, privateKey, decrypted_str);</span><br><span class="line">	<span class="keyword">if</span> (decrypted_length == <span class="number">-1</span>)</span><br><span class="line">	&#123;</span><br><span class="line">		<span class="built_in">printf</span>(<span class="string">&quot;Public Decrypt failed\n&quot;</span>);</span><br><span class="line">		<span class="built_in">exit</span>(<span class="number">0</span>);</span><br><span class="line">	&#125;</span><br><span class="line"></span><br><span class="line">	<span class="built_in">printf</span>(<span class="string">&quot;Decrypted Text =%s\n&quot;</span>, decrypted_str);</span><br><span class="line">	<span class="built_in">printf</span>(<span class="string">&quot;Decrypted Length =%d\n&quot;</span>, decrypted_length);</span><br><span class="line">	</span><br><span class="line">	<span class="keyword">return</span> <span class="number">0</span>;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<p>今天到此为止，累了，睡觉了😜。</p>
+<hr>
+<p><strong>活着不是靠泪水搏取同情，而是靠汗水获得掌声~</strong></p>
+<p><img class="lazy" src="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAABGdBTUEAALGPC/xhBQAAADhlWElmTU0AKgAAAAgAAYdpAAQAAAABAAAAGgAAAAAAAqACAAQAAAABAAAAAaADAAQAAAABAAAAAQAAAADa6r/EAAAAC0lEQVQIHWNgAAIAAAUAAY27m/MAAAAASUVORK5CYII=" data-src="/upload/me/qrcode_wx.jpg"></p>
+
+
+
+
+</article>
+
+<div class="related-wrap reveal" id="read-next"><section class="header cap theme"><span>接下来阅读</span></section><section class="body fs14"><a id="next" href="/2019/12/21/Android%E4%B8%AD%E5%80%BC%E5%BE%97%E8%AF%B4%E7%9A%84Handler%E4%B9%8B%E6%9B%B4%E6%96%B0UI/">Android中值得说的Handler之更新UI<span class="note">较早</span></a><div class="line"></div><a id="prev" href="/2020/01/05/OpenSSL-%E5%AE%9E%E6%88%98-RSA%E5%88%86%E6%AE%B5%E8%A7%A3%E5%AF%86/">OpenSSL: 实战-RSA分段解密<span class="note">较新</span></a></section></div>
+
+
+
+
+
+
+  <div class='related-wrap md reveal' id="comments">
+    <div class='cmt-title cap theme'>
+      快来参与讨论吧
+    </div>
+    <div class='cmt-body valine'>
+      
+
+<div id="valine_container" class="valine_thread"><svg class="loading" style="vertical-align: middle;fill: currentColor;overflow: hidden;" viewBox="0 0 1024 1024" version="1.1" xmlns="http://www.w3.org/2000/svg" p-id="2709"><path d="M832 512c0-176-144-320-320-320V128c211.2 0 384 172.8 384 384h-64zM192 512c0 176 144 320 320 320v64C300.8 896 128 723.2 128 512h64z" p-id="2710"></path></svg></div>
+
+    </div>
+  </div>
+
+
+
+      
+<footer class="page-footer reveal fs12"><hr><div class="text"><p>本博客所有文章除特别声明外，均采用 <a target="_blank" rel="noopener" href="https://creativecommons.org/licenses/by-nc-sa/4.0/">CC BY-NC-SA 4.0</a> 许可协议，转载请注明出处。</p>
+<p>veryitman</p>
+</div></footer>
+
+      <div class='float-panel mobile-only blur' style='display:none'>
+  <button type='button' class='sidebar-toggle mobile' onclick='sidebar.toggle()'>
+    <svg class="icon" style="width: 1em; height: 1em;vertical-align: middle;fill: currentColor;overflow: hidden;" viewBox="0 0 1024 1024" version="1.1" xmlns="http://www.w3.org/2000/svg" p-id="15301"><path d="M566.407 808.3c26.9-0.1 49.3-20.8 51.6-47.6-1.9-27.7-23.9-49.7-51.6-51.6h-412.6c-28.2-1.4-52.6 19.5-55.5 47.6 2.3 26.8 24.6 47.5 51.6 47.6h416.5v4z m309.3-249.9c26.9-0.1 49.3-20.8 51.6-47.6-2.2-26.8-24.6-47.5-51.6-47.6h-721.9c-27.7-2.8-52.5 17.4-55.3 45.1-0.1 0.8-0.1 1.7-0.2 2.5 0.9 27.2 23.6 48.5 50.7 47.6H875.707z m-103.1-245.9c26.9-0.1 49.3-20.8 51.6-47.6-0.4-28.3-23.2-51.1-51.5-51.6h-618.9c-29.5-1.1-54.3 21.9-55.5 51.4v0.2c1.4 27.8 25.2 49.2 53 47.8 0.8 0 1.7-0.1 2.5-0.2h618.8z" p-id="15302"></path><path d="M566.407 808.3c26.9-0.1 49.3-20.8 51.6-47.6-1.9-27.7-23.9-49.7-51.6-51.6h-412.6c-28.2-1.4-52.6 19.5-55.5 47.6 1.9 27.7 23.9 49.7 51.6 51.6h416.5z m309.3-249.9c26.9-0.1 49.3-20.8 51.6-47.6-2.2-26.8-24.6-47.5-51.6-47.6h-721.9c-27.7-2.8-52.5 17.4-55.3 45.1-0.1 0.8-0.1 1.7-0.2 2.5 0.9 27.2 23.6 48.5 50.7 47.6H875.707z m-103.1-245.9c26.9-0.1 49.3-20.8 51.6-47.6-0.4-28.3-23.2-51.1-51.5-51.6h-618.9c-29.5-1.1-54.3 21.9-55.5 51.4v0.2c1.4 27.8 25.2 49.2 53 47.8 0.8 0 1.7-0.1 2.5-0.2h618.8z" p-id="15303"></path></svg>
+  </button>
+</div>
+
+    </div>
+  </div>
+  <div class='scripts'>
+    <script type="text/javascript">
+  stellar = {
+    // 懒加载 css https://github.com/filamentgroup/loadCSS
+    loadCSS: (href, before, media, attributes) => {
+      var doc = window.document;
+      var ss = doc.createElement("link");
+      var ref;
+      if (before) {
+        ref = before;
+      } else {
+        var refs = (doc.body || doc.getElementsByTagName("head")[0]).childNodes;
+        ref = refs[refs.length - 1];
+      }
+      var sheets = doc.styleSheets;
+      if (attributes) {
+        for (var attributeName in attributes) {
+          if (attributes.hasOwnProperty(attributeName)) {
+            ss.setAttribute(attributeName, attributes[attributeName]);
+          }
+        }
+      }
+      ss.rel = "stylesheet";
+      ss.href = href;
+      ss.media = "only x";
+      function ready(cb) {
+        if (doc.body) {
+          return cb();
+        }
+        setTimeout(function () {
+          ready(cb);
+        });
+      }
+      ready(function () {
+        ref.parentNode.insertBefore(ss, before ? ref : ref.nextSibling);
+      });
+      var onloadcssdefined = function (cb) {
+        var resolvedHref = ss.href;
+        var i = sheets.length;
+        while (i--) {
+          if (sheets[i].href === resolvedHref) {
+            return cb();
+          }
+        }
+        setTimeout(function () {
+          onloadcssdefined(cb);
+        });
+      };
+      function loadCB() {
+        if (ss.addEventListener) {
+          ss.removeEventListener("load", loadCB);
+        }
+        ss.media = media || "all";
+      }
+      if (ss.addEventListener) {
+        ss.addEventListener("load", loadCB);
+      }
+      ss.onloadcssdefined = onloadcssdefined;
+      onloadcssdefined(loadCB);
+      return ss;
+    },
+
+    // 从 butterfly 和 volantis 获得灵感
+    loadScript: (src, opt) => new Promise((resolve, reject) => {
+      var script = document.createElement('script');
+      script.src = src;
+      if (opt) {
+        for (let key of Object.keys(opt)) {
+          script[key] = opt[key]
+        }
+      } else {
+        // 默认异步，如果需要同步，第二个参数传入 {} 即可
+        script.async = true
+      }
+      script.onerror = reject
+      script.onload = script.onreadystatechange = function() {
+        const loadState = this.readyState
+        if (loadState && loadState !== 'loaded' && loadState !== 'complete') return
+        script.onload = script.onreadystatechange = null
+        resolve()
+      }
+      document.head.appendChild(script)
+    }),
+
+    // https://github.com/jerryc127/hexo-theme-butterfly
+    jQuery: (fn) => {
+      if (typeof jQuery === 'undefined') {
+        stellar.loadScript(stellar.plugins.jQuery).then(fn)
+      } else {
+        fn()
+      }
+    }
+  };
+  stellar.github = 'https://github.com/xaoxuu/hexo-theme-stellar/tree/1.6.1';
+  stellar.config = {
+    date_suffix: {
+      just: '刚刚',
+      min: '分钟前',
+      hour: '小时前',
+      day: '天前',
+      month: '个月前',
+    },
+  };
+
+  // required plugins (only load if needs)
+  stellar.plugins = {
+    jQuery: 'https://cdn.jsdelivr.net/npm/jquery@3.5.1/dist/jquery.min.js',
+    sitesjs: '/js/plugins/sites.js',
+    friendsjs: '/js/plugins/friends.js',
+  };
+
+  // optional plugins
+  if ('true' == 'true') {
+    stellar.plugins.lazyload = Object.assign({"enable":true,"js":"https://cdn.jsdelivr.net/npm/vanilla-lazyload@17.3.1/dist/lazyload.min.js","transition":"blur"});
+  }
+  if ('true' == 'true') {
+    stellar.plugins.swiper = Object.assign({"enable":true,"css":"https://unpkg.com/swiper@6/swiper-bundle.min.css","js":"https://unpkg.com/swiper@6/swiper-bundle.min.js"});
+  }
+  if ('' == 'true') {
+    stellar.plugins.scrollreveal = Object.assign({"enable":null,"js":"https://cdn.jsdelivr.net/npm/scrollreveal@4.0.9/dist/scrollreveal.min.js","distance":"8px","duration":500,"interval":100,"scale":1});
+  }
+  if ('true' == 'true') {
+    stellar.plugins.preload = Object.assign({"enable":true,"service":"flying_pages","instant_page":"https://cdn.jsdelivr.net/gh/volantis-x/cdn-volantis@4.1.2/js/instant_page.js","flying_pages":"https://cdn.jsdelivr.net/gh/gijo-varghese/flying-pages@2.1.2/flying-pages.min.js"});
+  }
+</script>
+
+<!-- required -->
+
+  
+<script src="/js/main.js" async></script>
+
+
+
+<!-- optional -->
+
+  <script>
+  function getEmojiMaps() {
+    function emoji(path, idx, ext) {
+      return path + "/" + path + "-" + idx + "." + ext;
+    }
+    var emojiMaps = {};
+    for (var i = 1; i <= 54; i++) {
+      emojiMaps['tieba-' + i] = emoji('tieba', i, 'png');
+    }
+    for (var i = 1; i <= 101; i++) {
+      emojiMaps['qq-' + i] = emoji('qq', i, 'gif');
+    }
+    for (var i = 1; i <= 116; i++) {
+      emojiMaps['aru-' + i] = emoji('aru', i, 'gif');
+    }
+    for (var i = 1; i <= 125; i++) {
+      emojiMaps['twemoji-' + i] = emoji('twemoji', i, 'png');
+    }
+    for (var i = 1; i <= 4; i++) {
+      emojiMaps['weibo-' + i] = emoji('weibo', i, 'png');
+    }
+    return emojiMaps;
+  }
+  function load_comment(){
+    if(!document.getElementById("valine_container"))return;
+    stellar.loadScript('https://cdn.jsdelivr.net/gh/XuxuGood/simple-blog-cdn@main/js/Valine.min.js', {defer:true}).then(function () {
+      const el = document.getElementById("valine_container");
+      var path = el.getAttribute('comment_id');
+      const placeholder = "欢迎您留言~";
+      if (!path) {
+        path = decodeURI(window.location.pathname);
+      }
+      var valine = new Valine();
+      valine.init(Object.assign({"js":"https://cdn.jsdelivr.net/gh/XuxuGood/simple-blog-cdn@main/js/Valine.min.js","appId":"FY2C9UCttYNaE1j8umenqdCE-gzGzoHsz","appKey":"4i7xMwkfSEGmEDhi6SceKFxz","placeholder":"欢迎您留言~","requiredFields":["nick","mail"],"enableQQ":true,"recordIP":false,"avatar":"robohash","pageSize":10,"lang":"zh-cn","highlight":true,"mathJax":false,"tagMeta":["博主","小伙伴","访客"],"metaPlaceholder":{"nick":"昵称/QQ号(必填)","mail":"邮箱（必填，完全保密）"},"master":["6783037F2DF30EAB99F9FC256157D875"],"friends":["6783037F2DF30EAB99F9FC256157D875"],"comment_count":true}, {
+        el: '#valine_container',
+        path: path,
+        placeholder: placeholder,
+        emojiCDN: 'https://cdn.jsdelivr.net/gh/volantis-x/cdn-emoji/valine/',
+        emojiMaps: getEmojiMaps(),
+      }));
+    });
+  }
+  window.addEventListener('DOMContentLoaded', (event) => {
+    console.log('DOM fully loaded and parsed');
+    load_comment();
+  });
+
+</script>
+
+
+
+
+<!-- inject -->
+
+
+  </div>
+</body>
+</html>

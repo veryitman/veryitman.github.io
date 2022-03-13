@@ -1,0 +1,358 @@
+<!DOCTYPE html>
+<html lang='zh-CN'>
+
+<head>
+  <meta name="generator" content="Hexo 6.0.0">
+  <meta charset="utf-8">
+  
+
+  <meta http-equiv='x-dns-prefetch-control' content='on' />
+  <link rel='dns-prefetch' href='https://cdn.jsdelivr.net'>
+  <link rel="preconnect" href="https://cdn.jsdelivr.net" crossorigin>
+
+  <meta name="renderer" content="webkit">
+  <meta name="force-rendering" content="webkit">
+  <meta http-equiv="X-UA-Compatible" content="IE=Edge,chrome=1">
+  <meta name="HandheldFriendly" content="True" >
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1">
+  <meta name="theme-color" content="#f8f8f8">
+  <title>微服务: 立志做个伟大的项目 - Veryitman</title>
+
+  
+    <meta name="description" content="简介在开篇 微服务: 步步为营 里面我们已经定下一个小目标（以终为始的策略），即使用 Spring Boot 写 API 提供给 iOS、Android 客户端或者网页端来调用。 接下来我们开始完成我们这个超级梦想吧！在启航之前，我们还是给这个 App 起个名字吧，该 App 就是给用户展示 Blog 的，所以暂且称之为 MSBlog 吧！  朋友做了一个关于 人工智能的教程，教程不仅是零基础，通">
+<meta property="og:type" content="article">
+<meta property="og:title" content="微服务: 立志做个伟大的项目">
+<meta property="og:url" content="http://example.com/2019/07/03/%E5%BE%AE%E6%9C%8D%E5%8A%A1-%E7%AB%8B%E5%BF%97%E5%81%9A%E4%B8%AA%E4%BC%9F%E5%A4%A7%E7%9A%84%E9%A1%B9%E7%9B%AE/index.html">
+<meta property="og:site_name" content="Veryitman">
+<meta property="og:description" content="简介在开篇 微服务: 步步为营 里面我们已经定下一个小目标（以终为始的策略），即使用 Spring Boot 写 API 提供给 iOS、Android 客户端或者网页端来调用。 接下来我们开始完成我们这个超级梦想吧！在启航之前，我们还是给这个 App 起个名字吧，该 App 就是给用户展示 Blog 的，所以暂且称之为 MSBlog 吧！  朋友做了一个关于 人工智能的教程，教程不仅是零基础，通">
+<meta property="og:locale" content="zh_CN">
+<meta property="og:image" content="http://example.com/upload/images/2019/07/03/1.png">
+<meta property="og:image" content="http://example.com/upload/images/2019/07/03/2.png">
+<meta property="og:image" content="http://example.com/upload/me/qrcode_wx.jpg">
+<meta property="article:published_time" content="2019-07-03T14:21:43.000Z">
+<meta property="article:modified_time" content="2022-03-09T14:53:24.316Z">
+<meta property="article:author" content="veryitman">
+<meta property="article:tag" content="SpringBoot 微服务 项目">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:image" content="http://example.com/upload/images/2019/07/03/1.png">
+  
+  
+
+  <!-- feed -->
+  
+
+  
+    
+<link rel="stylesheet" href="/css/main.css">
+
+  
+
+  
+
+  
+</head>
+
+<body>
+  
+
+
+  <div class='l_body' id='start'>
+    <aside class='l_left' layout='post'>
+    
+
+
+<header class="header">
+
+<div class="logo-wrap"><a class="title" href="/"><div class="main">Veryitman</div></a></div>
+<nav class="menu dis-select"></nav></header>
+
+<div class="widgets">
+
+<div class="widget-wrap single" id="toc"><div class="widget-header cap dis-select"><span class="name">本文目录</span></div><div class="widget-body fs14"><div class="doc-tree active"><ol class="toc"><li class="toc-item toc-level-2"><a class="toc-link" href="#%E7%AE%80%E4%BB%8B"><span class="toc-text">简介</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#%E5%8E%9F%E5%9E%8B%E5%9B%BE"><span class="toc-text">原型图</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#%E9%A1%B9%E7%9B%AE%E8%AE%A1%E5%88%92"><span class="toc-text">项目计划</span></a></li></ol></div></div></div>
+
+
+</div>
+
+
+    </aside>
+    <div class='l_main'>
+      
+
+      
+
+
+<div class="bread-nav fs12"><div id="breadcrumb"><a class="cap breadcrumb" href="/">主页</a><span class="sep"></span><a class="cap breadcrumb" href="/">文章</a><span class="sep"></span><a class="cap breadcrumb-link" href="/categories/Server/">Server</a></div><div id="post-meta">发布于&nbsp;<time datetime="2019-07-03T14:21:43.000Z">2019-07-03</time></div></div>
+
+<article class='content md post'>
+<h1 class="article-title"><span>微服务: 立志做个伟大的项目</span></h1>
+<h2 id="简介"><a href="#简介" class="headerlink" title="简介"></a>简介</h2><p>在开篇 <a target="_blank" rel="noopener" href="http://www.veryitman.com/2019/05/28/%E5%BE%AE%E6%9C%8D%E5%8A%A1-%E6%AD%A5%E6%AD%A5%E4%B8%BA%E8%90%A5">微服务: 步步为营</a> 里面我们已经定下一个小目标（以终为始的策略），即使用 <code>Spring Boot</code> 写 API 提供给 iOS、Android 客户端或者网页端来调用。</p>
+<p>接下来我们开始完成我们这个超级梦想吧！在启航之前，我们还是给这个 App 起个名字吧，该 App 就是给用户展示 Blog 的，所以暂且称之为 <code>MSBlog</code> 吧！</p>
+<hr>
+<p>朋友做了一个关于 <a target="_blank" rel="noopener" href="https://www.cbedai.net/androidbluetooth">人工智能的教程</a>，教程不仅是零基础，通俗易懂，而且非常风趣幽默，像看小说一样！点 <strong><a target="_blank" rel="noopener" href="https://www.cbedai.net/androidbluetooth">这里</a></strong> 可以跳转到教程，对人工智能感兴趣的同学可以了解一下。</p>
+<h2 id="原型图"><a href="#原型图" class="headerlink" title="原型图"></a>原型图</h2><p>项目 <code>MSBlog</code> 的原型图是用 <a target="_blank" rel="noopener" href="https://balsamiq.com/wireframes/desktop/">Balsamiq Mockups 3</a> 画的，这个画图工具使用起来非常简单，画出来的效果也相当凑合！</p>
+<p><strong>1、登录、注册页面</strong></p>
+<p>登录和注册页面相对比较简单，第一个版本我们只支持用户名登录，后面再支持其他登录方式。</p>
+<p>下图左边是登录页面，右边是注册页面，如图所示：</p>
+<p><img class="lazy" src="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAABGdBTUEAALGPC/xhBQAAADhlWElmTU0AKgAAAAgAAYdpAAQAAAABAAAAGgAAAAAAAqACAAQAAAABAAAAAaADAAQAAAABAAAAAQAAAADa6r/EAAAAC0lEQVQIHWNgAAIAAAUAAY27m/MAAAAASUVORK5CYII=" data-src="/upload/images/2019/07/03/1.png"></p>
+<p><strong>2、四个Tab页面</strong></p>
+<p>这四个主页面，分别是首页、文章分类、好友、个人页面，如下图所示：</p>
+<p><img class="lazy" src="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAABGdBTUEAALGPC/xhBQAAADhlWElmTU0AKgAAAAgAAYdpAAQAAAABAAAAGgAAAAAAAqACAAQAAAABAAAAAaADAAQAAAABAAAAAQAAAADa6r/EAAAAC0lEQVQIHWNgAAIAAAUAAY27m/MAAAAASUVORK5CYII=" data-src="/upload/images/2019/07/03/2.png"></p>
+<p>上面的原型图只做了登录、注册和 Tab 主页面，从这几个页面已经可以看出这个 App 的构造了。</p>
+<p><strong>1</strong>、首页（Home）：主要展示推荐的文章，以及广告展示页（Banner）。</p>
+<p><strong>2</strong>、分类（Category）：文章分类，按照评论数、发布时间、热度对所有文章进行分类。</p>
+<p><strong>3</strong>、好友（Friends）：App 中所有的好友，需要支持本地搜索。</p>
+<p><strong>4</strong>、个人（Profile）：个人中心，基本是任何一个 App 的标配。</p>
+<h2 id="项目计划"><a href="#项目计划" class="headerlink" title="项目计划"></a>项目计划</h2><p>从上面的原型图中，我们基本了解接下来要做什么了。</p>
+<p>首先，把登录、注册页面搞定，接着再把四个 Tab 页面搞起来，对于 App 初学者来说，这个压力着实不小了，没关系慢慢来，一步一个脚印的走下去。</p>
+<p>无论是哪个页面，都需要服务端提供相关的接口（API）和数据，简单描述一下吧，如下：</p>
+<p><strong>1</strong>、登录（Signin）：需要服务端提供登录接口，即支持用户名和密码登录的API能力。</p>
+<p><strong>2</strong>、注册（Signup）：需要服务端提供注册的接口，即支持用户名和密码注册的API能力。</p>
+<p><strong>3</strong>、首页（Home）：需要提供查询推荐文章的API，后期需要考虑智能推荐。</p>
+<p><strong>4</strong>、分类（Category）：需要提供查询所有文章分类的API。</p>
+<p><strong>5</strong>、好友（Friends）：需要提供查询每个人所有好友的API。</p>
+<p><strong>6</strong>、个人（Profile）：需要提供当前登录用户的所有信息，如用户名、头像、昵称等信息。</p>
+<p>第一步，先把这登录注册做好，服务端把登录、注册的 API 准备好；</p>
+<p>第二步，然后再做 Tab 页面，服务端把其他 API 准备好；</p>
+<p>第三步，客户端和服务端联调数据，确保我们能正常使用客户端。</p>
+<p>客户端先从 iOS 开始，Android 版本的 <code>MSBlog</code> 后续再补上，iOS 客户端的项目采用 MVC 的架构，开发语言采用 <code>Swift</code>（Swift版本为5.0），IDE 采用高大上的 <code>Xcode</code>，项目代码使用 <code>Git</code> 来管理，用 <code>Github</code> 作为代码仓库。</p>
+<p>到这里，是不是觉得自己还有很多东西需要学习比如 <code>Swift</code> 编程语言。当然了，如果你会 <code>Flutter</code> 或者 <code>Javascript</code> 也可以写客户端代码。别担心，我从容的告诉你，编程语言这个东西没有你想象中的那么难，多动手写就可以了，遇到不会就去查手册。世上本没有路，走的多了就有了，对于编程也一样，写的多了就能融会贯通，举一反三。真正难的是你不动手总是在那里埋怨！</p>
+<p>后期有可能会使用 <code>Flutter</code> 来写这个 App，待定。</p>
+<hr>
+<p>祝好，加油！是时候动手写起来了！</p>
+<hr>
+<p><strong>改变，从你我相识开始~</strong></p>
+<p><img class="lazy" src="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAABGdBTUEAALGPC/xhBQAAADhlWElmTU0AKgAAAAgAAYdpAAQAAAABAAAAGgAAAAAAAqACAAQAAAABAAAAAaADAAQAAAABAAAAAQAAAADa6r/EAAAAC0lEQVQIHWNgAAIAAAUAAY27m/MAAAAASUVORK5CYII=" data-src="/upload/me/qrcode_wx.jpg"></p>
+
+
+
+
+</article>
+
+<div class="related-wrap reveal" id="read-next"><section class="header cap theme"><span>接下来阅读</span></section><section class="body fs14"><a id="next" href="/2019/06/30/%E5%BE%AE%E6%9C%8D%E5%8A%A1%EF%BC%9A%E6%9C%AC%E5%9C%B0%E7%83%AD%E9%83%A8%E7%BD%B2/">微服务：本地热部署<span class="note">较早</span></a><div class="line"></div><a id="prev" href="/2019/08/04/%E5%BE%AE%E6%9C%8D%E5%8A%A1-%E5%AD%A6%E4%B9%A0%E5%87%A0%E4%B8%AA%E5%AE%B9%E6%98%93%E6%B7%B7%E6%B7%86%E7%9A%84URL%E6%B3%A8%E8%A7%A3/">微服务: 学习几个容易混淆的URL注解<span class="note">较新</span></a></section></div>
+
+
+
+
+
+
+  <div class='related-wrap md reveal' id="comments">
+    <div class='cmt-title cap theme'>
+      快来参与讨论吧
+    </div>
+    <div class='cmt-body valine'>
+      
+
+<div id="valine_container" class="valine_thread"><svg class="loading" style="vertical-align: middle;fill: currentColor;overflow: hidden;" viewBox="0 0 1024 1024" version="1.1" xmlns="http://www.w3.org/2000/svg" p-id="2709"><path d="M832 512c0-176-144-320-320-320V128c211.2 0 384 172.8 384 384h-64zM192 512c0 176 144 320 320 320v64C300.8 896 128 723.2 128 512h64z" p-id="2710"></path></svg></div>
+
+    </div>
+  </div>
+
+
+
+      
+<footer class="page-footer reveal fs12"><hr><div class="text"><p>本博客所有文章除特别声明外，均采用 <a target="_blank" rel="noopener" href="https://creativecommons.org/licenses/by-nc-sa/4.0/">CC BY-NC-SA 4.0</a> 许可协议，转载请注明出处。</p>
+<p>veryitman</p>
+</div></footer>
+
+      <div class='float-panel mobile-only blur' style='display:none'>
+  <button type='button' class='sidebar-toggle mobile' onclick='sidebar.toggle()'>
+    <svg class="icon" style="width: 1em; height: 1em;vertical-align: middle;fill: currentColor;overflow: hidden;" viewBox="0 0 1024 1024" version="1.1" xmlns="http://www.w3.org/2000/svg" p-id="15301"><path d="M566.407 808.3c26.9-0.1 49.3-20.8 51.6-47.6-1.9-27.7-23.9-49.7-51.6-51.6h-412.6c-28.2-1.4-52.6 19.5-55.5 47.6 2.3 26.8 24.6 47.5 51.6 47.6h416.5v4z m309.3-249.9c26.9-0.1 49.3-20.8 51.6-47.6-2.2-26.8-24.6-47.5-51.6-47.6h-721.9c-27.7-2.8-52.5 17.4-55.3 45.1-0.1 0.8-0.1 1.7-0.2 2.5 0.9 27.2 23.6 48.5 50.7 47.6H875.707z m-103.1-245.9c26.9-0.1 49.3-20.8 51.6-47.6-0.4-28.3-23.2-51.1-51.5-51.6h-618.9c-29.5-1.1-54.3 21.9-55.5 51.4v0.2c1.4 27.8 25.2 49.2 53 47.8 0.8 0 1.7-0.1 2.5-0.2h618.8z" p-id="15302"></path><path d="M566.407 808.3c26.9-0.1 49.3-20.8 51.6-47.6-1.9-27.7-23.9-49.7-51.6-51.6h-412.6c-28.2-1.4-52.6 19.5-55.5 47.6 1.9 27.7 23.9 49.7 51.6 51.6h416.5z m309.3-249.9c26.9-0.1 49.3-20.8 51.6-47.6-2.2-26.8-24.6-47.5-51.6-47.6h-721.9c-27.7-2.8-52.5 17.4-55.3 45.1-0.1 0.8-0.1 1.7-0.2 2.5 0.9 27.2 23.6 48.5 50.7 47.6H875.707z m-103.1-245.9c26.9-0.1 49.3-20.8 51.6-47.6-0.4-28.3-23.2-51.1-51.5-51.6h-618.9c-29.5-1.1-54.3 21.9-55.5 51.4v0.2c1.4 27.8 25.2 49.2 53 47.8 0.8 0 1.7-0.1 2.5-0.2h618.8z" p-id="15303"></path></svg>
+  </button>
+</div>
+
+    </div>
+  </div>
+  <div class='scripts'>
+    <script type="text/javascript">
+  stellar = {
+    // 懒加载 css https://github.com/filamentgroup/loadCSS
+    loadCSS: (href, before, media, attributes) => {
+      var doc = window.document;
+      var ss = doc.createElement("link");
+      var ref;
+      if (before) {
+        ref = before;
+      } else {
+        var refs = (doc.body || doc.getElementsByTagName("head")[0]).childNodes;
+        ref = refs[refs.length - 1];
+      }
+      var sheets = doc.styleSheets;
+      if (attributes) {
+        for (var attributeName in attributes) {
+          if (attributes.hasOwnProperty(attributeName)) {
+            ss.setAttribute(attributeName, attributes[attributeName]);
+          }
+        }
+      }
+      ss.rel = "stylesheet";
+      ss.href = href;
+      ss.media = "only x";
+      function ready(cb) {
+        if (doc.body) {
+          return cb();
+        }
+        setTimeout(function () {
+          ready(cb);
+        });
+      }
+      ready(function () {
+        ref.parentNode.insertBefore(ss, before ? ref : ref.nextSibling);
+      });
+      var onloadcssdefined = function (cb) {
+        var resolvedHref = ss.href;
+        var i = sheets.length;
+        while (i--) {
+          if (sheets[i].href === resolvedHref) {
+            return cb();
+          }
+        }
+        setTimeout(function () {
+          onloadcssdefined(cb);
+        });
+      };
+      function loadCB() {
+        if (ss.addEventListener) {
+          ss.removeEventListener("load", loadCB);
+        }
+        ss.media = media || "all";
+      }
+      if (ss.addEventListener) {
+        ss.addEventListener("load", loadCB);
+      }
+      ss.onloadcssdefined = onloadcssdefined;
+      onloadcssdefined(loadCB);
+      return ss;
+    },
+
+    // 从 butterfly 和 volantis 获得灵感
+    loadScript: (src, opt) => new Promise((resolve, reject) => {
+      var script = document.createElement('script');
+      script.src = src;
+      if (opt) {
+        for (let key of Object.keys(opt)) {
+          script[key] = opt[key]
+        }
+      } else {
+        // 默认异步，如果需要同步，第二个参数传入 {} 即可
+        script.async = true
+      }
+      script.onerror = reject
+      script.onload = script.onreadystatechange = function() {
+        const loadState = this.readyState
+        if (loadState && loadState !== 'loaded' && loadState !== 'complete') return
+        script.onload = script.onreadystatechange = null
+        resolve()
+      }
+      document.head.appendChild(script)
+    }),
+
+    // https://github.com/jerryc127/hexo-theme-butterfly
+    jQuery: (fn) => {
+      if (typeof jQuery === 'undefined') {
+        stellar.loadScript(stellar.plugins.jQuery).then(fn)
+      } else {
+        fn()
+      }
+    }
+  };
+  stellar.github = 'https://github.com/xaoxuu/hexo-theme-stellar/tree/1.6.1';
+  stellar.config = {
+    date_suffix: {
+      just: '刚刚',
+      min: '分钟前',
+      hour: '小时前',
+      day: '天前',
+      month: '个月前',
+    },
+  };
+
+  // required plugins (only load if needs)
+  stellar.plugins = {
+    jQuery: 'https://cdn.jsdelivr.net/npm/jquery@3.5.1/dist/jquery.min.js',
+    sitesjs: '/js/plugins/sites.js',
+    friendsjs: '/js/plugins/friends.js',
+  };
+
+  // optional plugins
+  if ('true' == 'true') {
+    stellar.plugins.lazyload = Object.assign({"enable":true,"js":"https://cdn.jsdelivr.net/npm/vanilla-lazyload@17.3.1/dist/lazyload.min.js","transition":"blur"});
+  }
+  if ('true' == 'true') {
+    stellar.plugins.swiper = Object.assign({"enable":true,"css":"https://unpkg.com/swiper@6/swiper-bundle.min.css","js":"https://unpkg.com/swiper@6/swiper-bundle.min.js"});
+  }
+  if ('' == 'true') {
+    stellar.plugins.scrollreveal = Object.assign({"enable":null,"js":"https://cdn.jsdelivr.net/npm/scrollreveal@4.0.9/dist/scrollreveal.min.js","distance":"8px","duration":500,"interval":100,"scale":1});
+  }
+  if ('true' == 'true') {
+    stellar.plugins.preload = Object.assign({"enable":true,"service":"flying_pages","instant_page":"https://cdn.jsdelivr.net/gh/volantis-x/cdn-volantis@4.1.2/js/instant_page.js","flying_pages":"https://cdn.jsdelivr.net/gh/gijo-varghese/flying-pages@2.1.2/flying-pages.min.js"});
+  }
+</script>
+
+<!-- required -->
+
+  
+<script src="/js/main.js" async></script>
+
+
+
+<!-- optional -->
+
+  <script>
+  function getEmojiMaps() {
+    function emoji(path, idx, ext) {
+      return path + "/" + path + "-" + idx + "." + ext;
+    }
+    var emojiMaps = {};
+    for (var i = 1; i <= 54; i++) {
+      emojiMaps['tieba-' + i] = emoji('tieba', i, 'png');
+    }
+    for (var i = 1; i <= 101; i++) {
+      emojiMaps['qq-' + i] = emoji('qq', i, 'gif');
+    }
+    for (var i = 1; i <= 116; i++) {
+      emojiMaps['aru-' + i] = emoji('aru', i, 'gif');
+    }
+    for (var i = 1; i <= 125; i++) {
+      emojiMaps['twemoji-' + i] = emoji('twemoji', i, 'png');
+    }
+    for (var i = 1; i <= 4; i++) {
+      emojiMaps['weibo-' + i] = emoji('weibo', i, 'png');
+    }
+    return emojiMaps;
+  }
+  function load_comment(){
+    if(!document.getElementById("valine_container"))return;
+    stellar.loadScript('https://cdn.jsdelivr.net/gh/XuxuGood/simple-blog-cdn@main/js/Valine.min.js', {defer:true}).then(function () {
+      const el = document.getElementById("valine_container");
+      var path = el.getAttribute('comment_id');
+      const placeholder = "欢迎您留言~";
+      if (!path) {
+        path = decodeURI(window.location.pathname);
+      }
+      var valine = new Valine();
+      valine.init(Object.assign({"js":"https://cdn.jsdelivr.net/gh/XuxuGood/simple-blog-cdn@main/js/Valine.min.js","appId":"FY2C9UCttYNaE1j8umenqdCE-gzGzoHsz","appKey":"4i7xMwkfSEGmEDhi6SceKFxz","placeholder":"欢迎您留言~","requiredFields":["nick","mail"],"enableQQ":true,"recordIP":false,"avatar":"robohash","pageSize":10,"lang":"zh-cn","highlight":true,"mathJax":false,"tagMeta":["博主","小伙伴","访客"],"metaPlaceholder":{"nick":"昵称/QQ号(必填)","mail":"邮箱（必填，完全保密）"},"master":["6783037F2DF30EAB99F9FC256157D875"],"friends":["6783037F2DF30EAB99F9FC256157D875"],"comment_count":true}, {
+        el: '#valine_container',
+        path: path,
+        placeholder: placeholder,
+        emojiCDN: 'https://cdn.jsdelivr.net/gh/volantis-x/cdn-emoji/valine/',
+        emojiMaps: getEmojiMaps(),
+      }));
+    });
+  }
+  window.addEventListener('DOMContentLoaded', (event) => {
+    console.log('DOM fully loaded and parsed');
+    load_comment();
+  });
+
+</script>
+
+
+
+
+<!-- inject -->
+
+
+  </div>
+</body>
+</html>

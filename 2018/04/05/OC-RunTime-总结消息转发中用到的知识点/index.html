@@ -1,0 +1,481 @@
+<!DOCTYPE html>
+<html lang='zh-CN'>
+
+<head>
+  <meta name="generator" content="Hexo 6.0.0">
+  <meta charset="utf-8">
+  
+
+  <meta http-equiv='x-dns-prefetch-control' content='on' />
+  <link rel='dns-prefetch' href='https://cdn.jsdelivr.net'>
+  <link rel="preconnect" href="https://cdn.jsdelivr.net" crossorigin>
+
+  <meta name="renderer" content="webkit">
+  <meta name="force-rendering" content="webkit">
+  <meta http-equiv="X-UA-Compatible" content="IE=Edge,chrome=1">
+  <meta name="HandheldFriendly" content="True" >
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1">
+  <meta name="theme-color" content="#f8f8f8">
+  <title>OC-RunTime: 总结消息转发中用到的知识点 - Veryitman</title>
+
+  
+    <meta name="description" content="前言OC-RunTime: 消息转发之实例方法的转发流程 OC-RunTime: 消息转发之实例方法的转发流程实例讲解 OC-RunTime: 消息转发之类方法的转发流程 在上面的几篇文章中我分享了关于消息转发相关的知识点，里面有很多细节没有阐述。 若在上面的文章中加入很多细节点的话，一是拉长了文章的内容, 二是对于刚接触 Runtime 的朋友来说不一定能接受, 于是就有了这篇文章的诞生. Ru">
+<meta property="og:type" content="article">
+<meta property="og:title" content="OC-RunTime: 总结消息转发中用到的知识点">
+<meta property="og:url" content="http://example.com/2018/04/05/OC-RunTime-%E6%80%BB%E7%BB%93%E6%B6%88%E6%81%AF%E8%BD%AC%E5%8F%91%E4%B8%AD%E7%94%A8%E5%88%B0%E7%9A%84%E7%9F%A5%E8%AF%86%E7%82%B9/index.html">
+<meta property="og:site_name" content="Veryitman">
+<meta property="og:description" content="前言OC-RunTime: 消息转发之实例方法的转发流程 OC-RunTime: 消息转发之实例方法的转发流程实例讲解 OC-RunTime: 消息转发之类方法的转发流程 在上面的几篇文章中我分享了关于消息转发相关的知识点，里面有很多细节没有阐述。 若在上面的文章中加入很多细节点的话，一是拉长了文章的内容, 二是对于刚接触 Runtime 的朋友来说不一定能接受, 于是就有了这篇文章的诞生. Ru">
+<meta property="og:locale" content="zh_CN">
+<meta property="og:image" content="http://example.com/upload/me/qrcode_wx.jpg">
+<meta property="article:published_time" content="2018-04-05T05:50:52.000Z">
+<meta property="article:modified_time" content="2022-03-09T14:53:24.337Z">
+<meta property="article:author" content="veryitman">
+<meta property="article:tag" content="iOS RunTime MessageForward">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:image" content="http://example.com/upload/me/qrcode_wx.jpg">
+  
+  
+
+  <!-- feed -->
+  
+
+  
+    
+<link rel="stylesheet" href="/css/main.css">
+
+  
+
+  
+
+  
+</head>
+
+<body>
+  
+
+
+  <div class='l_body' id='start'>
+    <aside class='l_left' layout='post'>
+    
+
+
+<header class="header">
+
+<div class="logo-wrap"><a class="title" href="/"><div class="main">Veryitman</div></a></div>
+<nav class="menu dis-select"></nav></header>
+
+<div class="widgets">
+
+<div class="widget-wrap single" id="toc"><div class="widget-header cap dis-select"><span class="name">本文目录</span></div><div class="widget-body fs14"><div class="doc-tree active"><ol class="toc"><li class="toc-item toc-level-2"><a class="toc-link" href="#%E5%89%8D%E8%A8%80"><span class="toc-text">前言</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#RunTime-%E7%9A%84%E5%AE%9A%E4%B9%89%E5%8F%8A%E4%BD%BF%E7%94%A8%E5%9C%BA%E6%99%AF"><span class="toc-text">RunTime 的定义及使用场景</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#%E6%80%9D%E8%80%83%E9%97%AE%E9%A2%98"><span class="toc-text">思考问题</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#IMP"><span class="toc-text">IMP</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#Method"><span class="toc-text">Method</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#SEL"><span class="toc-text">SEL</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#class-addMethod"><span class="toc-text">class_addMethod</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#%E8%A7%A3%E7%AD%94%E9%97%AE%E9%A2%98"><span class="toc-text">解答问题</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#%E5%AE%9E%E9%99%85%E4%BE%8B%E5%AD%90"><span class="toc-text">实际例子</span></a><ol class="toc-child"><li class="toc-item toc-level-3"><a class="toc-link" href="#1-%E5%8A%A8%E6%80%81%E6%B7%BB%E5%8A%A0%E5%AE%9E%E4%BE%8B%E6%96%B9%E6%B3%95"><span class="toc-text">1. 动态添加实例方法</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#2-%E5%8A%A8%E6%80%81%E6%B7%BB%E5%8A%A0%E7%B1%BB%E6%96%B9%E6%B3%95"><span class="toc-text">2. 动态添加类方法</span></a></li></ol></li><li class="toc-item toc-level-2"><a class="toc-link" href="#%E5%8F%82%E8%80%83%E6%96%87%E6%A1%A3"><span class="toc-text">参考文档</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#%E5%AE%8C%E6%95%B4%E4%BB%A3%E7%A0%81"><span class="toc-text">完整代码</span></a></li></ol></div></div></div>
+
+
+</div>
+
+
+    </aside>
+    <div class='l_main'>
+      
+
+      
+
+
+<div class="bread-nav fs12"><div id="breadcrumb"><a class="cap breadcrumb" href="/">主页</a><span class="sep"></span><a class="cap breadcrumb" href="/">文章</a><span class="sep"></span><a class="cap breadcrumb-link" href="/categories/iOS/">iOS</a></div><div id="post-meta">发布于&nbsp;<time datetime="2018-04-05T05:50:52.000Z">2018-04-05</time></div></div>
+
+<article class='content md post'>
+<h1 class="article-title"><span>OC-RunTime: 总结消息转发中用到的知识点</span></h1>
+<h2 id="前言"><a href="#前言" class="headerlink" title="前言"></a>前言</h2><p><a target="_blank" rel="noopener" href="http://www.veryitman.com/2018/03/31/OC-RunTime-%E6%B6%88%E6%81%AF%E8%BD%AC%E5%8F%91%E4%B9%8B%E5%AE%9E%E4%BE%8B%E6%96%B9%E6%B3%95%E7%9A%84%E8%BD%AC%E5%8F%91%E6%B5%81%E7%A8%8">OC-RunTime: 消息转发之实例方法的转发流程</a></p>
+<p><a target="_blank" rel="noopener" href="http://www.veryitman.com/2018/04/01/OC-RunTime-%E6%B6%88%E6%81%AF%E8%BD%AC%E5%8F%91%E4%B9%8B%E5%AE%9E%E4%BE%8B%E6%96%B9%E6%B3%95%E7%9A%84%E8%BD%AC%E5%8F%91%E6%B5%81%E7%A8%8B-%E5%AE%9E%E4%BE%8B%E8%AE%B2%E8%A7%A3/">OC-RunTime: 消息转发之实例方法的转发流程实例讲解</a></p>
+<p><a target="_blank" rel="noopener" href="http://www.veryitman.com/2018/04/03/OC-RunTime-%E6%B6%88%E6%81%AF%E8%BD%AC%E5%8F%91%E4%B9%8B%E7%B1%BB%E6%96%B9%E6%B3%95%E7%9A%84%E8%BD%AC%E5%8F%91%E6%B5%81%E7%A8%8B/">OC-RunTime: 消息转发之类方法的转发流程</a></p>
+<p>在上面的几篇文章中我分享了关于消息转发相关的知识点，里面有很多细节没有阐述。</p>
+<p>若在上面的文章中加入很多细节点的话，一是拉长了文章的内容, 二是对于刚接触 Runtime 的朋友来说不一定能接受, 于是就有了这篇文章的诞生.</p>
+<h2 id="RunTime-的定义及使用场景"><a href="#RunTime-的定义及使用场景" class="headerlink" title="RunTime 的定义及使用场景"></a>RunTime 的定义及使用场景</h2><p>苹果 <a target="_blank" rel="noopener" href="https://developer.apple.com/library/content/documentation/Cocoa/Conceptual/ObjCRuntimeGuide/Introduction/Introduction.html">开发文档</a> 的这样解释 runtime 的：</p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">The Objective-C language defers as many decisions as it can from compile time and link time to runtime. Whenever possible, it does things dynamically. This means that the language requires not just a compiler, but also a runtime system to execute the compiled code. The runtime system acts as a kind of operating system for the Objective-C language; it’s what makes the language work</span><br></pre></td></tr></table></figure>
+
+<p>尽量将决定放到运行的时候，而不是在编译和链接过程中.</p>
+<p>RunTime 的应用场景:</p>
+<blockquote>
+<p>1.面向切面编程 AOP.<br>2.方法调配 method swizzling. 有些地方称之为”黑魔法”.<br>3.消息转发.<br>4.给分类添加属性(关联对象).<br>5.动态获取 class 和 slector.<br>6.KVO&#x2F;KVC, 修改私有属性的值.</p>
+</blockquote>
+<p>建议去阅读下面框架的源码，恕我没有加入链接:</p>
+<blockquote>
+<p>Aspects（AOP必备，“取缔” baseVC，无侵入埋点）</p>
+</blockquote>
+<blockquote>
+<p>MJExtension（JSON 转 model，一行代码实现 NSCoding 协议的自动归档和解档）</p>
+</blockquote>
+<blockquote>
+<p>JSPatch（动态下发 JS 进行热修复）</p>
+</blockquote>
+<blockquote>
+<p>NullSafe（防止因发 unrecognised messages 给 NSNull 导致的崩溃）</p>
+</blockquote>
+<blockquote>
+<p>UITableView-FDTemplateLayoutCell（自动计算并缓存 table view 的 cell 高度）</p>
+</blockquote>
+<blockquote>
+<p>UINavigationController+FDFullscreenPopGesture（全屏滑动返回）</p>
+</blockquote>
+<h2 id="思考问题"><a href="#思考问题" class="headerlink" title="思考问题"></a>思考问题</h2><p>在前面的文章中，很多次看到 IMP、SEL、selector 以及 Method 等关键字，相信大家随着对 RunTime 的逐步了解，慢慢会逐渐熟悉它们的，只是时间问题。很多概念上面的东西理解起来没那么简单，需要动手去写写代码。</p>
+<p>在看下面内容之前, 先抛出一个问题:</p>
+<blockquote>
+<p>runtime 如何通过 selector 找到对应的 IMP 地址?</p>
+</blockquote>
+<p>接下来分别说一下 IMP、SEL、selector 以及 Method.</p>
+<h2 id="IMP"><a href="#IMP" class="headerlink" title="IMP"></a>IMP</h2><p>IMP 保存的是 Method 的地址，本质是一个函数指针，由编译器生成。</p>
+<p>IMP 在 <code>objc.h</code> 中的定义：</p>
+<figure class="highlight objc"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment">/// A pointer to the function of a method implementation. </span></span><br><span class="line"><span class="meta">#<span class="keyword">if</span> !OBJC_OLD_DISPATCH_PROTOTYPES</span></span><br><span class="line"><span class="keyword">typedef</span> <span class="keyword">void</span> (*IMP)(<span class="keyword">void</span> <span class="comment">/* id, SEL, ... */</span> ); </span><br><span class="line"><span class="meta">#<span class="keyword">else</span></span></span><br><span class="line"><span class="keyword">typedef</span> <span class="keyword">id</span> (*IMP)(<span class="keyword">id</span>, SEL, ...); </span><br><span class="line"><span class="meta">#<span class="keyword">endif</span></span></span><br></pre></td></tr></table></figure>
+
+<p>向对象发送消息之后，是由这个函数指针 IMP 指定的, 即 IMP 函数指针就指向了方法的实现.</p>
+<p>IMP 函数指针最少包含 id 和 SEL 类型的两个参数，后面其他的参数是对应方法需要的参数。其中 id 代表执行该方法的 target(对象), SEL 就是对应的方法, 通过 id 和 SEL 参数就能确定唯一的方法实现地址.</p>
+<p>那么我们如何获取方法的 IMP 呢？很简单.</p>
+<p>NSObject 提供了如下两个方法:</p>
+<figure class="highlight objc"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line">- (IMP)methodForSelector:(SEL)aSelector;</span><br><span class="line">+ (IMP)instanceMethodForSelector:(SEL)aSelector;</span><br></pre></td></tr></table></figure>
+
+<p>对应的实现(源码 NSObject.mm), 如下:</p>
+<figure class="highlight objc"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br></pre></td><td class="code"><pre><span class="line">+ (IMP)instanceMethodForSelector:(SEL)sel &#123;</span><br><span class="line">    <span class="keyword">if</span> (!sel) [<span class="keyword">self</span> doesNotRecognizeSelector:sel];</span><br><span class="line">    <span class="keyword">return</span> class_getMethodImplementation(<span class="keyword">self</span>, sel);</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line">+ (IMP)methodForSelector:(SEL)sel &#123;</span><br><span class="line">    <span class="keyword">if</span> (!sel) [<span class="keyword">self</span> doesNotRecognizeSelector:sel];</span><br><span class="line">    <span class="keyword">return</span> object_getMethodImplementation((<span class="keyword">id</span>)<span class="keyword">self</span>, sel);</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line">- (IMP)methodForSelector:(SEL)sel &#123;</span><br><span class="line">    <span class="keyword">if</span> (!sel) [<span class="keyword">self</span> doesNotRecognizeSelector:sel];</span><br><span class="line">    <span class="keyword">return</span> object_getMethodImplementation(<span class="keyword">self</span>, sel);</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<p>大家可以看到，对应的 <code>methodForSelector</code> 既有实例方法又有类方法，而 <code>instanceMethodForSelector</code> 只有类方法。</p>
+<p>在使用 <code>methodForSelector</code> 方法时，向类发送消息，则 SEL 应该是类方法, 若向实例对象发送消息，则 SEL 应该为实例对象方法.</p>
+<p>而 <code>instanceMethodForSelector</code> 仅仅允许类发送该消息, 从而获取实例方法的 IMP. 该方法无法获取类方法的 IMP, 如果想获取类方法的 IMP 可以使用 <code>methodForSelector</code> 来获取。</p>
+<p>函数文档原文解释如下:</p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line">Use this method to ask the class object for the implementation of instance methods only. </span><br><span class="line">To ask the class for the implementation of a class method, send the methodForSelector: instance method to the class instead.</span><br></pre></td></tr></table></figure>
+
+<p>举个例子，或许更好理解。</p>
+<p>下面两个方法, 一个是类方法(testClassMethod), 另一个是实例方法(testInstanceMethod).</p>
+<figure class="highlight objc"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br></pre></td><td class="code"><pre><span class="line">+ (<span class="keyword">void</span>)testClassMethod &#123;</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line">- (<span class="keyword">void</span>)testInstanceMethod &#123;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<p>分别使用上面提到的方法来获取 IMP 的几个方法.</p>
+<figure class="highlight objc"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br></pre></td><td class="code"><pre><span class="line">IMP imp = [[<span class="keyword">self</span> <span class="keyword">class</span>] instanceMethodForSelector:<span class="keyword">@selector</span>(testClassMethod)];</span><br><span class="line">IMP imp2 = [[<span class="keyword">self</span> <span class="keyword">class</span>] instanceMethodForSelector:<span class="keyword">@selector</span>(testInstanceMethod)];</span><br><span class="line"></span><br><span class="line"><span class="comment">// 也可以改成 NSObject 调用的方式, 结果一样.</span></span><br><span class="line"><span class="comment">// IMP imp = [NSObject instanceMethodForSelector:@selector(testClassMethod)];</span></span><br><span class="line"><span class="comment">// IMP imp2 = [NSObject instanceMethodForSelector:@selector(testInstanceMethod)];</span></span><br><span class="line">    </span><br><span class="line">IMP imp3 = [[<span class="keyword">self</span> <span class="keyword">class</span>] methodForSelector:<span class="keyword">@selector</span>(testClassMethod)];</span><br><span class="line">IMP imp4 = [<span class="keyword">self</span> methodForSelector:<span class="keyword">@selector</span>(testInstanceMethod)];</span><br></pre></td></tr></table></figure>
+
+<p>调试器可以看出, 如下日志:</p>
+<figure class="highlight objc"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br></pre></td><td class="code"><pre><span class="line">Printing description of imp:</span><br><span class="line">(IMP) imp = <span class="number">0x000000010d8455c0</span> (libobjc.A.dylib`_objc_msgForward)</span><br><span class="line"></span><br><span class="line">Printing description of imp2:</span><br><span class="line">(IMP) imp2 = <span class="number">0x000000010cf19b90</span> (-[ViewController testInstanceMethod] at ViewController.m:<span class="number">94</span>)</span><br><span class="line"></span><br><span class="line">Printing description of imp3:</span><br><span class="line">(IMP) imp3 = <span class="number">0x000000010cf19b60</span> (+[ViewController testClassMethod] at ViewController.m:<span class="number">89</span>)</span><br><span class="line"></span><br><span class="line">Printing description of imp4:</span><br><span class="line">(IMP) imp4 = <span class="number">0x000000010cf19b90</span> (-[ViewController testInstanceMethod] at ViewController.m:<span class="number">94</span>)</span><br><span class="line">(lldb) </span><br></pre></td></tr></table></figure>
+
+<p>imp2、imp3、imp4 都是正常的，唯独 imp 不正常，也充分说明了 <code>instanceMethodForSelector</code> 无法获取类方法的 IMP.</p>
+<h2 id="Method"><a href="#Method" class="headerlink" title="Method"></a>Method</h2><p>在源码 <code>runtime.h</code> 中, 定义 method, 其本质是一个结构体.</p>
+<figure class="highlight objc"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">struct</span> objc_method &#123;</span><br><span class="line">    SEL method_name     OBJC2_UNAVAILABLE;</span><br><span class="line">    <span class="keyword">char</span> *method_types  OBJC2_UNAVAILABLE;</span><br><span class="line">    IMP method_imp      OBJC2_UNAVAILABLE;</span><br><span class="line">&#125;                                                            </span><br></pre></td></tr></table></figure>
+
+<p>方法名 <code>method_name</code> 类型为 SEL.</p>
+<p><code>method_types</code> 方法类型, 是一个 char 指针，存储着方法的参数类型和返回值类型。</p>
+<p>方法实现 <code>method_imp</code> 的类型为 IMP.</p>
+<p>可以看出, 有 SEL 和 IMP, method_types 是对应的方法返回值和参数类型, 如 <code>v@:</code>，是一个字符串。</p>
+<p><code>runtime.h</code> 中有两个方法，可以根据 SEL 直接获取实例方法和类方法的 Method，如下:</p>
+<figure class="highlight objc"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line">Method class_getInstanceMethod(Class cls, SEL name);</span><br><span class="line"></span><br><span class="line">Method class_getClassMethod(Class cls, SEL name);</span><br></pre></td></tr></table></figure>
+
+<h2 id="SEL"><a href="#SEL" class="headerlink" title="SEL"></a>SEL</h2><p><code>selector</code>, 称之为方法选择器，SEL 是 <code>selector</code> 的表示类型，也是方法的编号，是类成员方法的指针。</p>
+<p>SEL 定义在源码 <code>objc.h</code> 中, 是一个结构体指针, 如下:</p>
+<figure class="highlight objc"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment">/// An opaque type that represents a method selector.</span></span><br><span class="line"><span class="keyword">typedef</span> <span class="keyword">struct</span> objc_selector *SEL;</span><br></pre></td></tr></table></figure>
+
+<p>但是源码中查不到 <code>objc_selector</code> 具体的定义和实现.</p>
+<p>获取 SEL 有三个方法:</p>
+<figure class="highlight objc"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line">SEL sel = <span class="keyword">@selector</span>(play:);</span><br><span class="line">SEL sel = sel_registerName(<span class="string">&quot;play:&quot;</span>); </span><br><span class="line">SEL sel = <span class="built_in">NSSelectorFromString</span>(<span class="string">@&quot;play&quot;</span>);</span><br></pre></td></tr></table></figure>
+
+<p>SEL 表示一个 selector 的指针，无论什么类里，只要方法名相同，SEL 就相同，SEL 实际是根据方法名 hash 化了的字符串。而对于字符串的比较仅仅需要比较他们的地址就可以了，所以速度上非常快，SEL 的存在加快了查询方法的速度。</p>
+<blockquote>
+<p>思考一个问题：为什么在同一个 OC 类中，不能存在同名的函数，即使参数类型不同也不行，换句话说 OC为什么没有重载？</p>
+</blockquote>
+<blockquote>
+<p>答案已经在上面说了，SEL 表示一个 selector 的指针，无论什么类里，只要方法名相同，SEL 就相同，相同的函数名，编译器无法编译通过。</p>
+</blockquote>
+<p><code>dispatch table</code> 存放 SEL 和 IMP 的对应关系，SEL 最终会通过 <code>dispatch table</code> 寻找到对应的IMP。</p>
+<p>总之，Selector、Method 和 IMP 三者之间的关系可以这么解释，在类的(实例和类方法)调度表(dispatch table)中的每一个实体代表一个方法 Method，其名字叫做选择器 SEL，并对应着一种方法实现称之为 IMP，有了 Method 就可以使用 SEL 找到对应的 IMP，SEL 就是为了查找方法的最终实现 IMP。</p>
+<h2 id="class-addMethod"><a href="#class-addMethod" class="headerlink" title="class_addMethod"></a>class_addMethod</h2><p>查看源码 <code>objc-runtime-new.mm</code> 中该函数实现如下:</p>
+<figure class="highlight objc"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br></pre></td><td class="code"><pre><span class="line"><span class="built_in">BOOL</span> class_addMethod(Class cls, SEL name, IMP imp, <span class="keyword">const</span> <span class="keyword">char</span> *types)</span><br><span class="line">&#123;</span><br><span class="line">    <span class="keyword">if</span> (!cls) <span class="keyword">return</span> <span class="literal">NO</span>;</span><br><span class="line"></span><br><span class="line">    rwlock_writer_t lock(runtimeLock);</span><br><span class="line">    <span class="keyword">return</span> ! addMethod(cls, name, imp, types ?: <span class="string">&quot;&quot;</span>, <span class="literal">NO</span>);</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<p>开发文档中这样描述该函数:</p>
+<figure class="highlight objc"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><span class="line">Adds a new method to a <span class="keyword">class</span> with a given name and implementation.</span><br><span class="line">class_addMethod will add an override of a superclass<span class="string">&#x27;s implementation, </span></span><br><span class="line"><span class="string">but will not replace an existing implementation in this class. </span></span><br><span class="line"><span class="string">To change an existing implementation, use method_setImplementation.</span></span><br></pre></td></tr></table></figure>
+
+<p>解释一下，可以为类根据 SEL 和 IMP 动态添加一个新方法。<code>class_addMethod</code> 仅可以动态添加方法，不会替换。如果想达到方法替换的效果可使用 <code>method_setImplementation</code> 函数。</p>
+<p>关于 <code>method_setImplementation</code> 和 <code>method_exchangeImplementations</code> 后面文章再做分析.</p>
+<p>其实, <code>method_exchangeImplementations</code> 的内部实现相当于调用了 2 次 <code>method_setImplementation</code> 方法。</p>
+<p><code>class_addMethod</code> 不仅可以动态添加类方法, 也可以添加实例方法。</p>
+<p>参数及返回值解释:</p>
+<figure class="highlight objc"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br></pre></td><td class="code"><pre><span class="line">返回值: 返回 <span class="literal">YES</span> 表示方法添加成功, 否则添加失败。</span><br><span class="line"></span><br><span class="line">参数 Class cls: 将要给添加方法的类, 即［类名 <span class="keyword">class</span>］</span><br><span class="line"></span><br><span class="line">参数 SEL name: 将要添加的方法 SEL, 即 <span class="keyword">@selector</span>(方法名)，如果已经存在，该方法返回失败，不存在就添加成功。</span><br><span class="line"></span><br><span class="line">参数 IMP imp：实现这个方法的函数. 有两种写法即 C 和 OC 的写法. 一个 IMP 最少包括两个参数, 上面已经说过。</span><br><span class="line"></span><br><span class="line">参数 <span class="keyword">const</span> <span class="keyword">char</span> *types: 实现方法的函数的返回和参数编码类型. 如 <span class="string">&quot;v@:&quot;</span> 表示返回值为 <span class="keyword">void</span>, 没有参数的一个函数, 其中 @和:分别代表 IMP 的默认两个参数即 <span class="keyword">id</span> 和 sel.</span><br></pre></td></tr></table></figure>
+
+<p>关于 types，可以使用 <code>method_getTypeEncoding</code> 来获取。</p>
+<p>更多关于 types 的内容可以参考开发者文档 <a target="_blank" rel="noopener" href="https://developer.apple.com/library/content/documentation/Cocoa/Conceptual/ObjCRuntimeGuide/Articles/ocrtTypeEncodings.html#//apple_ref/doc/uid/TP40008048-CH100-SW1">Type Encodings</a>.</p>
+<h2 id="解答问题"><a href="#解答问题" class="headerlink" title="解答问题"></a>解答问题</h2><p>读到这里, 大家对 IMP, SEL 以及 Method 应该有初步的了解了, 那么来解答一下刚才提出的问题:</p>
+<blockquote>
+<p>runtime 如何通过 selector 找到对应的 IMP 地址?</p>
+</blockquote>
+<p>回答这个问题的关键是要知道消息调度表(dispatch table)，另外一个要回答的要点是 IMP 的实现和获取以及和 Method 之间的关系。</p>
+<p>类对象中有类方法和实例方法的分发表，表中记录着方法的名字、参数和实现，selector 本质就是方法名称，runtime 通过这个方法名称就可以在列表中找到该方法对应的实现.</p>
+<p>系统为我们提供了获取 IMP 指针的函数，无论是类方法还是实例方法我们都可以获取对应的 IMP.</p>
+<p>而 Method 将 Selector 和 IMP 联系起来，可从源码中看出:</p>
+<figure class="highlight objc"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">struct</span> objc_method &#123;</span><br><span class="line">    SEL method_name     OBJC2_UNAVAILABLE;</span><br><span class="line">    <span class="keyword">char</span> *method_types  OBJC2_UNAVAILABLE;</span><br><span class="line">    IMP method_imp      OBJC2_UNAVAILABLE;</span><br><span class="line">&#125;                                                            </span><br></pre></td></tr></table></figure>
+
+<p>IMP 是函数的指针，它是由编译器编译生成的。当发一个消息时，它会找到那段代码执行，IMP 指向了这个方法的具体的实现，得到这个函数的指针可以直接执行。</p>
+<p>IMP 指向的方法与 <code>objc_msgSend</code> 函数类型相同，参数都包含 id 和 SEL 类型。每个方法名都对应一个 SEL 类型的方法选择器，而每个实例对象中的 SEL 对应的方法实现肯定是唯一的，通过一组 id 和 SEL 参数就能确定唯一的方法实现地址，反之亦然。当发送消息给一个对象时，runTime 会在对象的类对象方法列表里查找，当我们发送一个消息给一个类时，这条消息会在类的 <code>Meta Class</code> 对象的方法列表里查找，直到超找到 NSObject 中为止。</p>
+<p><strong>消息传递的过程</strong></p>
+<p><strong>1.</strong> 当消息被发送给一个对象，messaging function 跟随对象的 isa 指针找到它的 class structure，在 dispatch table 中寻找 method selector.</p>
+<p><strong>2.</strong> 如果没有找到 selector，objc_msgsend 跟随该类实例的 isa 找到父类，尝试在父类的 dispatch table 中寻找 selector.</p>
+<p><strong>3.</strong> 重复步骤 <strong>2</strong>，直到 isa 指向 NSObject Class 为止。</p>
+<p>关于分发表和消息相关的知识可以参考开发文档 <a target="_blank" rel="noopener" href="https://developer.apple.com/library/content/documentation/Cocoa/Conceptual/ObjCRuntimeGuide/Articles/ocrtHowMessagingWorks.html">Messaging</a>，讲得很清楚。</p>
+<h2 id="实际例子"><a href="#实际例子" class="headerlink" title="实际例子"></a>实际例子</h2><p>说了这么多理论知识，是时候举栗子了，方便大家更好的理解上面的内容。</p>
+<h3 id="1-动态添加实例方法"><a href="#1-动态添加实例方法" class="headerlink" title="1. 动态添加实例方法"></a>1. 动态添加实例方法</h3><p><strong>Student.m</strong></p>
+<p>除 <code>init</code> 外，Student 只有一个实例方法 <code>studentWalkImp</code>.</p>
+<figure class="highlight objc"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br></pre></td><td class="code"><pre><span class="line"><span class="class"><span class="keyword">@implementation</span> <span class="title">Student</span></span></span><br><span class="line"></span><br><span class="line">- (<span class="keyword">instancetype</span>)init</span><br><span class="line">&#123;</span><br><span class="line">    <span class="keyword">self</span> = [<span class="keyword">super</span> init];</span><br><span class="line">    </span><br><span class="line">    <span class="keyword">if</span> (<span class="keyword">self</span>) &#123;</span><br><span class="line">        </span><br><span class="line">        SEL proxySelector = <span class="built_in">NSSelectorFromString</span>(<span class="string">@&quot;studentWalkImp&quot;</span>);</span><br><span class="line">        IMP impletor = class_getMethodImplementation([<span class="keyword">self</span> <span class="keyword">class</span>], proxySelector);</span><br><span class="line">        </span><br><span class="line">        <span class="comment">// 获取实例方法</span></span><br><span class="line">        Method method = class_getInstanceMethod([<span class="keyword">self</span> <span class="keyword">class</span>], proxySelector);</span><br><span class="line">        <span class="keyword">const</span> <span class="keyword">char</span> *types = method_getTypeEncoding(method);</span><br><span class="line">        </span><br><span class="line">        SEL origSel = <span class="built_in">NSSelectorFromString</span>(<span class="string">@&quot;walk&quot;</span>);</span><br><span class="line">        class_addMethod([<span class="keyword">self</span> <span class="keyword">class</span>], origSel, impletor, types);</span><br><span class="line">    &#125;</span><br><span class="line">    </span><br><span class="line">    <span class="keyword">return</span> <span class="keyword">self</span>;</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line">- (<span class="keyword">void</span>)studentWalkImp</span><br><span class="line">&#123;</span><br><span class="line">    <span class="built_in">NSLog</span>(<span class="string">@&quot;---veryitman--- Student studentWalkImp&quot;</span>);</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line"><span class="keyword">@end</span></span><br></pre></td></tr></table></figure>
+
+<p>调用测试一下.</p>
+<figure class="highlight objc"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br></pre></td><td class="code"><pre><span class="line">- (<span class="keyword">void</span>)viewDidLoad &#123;</span><br><span class="line">    </span><br><span class="line">    [<span class="keyword">super</span> viewDidLoad];</span><br><span class="line">    </span><br><span class="line">    Student *stud = [[Student alloc] init];</span><br><span class="line">    [stud performSelector:<span class="built_in">NSSelectorFromString</span>(<span class="string">@&quot;walk&quot;</span>) withObject:<span class="literal">nil</span>];</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<p>这里 Student 并没有 <code>walk</code> 方法，故意为之，运行后控制台会打印:</p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">---veryitman--- Student studentWalkImp</span><br></pre></td></tr></table></figure>
+
+<p>成功的为 Student 添加了一个实例方法 <code>walk</code> 的实现 <code>studentWalkImp</code>.</p>
+<p>上面的例子是使用 OC 的 IMP 方式来实现的，可以改为 C 实现版本的.</p>
+<figure class="highlight objc"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br></pre></td><td class="code"><pre><span class="line"><span class="class"><span class="keyword">@implementation</span> <span class="title">Student</span></span></span><br><span class="line"></span><br><span class="line">- (<span class="keyword">instancetype</span>)init</span><br><span class="line">&#123;</span><br><span class="line">    <span class="keyword">self</span> = [<span class="keyword">super</span> init];</span><br><span class="line">    </span><br><span class="line">    <span class="keyword">if</span> (<span class="keyword">self</span>) &#123;</span><br><span class="line">        SEL origSel = <span class="built_in">NSSelectorFromString</span>(<span class="string">@&quot;walk&quot;</span>);</span><br><span class="line">        class_addMethod([<span class="keyword">self</span> <span class="keyword">class</span>], origSel, (IMP)studentWalkImp, <span class="string">&quot;v:@&quot;</span>);</span><br><span class="line">    &#125;</span><br><span class="line">    </span><br><span class="line">    <span class="keyword">return</span> <span class="keyword">self</span>;</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line"><span class="keyword">void</span> studentWalkImp()</span><br><span class="line">&#123;</span><br><span class="line">    <span class="built_in">NSLog</span>(<span class="string">@&quot;---veryitman--- Student studentWalkImp&quot;</span>);</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<h3 id="2-动态添加类方法"><a href="#2-动态添加类方法" class="headerlink" title="2. 动态添加类方法"></a>2. 动态添加类方法</h3><p>动态添加类方法，和动态添加实例方法稍微有点不同。下面是改造后的 <code>Student.m</code>.</p>
+<p><strong>Student.m</strong></p>
+<figure class="highlight objc"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br></pre></td><td class="code"><pre><span class="line"><span class="class"><span class="keyword">@implementation</span> <span class="title">Student</span></span></span><br><span class="line"></span><br><span class="line">- (<span class="keyword">instancetype</span>)init</span><br><span class="line">&#123;</span><br><span class="line">    <span class="keyword">self</span> = [<span class="keyword">super</span> init];</span><br><span class="line">    </span><br><span class="line">    <span class="keyword">if</span> (<span class="keyword">self</span>) &#123;</span><br><span class="line">        </span><br><span class="line">        <span class="comment">// 获取 MetaClass, 类方法不可以使用 [self class]</span></span><br><span class="line">        Class metaCls = objc_getMetaClass([<span class="built_in">NSStringFromClass</span>([<span class="keyword">self</span> <span class="keyword">class</span>]) UTF8String]);</span><br><span class="line">        </span><br><span class="line">        SEL proxySelector = <span class="built_in">NSSelectorFromString</span>(<span class="string">@&quot;clsImp&quot;</span>);</span><br><span class="line">        IMP impletor = class_getMethodImplementation(metaCls, proxySelector);</span><br><span class="line">        </span><br><span class="line">        <span class="comment">// 获取类方法</span></span><br><span class="line">        Method method = class_getClassMethod([<span class="keyword">self</span> <span class="keyword">class</span>], proxySelector);</span><br><span class="line">        </span><br><span class="line">        <span class="keyword">const</span> <span class="keyword">char</span> *types = method_getTypeEncoding(method);</span><br><span class="line">        SEL origSel = <span class="built_in">NSSelectorFromString</span>(<span class="string">@&quot;walk&quot;</span>);</span><br><span class="line">        </span><br><span class="line">        class_addMethod(metaCls, origSel, impletor, types);</span><br><span class="line">    &#125;</span><br><span class="line">    </span><br><span class="line">    <span class="keyword">return</span> <span class="keyword">self</span>;</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line">+ (<span class="keyword">void</span>)clsImp</span><br><span class="line">&#123;</span><br><span class="line">    <span class="built_in">NSLog</span>(<span class="string">@&quot;---veryitman--- Student clsImp&quot;</span>);</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<p>注意：这里获取 Class 稍微不同的是使用了 <code>objc_getMetaClass</code>，这里关系到 Objective-C 中的类、Class、根类和元类的区别，可以参考 <a target="_blank" rel="noopener" href="http://www.veryitman.com/2019/01/29/Class%E3%80%81isa%E3%80%81%E5%85%83%E7%B1%BB/">Class、isa、元类</a> 这篇文章。</p>
+<p>调用测试一下：</p>
+<figure class="highlight objc"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br></pre></td><td class="code"><pre><span class="line">- (<span class="keyword">void</span>)viewDidLoad &#123;</span><br><span class="line">    </span><br><span class="line">    [<span class="keyword">super</span> viewDidLoad];</span><br><span class="line">    </span><br><span class="line">    Student *stud = [[Student alloc] init];</span><br><span class="line">    </span><br><span class="line">    [[stud <span class="keyword">class</span>] performSelector:<span class="built_in">NSSelectorFromString</span>(<span class="string">@&quot;walk&quot;</span>) withObject:<span class="literal">nil</span>];</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<p>控制台打印：</p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">---veryitman--- Student clsImp</span><br></pre></td></tr></table></figure>
+
+<p>成功地为类动态的添加了一个类方法 <code>clsImp</code>.</p>
+<h2 id="参考文档"><a href="#参考文档" class="headerlink" title="参考文档"></a>参考文档</h2><p><strong>1. <a target="_blank" rel="noopener" href="http://blog.devtang.com/2013/10/15/objective-c-object-model/">Objective-C 对象模型及应用</a></strong></p>
+<p><strong>2. <a target="_blank" rel="noopener" href="https://opensource.apple.com/tarballs/objc4/">Apple RunTime 源码 objc4-723.tar.gz</a></strong></p>
+<p><strong>3. <a target="_blank" rel="noopener" href="https://developer.apple.com/library/content/documentation/Cocoa/Conceptual/ObjCRuntimeGuide/Articles/ocrtHowMessagingWorks.html">Messaging</a></strong></p>
+<p><strong>4. <a target="_blank" rel="noopener" href="https://junyixie.github.io/2017/05/01/Objective-C-%E6%B7%B1%E5%85%A5%E7%90%86%E8%A7%A3%E4%B8%AD%E7%9A%84%E6%B6%88%E6%81%AF%E6%9C%BA%E5%88%B6%E5%92%8C%E6%96%B9%E6%B3%95%E8%B0%83%E7%94%A8/">Objective-C 深入理解中的消息机制和方法调用</a></strong></p>
+<h2 id="完整代码"><a href="#完整代码" class="headerlink" title="完整代码"></a>完整代码</h2><p>点击下载文中完整的 <a target="_blank" rel="noopener" href="https://github.com/veryitman/iOSDemo/tree/master/MZRuntimeMsgForward">Demo</a>.</p>
+<hr>
+<p><strong>扫码关注，你我就各多一个朋友~</strong></p>
+<p><img class="lazy" src="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAABGdBTUEAALGPC/xhBQAAADhlWElmTU0AKgAAAAgAAYdpAAQAAAABAAAAGgAAAAAAAqACAAQAAAABAAAAAaADAAQAAAABAAAAAQAAAADa6r/EAAAAC0lEQVQIHWNgAAIAAAUAAY27m/MAAAAASUVORK5CYII=" data-src="/upload/me/qrcode_wx.jpg"></p>
+
+
+
+
+</article>
+
+<div class="related-wrap reveal" id="read-next"><section class="header cap theme"><span>接下来阅读</span></section><section class="body fs14"><a id="next" href="/2018/04/03/OC-RunTime-%E6%B6%88%E6%81%AF%E8%BD%AC%E5%8F%91%E4%B9%8B%E7%B1%BB%E6%96%B9%E6%B3%95%E7%9A%84%E8%BD%AC%E5%8F%91%E6%B5%81%E7%A8%8B/">OC-RunTime: 消息转发之类方法的转发流程<span class="note">较早</span></a><div class="line"></div><a id="prev" href="/2018/04/07/%E8%BF%99%E6%A0%B7%E5%AD%A6%E4%B9%A0%E4%BD%A0%E6%84%BF%E6%84%8F%E5%90%97/">这样学习你愿意吗?<span class="note">较新</span></a></section></div>
+
+
+
+
+
+
+  <div class='related-wrap md reveal' id="comments">
+    <div class='cmt-title cap theme'>
+      快来参与讨论吧
+    </div>
+    <div class='cmt-body valine'>
+      
+
+<div id="valine_container" class="valine_thread"><svg class="loading" style="vertical-align: middle;fill: currentColor;overflow: hidden;" viewBox="0 0 1024 1024" version="1.1" xmlns="http://www.w3.org/2000/svg" p-id="2709"><path d="M832 512c0-176-144-320-320-320V128c211.2 0 384 172.8 384 384h-64zM192 512c0 176 144 320 320 320v64C300.8 896 128 723.2 128 512h64z" p-id="2710"></path></svg></div>
+
+    </div>
+  </div>
+
+
+
+      
+<footer class="page-footer reveal fs12"><hr><div class="text"><p>本博客所有文章除特别声明外，均采用 <a target="_blank" rel="noopener" href="https://creativecommons.org/licenses/by-nc-sa/4.0/">CC BY-NC-SA 4.0</a> 许可协议，转载请注明出处。</p>
+<p>veryitman</p>
+</div></footer>
+
+      <div class='float-panel mobile-only blur' style='display:none'>
+  <button type='button' class='sidebar-toggle mobile' onclick='sidebar.toggle()'>
+    <svg class="icon" style="width: 1em; height: 1em;vertical-align: middle;fill: currentColor;overflow: hidden;" viewBox="0 0 1024 1024" version="1.1" xmlns="http://www.w3.org/2000/svg" p-id="15301"><path d="M566.407 808.3c26.9-0.1 49.3-20.8 51.6-47.6-1.9-27.7-23.9-49.7-51.6-51.6h-412.6c-28.2-1.4-52.6 19.5-55.5 47.6 2.3 26.8 24.6 47.5 51.6 47.6h416.5v4z m309.3-249.9c26.9-0.1 49.3-20.8 51.6-47.6-2.2-26.8-24.6-47.5-51.6-47.6h-721.9c-27.7-2.8-52.5 17.4-55.3 45.1-0.1 0.8-0.1 1.7-0.2 2.5 0.9 27.2 23.6 48.5 50.7 47.6H875.707z m-103.1-245.9c26.9-0.1 49.3-20.8 51.6-47.6-0.4-28.3-23.2-51.1-51.5-51.6h-618.9c-29.5-1.1-54.3 21.9-55.5 51.4v0.2c1.4 27.8 25.2 49.2 53 47.8 0.8 0 1.7-0.1 2.5-0.2h618.8z" p-id="15302"></path><path d="M566.407 808.3c26.9-0.1 49.3-20.8 51.6-47.6-1.9-27.7-23.9-49.7-51.6-51.6h-412.6c-28.2-1.4-52.6 19.5-55.5 47.6 1.9 27.7 23.9 49.7 51.6 51.6h416.5z m309.3-249.9c26.9-0.1 49.3-20.8 51.6-47.6-2.2-26.8-24.6-47.5-51.6-47.6h-721.9c-27.7-2.8-52.5 17.4-55.3 45.1-0.1 0.8-0.1 1.7-0.2 2.5 0.9 27.2 23.6 48.5 50.7 47.6H875.707z m-103.1-245.9c26.9-0.1 49.3-20.8 51.6-47.6-0.4-28.3-23.2-51.1-51.5-51.6h-618.9c-29.5-1.1-54.3 21.9-55.5 51.4v0.2c1.4 27.8 25.2 49.2 53 47.8 0.8 0 1.7-0.1 2.5-0.2h618.8z" p-id="15303"></path></svg>
+  </button>
+</div>
+
+    </div>
+  </div>
+  <div class='scripts'>
+    <script type="text/javascript">
+  stellar = {
+    // 懒加载 css https://github.com/filamentgroup/loadCSS
+    loadCSS: (href, before, media, attributes) => {
+      var doc = window.document;
+      var ss = doc.createElement("link");
+      var ref;
+      if (before) {
+        ref = before;
+      } else {
+        var refs = (doc.body || doc.getElementsByTagName("head")[0]).childNodes;
+        ref = refs[refs.length - 1];
+      }
+      var sheets = doc.styleSheets;
+      if (attributes) {
+        for (var attributeName in attributes) {
+          if (attributes.hasOwnProperty(attributeName)) {
+            ss.setAttribute(attributeName, attributes[attributeName]);
+          }
+        }
+      }
+      ss.rel = "stylesheet";
+      ss.href = href;
+      ss.media = "only x";
+      function ready(cb) {
+        if (doc.body) {
+          return cb();
+        }
+        setTimeout(function () {
+          ready(cb);
+        });
+      }
+      ready(function () {
+        ref.parentNode.insertBefore(ss, before ? ref : ref.nextSibling);
+      });
+      var onloadcssdefined = function (cb) {
+        var resolvedHref = ss.href;
+        var i = sheets.length;
+        while (i--) {
+          if (sheets[i].href === resolvedHref) {
+            return cb();
+          }
+        }
+        setTimeout(function () {
+          onloadcssdefined(cb);
+        });
+      };
+      function loadCB() {
+        if (ss.addEventListener) {
+          ss.removeEventListener("load", loadCB);
+        }
+        ss.media = media || "all";
+      }
+      if (ss.addEventListener) {
+        ss.addEventListener("load", loadCB);
+      }
+      ss.onloadcssdefined = onloadcssdefined;
+      onloadcssdefined(loadCB);
+      return ss;
+    },
+
+    // 从 butterfly 和 volantis 获得灵感
+    loadScript: (src, opt) => new Promise((resolve, reject) => {
+      var script = document.createElement('script');
+      script.src = src;
+      if (opt) {
+        for (let key of Object.keys(opt)) {
+          script[key] = opt[key]
+        }
+      } else {
+        // 默认异步，如果需要同步，第二个参数传入 {} 即可
+        script.async = true
+      }
+      script.onerror = reject
+      script.onload = script.onreadystatechange = function() {
+        const loadState = this.readyState
+        if (loadState && loadState !== 'loaded' && loadState !== 'complete') return
+        script.onload = script.onreadystatechange = null
+        resolve()
+      }
+      document.head.appendChild(script)
+    }),
+
+    // https://github.com/jerryc127/hexo-theme-butterfly
+    jQuery: (fn) => {
+      if (typeof jQuery === 'undefined') {
+        stellar.loadScript(stellar.plugins.jQuery).then(fn)
+      } else {
+        fn()
+      }
+    }
+  };
+  stellar.github = 'https://github.com/xaoxuu/hexo-theme-stellar/tree/1.6.1';
+  stellar.config = {
+    date_suffix: {
+      just: '刚刚',
+      min: '分钟前',
+      hour: '小时前',
+      day: '天前',
+      month: '个月前',
+    },
+  };
+
+  // required plugins (only load if needs)
+  stellar.plugins = {
+    jQuery: 'https://cdn.jsdelivr.net/npm/jquery@3.5.1/dist/jquery.min.js',
+    sitesjs: '/js/plugins/sites.js',
+    friendsjs: '/js/plugins/friends.js',
+  };
+
+  // optional plugins
+  if ('true' == 'true') {
+    stellar.plugins.lazyload = Object.assign({"enable":true,"js":"https://cdn.jsdelivr.net/npm/vanilla-lazyload@17.3.1/dist/lazyload.min.js","transition":"blur"});
+  }
+  if ('true' == 'true') {
+    stellar.plugins.swiper = Object.assign({"enable":true,"css":"https://unpkg.com/swiper@6/swiper-bundle.min.css","js":"https://unpkg.com/swiper@6/swiper-bundle.min.js"});
+  }
+  if ('' == 'true') {
+    stellar.plugins.scrollreveal = Object.assign({"enable":null,"js":"https://cdn.jsdelivr.net/npm/scrollreveal@4.0.9/dist/scrollreveal.min.js","distance":"8px","duration":500,"interval":100,"scale":1});
+  }
+  if ('true' == 'true') {
+    stellar.plugins.preload = Object.assign({"enable":true,"service":"flying_pages","instant_page":"https://cdn.jsdelivr.net/gh/volantis-x/cdn-volantis@4.1.2/js/instant_page.js","flying_pages":"https://cdn.jsdelivr.net/gh/gijo-varghese/flying-pages@2.1.2/flying-pages.min.js"});
+  }
+</script>
+
+<!-- required -->
+
+  
+<script src="/js/main.js" async></script>
+
+
+
+<!-- optional -->
+
+  <script>
+  function getEmojiMaps() {
+    function emoji(path, idx, ext) {
+      return path + "/" + path + "-" + idx + "." + ext;
+    }
+    var emojiMaps = {};
+    for (var i = 1; i <= 54; i++) {
+      emojiMaps['tieba-' + i] = emoji('tieba', i, 'png');
+    }
+    for (var i = 1; i <= 101; i++) {
+      emojiMaps['qq-' + i] = emoji('qq', i, 'gif');
+    }
+    for (var i = 1; i <= 116; i++) {
+      emojiMaps['aru-' + i] = emoji('aru', i, 'gif');
+    }
+    for (var i = 1; i <= 125; i++) {
+      emojiMaps['twemoji-' + i] = emoji('twemoji', i, 'png');
+    }
+    for (var i = 1; i <= 4; i++) {
+      emojiMaps['weibo-' + i] = emoji('weibo', i, 'png');
+    }
+    return emojiMaps;
+  }
+  function load_comment(){
+    if(!document.getElementById("valine_container"))return;
+    stellar.loadScript('https://cdn.jsdelivr.net/gh/XuxuGood/simple-blog-cdn@main/js/Valine.min.js', {defer:true}).then(function () {
+      const el = document.getElementById("valine_container");
+      var path = el.getAttribute('comment_id');
+      const placeholder = "欢迎您留言~";
+      if (!path) {
+        path = decodeURI(window.location.pathname);
+      }
+      var valine = new Valine();
+      valine.init(Object.assign({"js":"https://cdn.jsdelivr.net/gh/XuxuGood/simple-blog-cdn@main/js/Valine.min.js","appId":"FY2C9UCttYNaE1j8umenqdCE-gzGzoHsz","appKey":"4i7xMwkfSEGmEDhi6SceKFxz","placeholder":"欢迎您留言~","requiredFields":["nick","mail"],"enableQQ":true,"recordIP":false,"avatar":"robohash","pageSize":10,"lang":"zh-cn","highlight":true,"mathJax":false,"tagMeta":["博主","小伙伴","访客"],"metaPlaceholder":{"nick":"昵称/QQ号(必填)","mail":"邮箱（必填，完全保密）"},"master":["6783037F2DF30EAB99F9FC256157D875"],"friends":["6783037F2DF30EAB99F9FC256157D875"],"comment_count":true}, {
+        el: '#valine_container',
+        path: path,
+        placeholder: placeholder,
+        emojiCDN: 'https://cdn.jsdelivr.net/gh/volantis-x/cdn-emoji/valine/',
+        emojiMaps: getEmojiMaps(),
+      }));
+    });
+  }
+  window.addEventListener('DOMContentLoaded', (event) => {
+    console.log('DOM fully loaded and parsed');
+    load_comment();
+  });
+
+</script>
+
+
+
+
+<!-- inject -->
+
+
+  </div>
+</body>
+</html>

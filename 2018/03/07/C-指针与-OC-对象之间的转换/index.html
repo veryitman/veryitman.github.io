@@ -1,0 +1,389 @@
+<!DOCTYPE html>
+<html lang='zh-CN'>
+
+<head>
+  <meta name="generator" content="Hexo 6.0.0">
+  <meta charset="utf-8">
+  
+
+  <meta http-equiv='x-dns-prefetch-control' content='on' />
+  <link rel='dns-prefetch' href='https://cdn.jsdelivr.net'>
+  <link rel="preconnect" href="https://cdn.jsdelivr.net" crossorigin>
+
+  <meta name="renderer" content="webkit">
+  <meta name="force-rendering" content="webkit">
+  <meta http-equiv="X-UA-Compatible" content="IE=Edge,chrome=1">
+  <meta name="HandheldFriendly" content="True" >
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1">
+  <meta name="theme-color" content="#f8f8f8">
+  <title>C 指针与 OC 对象之间的转换 - Veryitman</title>
+
+  
+    <meta name="description" content="Core Foundation 框架Core Foundation 框架 (CoreFoundation.framework) 是一组 C 语言接口， 简称 CF.  它们为 iOS 应用程序提供基本数据管理和服务功能. 如 Core Graphics、Core Text，并且我们可能需要将 CF 对象和OC 对象进行相互转化，ARC 下，编译器不会自动管理 CF 对象的内存，我们需要手动管理.">
+<meta property="og:type" content="article">
+<meta property="og:title" content="C 指针与 OC 对象之间的转换">
+<meta property="og:url" content="http://example.com/2018/03/07/C-%E6%8C%87%E9%92%88%E4%B8%8E-OC-%E5%AF%B9%E8%B1%A1%E4%B9%8B%E9%97%B4%E7%9A%84%E8%BD%AC%E6%8D%A2/index.html">
+<meta property="og:site_name" content="Veryitman">
+<meta property="og:description" content="Core Foundation 框架Core Foundation 框架 (CoreFoundation.framework) 是一组 C 语言接口， 简称 CF.  它们为 iOS 应用程序提供基本数据管理和服务功能. 如 Core Graphics、Core Text，并且我们可能需要将 CF 对象和OC 对象进行相互转化，ARC 下，编译器不会自动管理 CF 对象的内存，我们需要手动管理.">
+<meta property="og:locale" content="zh_CN">
+<meta property="og:image" content="http://example.com/upload/images/2018/03/07/2.png">
+<meta property="og:image" content="http://example.com/upload/images/2018/03/07/1.jpg">
+<meta property="og:image" content="http://example.com/upload/me/qrcode_wx.jpg">
+<meta property="article:published_time" content="2018-03-07T15:29:09.000Z">
+<meta property="article:modified_time" content="2022-03-09T14:53:24.336Z">
+<meta property="article:author" content="veryitman">
+<meta property="article:tag" content="Objective-C ARC Foundation">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:image" content="http://example.com/upload/images/2018/03/07/2.png">
+  
+  
+
+  <!-- feed -->
+  
+
+  
+    
+<link rel="stylesheet" href="/css/main.css">
+
+  
+
+  
+
+  
+</head>
+
+<body>
+  
+
+
+  <div class='l_body' id='start'>
+    <aside class='l_left' layout='post'>
+    
+
+
+<header class="header">
+
+<div class="logo-wrap"><a class="title" href="/"><div class="main">Veryitman</div></a></div>
+<nav class="menu dis-select"></nav></header>
+
+<div class="widgets">
+
+<div class="widget-wrap single" id="toc"><div class="widget-header cap dis-select"><span class="name">本文目录</span></div><div class="widget-body fs14"><div class="doc-tree active"><ol class="toc"><li class="toc-item toc-level-2"><a class="toc-link" href="#Core-Foundation-%E6%A1%86%E6%9E%B6"><span class="toc-text">Core Foundation 框架</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#ARC-%E6%A1%A5%E6%8E%A5"><span class="toc-text">ARC 桥接</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#bridge-retained-lt-CF-type-gt-lt-expression-gt"><span class="toc-text">__bridge_retained &lt;#CF type#&gt;)&lt;#expression#&gt;</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#bridge-transfer-lt-Objective-C-type-gt-lt-expression-gt"><span class="toc-text">__bridge_transfer &lt;#Objective-C type#&gt;)&lt;#expression#&gt;</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#bridge"><span class="toc-text">__bridge</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#%E7%BB%8F%E5%85%B8%E4%BE%8B%E5%AD%90"><span class="toc-text">经典例子</span></a><ol class="toc-child"><li class="toc-item toc-level-3"><a class="toc-link" href="#NSString-%E4%B8%8E-CFString-%E8%BD%AC%E6%8D%A2"><span class="toc-text">NSString 与 CFString 转换</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#%E9%87%8E%E6%8C%87%E9%92%88"><span class="toc-text">野指针</span></a></li></ol></li></ol></div></div></div>
+
+
+</div>
+
+
+    </aside>
+    <div class='l_main'>
+      
+
+      
+
+
+<div class="bread-nav fs12"><div id="breadcrumb"><a class="cap breadcrumb" href="/">主页</a><span class="sep"></span><a class="cap breadcrumb" href="/">文章</a><span class="sep"></span><a class="cap breadcrumb-link" href="/categories/iOS/">iOS</a></div><div id="post-meta">发布于&nbsp;<time datetime="2018-03-07T15:29:09.000Z">2018-03-07</time></div></div>
+
+<article class='content md post'>
+<h1 class="article-title"><span>C 指针与 OC 对象之间的转换</span></h1>
+<h2 id="Core-Foundation-框架"><a href="#Core-Foundation-框架" class="headerlink" title="Core Foundation 框架"></a>Core Foundation 框架</h2><p>Core Foundation 框架 (CoreFoundation.framework) 是一组 C 语言接口， 简称 CF. </p>
+<p>它们为 iOS 应用程序提供基本数据管理和服务功能.</p>
+<p>如 Core Graphics、Core Text，并且我们可能需要将 CF 对象和OC 对象进行相互转化，ARC 下，编译器不会自动管理 CF 对象的内存，我们需要手动管理. </p>
+<p>创建一个 CF 对象使用后, 需要使用 CFRelease 将其手动释放, 换句话说, Core Foundation 对象类型不在 ARC 管理范畴内.</p>
+<p>如何将 CF 和 OC 对象有效的结合起来, 在 ARC 环境下, 提供了 <code>桥接</code> 的技术, 即 ARC 下 OC 对象和 Core Foundation 对象之间的桥梁.</p>
+<h2 id="ARC-桥接"><a href="#ARC-桥接" class="headerlink" title="ARC 桥接"></a>ARC 桥接</h2><p>ARC 下 C 指针与 OC 指针(对象)之间转换, 一般会用到下面的方法.</p>
+<figure class="highlight objc"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br></pre></td><td class="code"><pre><span class="line">__bridge_retained &lt;#CF type#&gt;)&lt;<span class="meta">#expression#&gt;</span></span><br><span class="line"></span><br><span class="line">__bridge_transfer &lt;#Objective-C type#&gt;)&lt;<span class="meta">#expression#&gt;</span></span><br><span class="line"></span><br><span class="line">__bridge &lt;<span class="meta">#type#&gt;)<span class="string">&lt;#expression#&gt;</span></span></span><br></pre></td></tr></table></figure>
+
+<p>也就是所谓的 <code>桥接</code>, 它是 Object-C 在 ARC 环境下开发出来的一种用作转换 C 指针跟 OC (类)指针的一种转换技术, 所以是 ARC 下的称谓, 在 MRC 下没有 <code>桥接</code>.</p>
+<p>针对内存管理问题，ARC 可以管理 Objective-C 对象, 但不支持 Core Foundation 对象的管理，所以转换后要注意一个问题：谁来释放使用后的对象.</p>
+<p>结合 ARC 和 内存管理, 下面分别介绍一下.</p>
+<p>Core Foundation 对象必须使用 CFRetain 和 CFRelease 来进行内存管理.<br>当使用 Objective-C 和 Core Foundation 对象相互转换的时候，必须让编译器知道，到底由谁来负责释放对象，是否交给 ARC 处理, 只有正确的处理，才能避免内存泄漏和 double free 导致程序崩溃.</p>
+<h2 id="bridge-retained-lt-CF-type-gt-lt-expression-gt"><a href="#bridge-retained-lt-CF-type-gt-lt-expression-gt" class="headerlink" title="__bridge_retained &lt;#CF type#&gt;)&lt;#expression#&gt;"></a>__bridge_retained &lt;#CF type#&gt;)&lt;#expression#&gt;</h2><p><code>__bridge_retained</code> 等同于 <code>CFBridgingRetain()</code>.</p>
+<p>将 Objective-C 对象转换为 Core Foundation 对象，把对象所有权桥接给 Core Foundation 对象，同时剥夺 ARC 的管理权，后续需要开发者使用 CFRelease 或者相关方法手动来释放 CF 对象.</p>
+<p>示例:</p>
+<figure class="highlight objc"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">void</span> *cPointer;</span><br><span class="line"><span class="built_in">NSObject</span> *objc = [[<span class="built_in">NSObject</span> alloc] init];</span><br><span class="line"></span><br><span class="line"><span class="comment">//将 OC 对象转换为 C 指针</span></span><br><span class="line">cPointer = (__bridge_retained <span class="keyword">void</span>*)objc;</span><br><span class="line"></span><br><span class="line"><span class="comment">//use cPointer ...</span></span><br><span class="line"></span><br><span class="line"><span class="comment">//需要释放资源</span></span><br><span class="line"><span class="built_in">CFRelease</span>(cPointer);</span><br></pre></td></tr></table></figure>
+
+<p>在 ARC 下, CFBridgingRetain 实现如下:</p>
+<figure class="highlight objc"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line"><span class="built_in">NS_INLINE</span> <span class="built_in">CF_RETURNS_RETAINED</span> <span class="built_in">CFTypeRef</span> _Nullable <span class="built_in">CFBridgingRetain</span>(<span class="keyword">id</span> _Nullable X) &#123;</span><br><span class="line">    <span class="keyword">return</span> (__bridge_retained <span class="built_in">CFTypeRef</span>)X;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<p>关于 CFTypeRef, 如下:</p>
+<figure class="highlight objc"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">typedef</span> <span class="keyword">const</span> <span class="built_in">CF_BRIDGED_TYPE</span>(<span class="keyword">id</span>) <span class="keyword">void</span> * <span class="built_in">CFTypeRef</span>;</span><br></pre></td></tr></table></figure>
+
+<p>所以 CFBridgingRetain 返回值是 <code>const void *</code> 类型的.</p>
+<p>上面的示例可以改写为:</p>
+<figure class="highlight objc"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">const</span> <span class="keyword">void</span> *cPointer;</span><br><span class="line"><span class="keyword">const</span> <span class="built_in">NSObject</span> *objc = [[<span class="built_in">NSObject</span> alloc] init];</span><br><span class="line">cPointer = <span class="built_in">CFBridgingRetain</span>(objc);</span><br><span class="line">    </span><br><span class="line"><span class="comment">//use cPointer ...</span></span><br><span class="line">    </span><br><span class="line"><span class="built_in">CFRelease</span>(cPointer);</span><br></pre></td></tr></table></figure>
+
+<h2 id="bridge-transfer-lt-Objective-C-type-gt-lt-expression-gt"><a href="#bridge-transfer-lt-Objective-C-type-gt-lt-expression-gt" class="headerlink" title="__bridge_transfer &lt;#Objective-C type#&gt;)&lt;#expression#&gt;"></a>__bridge_transfer &lt;#Objective-C type#&gt;)&lt;#expression#&gt;</h2><p><code>__bridge_transfer</code> 等同于 <code>CFBridgingRelease()</code>.</p>
+<p>将非 OC 对象转换为 OC 对象，同时将对象的管理权交给 ARC，开发者无需手动管理内存.</p>
+<p>示例:</p>
+<figure class="highlight objc"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br></pre></td><td class="code"><pre><span class="line"><span class="built_in">CFUUIDRef</span> uuid = <span class="built_in">CFUUIDCreate</span>(kCFAllocatorDefault);</span><br><span class="line"><span class="built_in">CFStringRef</span> strUUID = <span class="built_in">CFUUIDCreateString</span>(kCFAllocatorDefault, uuid);</span><br><span class="line"><span class="built_in">NSString</span> *str = (__bridge_transfer <span class="built_in">NSString</span> *)strUUID;</span><br><span class="line"></span><br><span class="line"><span class="comment">//无需释放 strUUID</span></span><br><span class="line"><span class="comment">//CFRelease(strUUID);</span></span><br><span class="line"></span><br><span class="line"><span class="built_in">CFRelease</span>(uuid);</span><br></pre></td></tr></table></figure>
+
+<p>CFBridgingRelease 实现如下:</p>
+<figure class="highlight objc"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line"><span class="built_in">NS_INLINE</span> <span class="keyword">id</span> _Nullable <span class="built_in">CFBridgingRelease</span>(<span class="built_in">CFTypeRef</span> <span class="built_in">CF_CONSUMED</span> _Nullable X) &#123;</span><br><span class="line">    <span class="keyword">return</span> (__bridge_transfer <span class="keyword">id</span>)X;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<p>上面的示例可以改写为:</p>
+<figure class="highlight objc"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br></pre></td><td class="code"><pre><span class="line"><span class="built_in">CFUUIDRef</span> uuid = <span class="built_in">CFUUIDCreate</span>(kCFAllocatorDefault);</span><br><span class="line"><span class="built_in">CFStringRef</span> strUUID = <span class="built_in">CFUUIDCreateString</span>(kCFAllocatorDefault, uuid);</span><br><span class="line"><span class="built_in">NSString</span> *str = <span class="built_in">CFBridgingRelease</span>(strUUID);</span><br><span class="line">    </span><br><span class="line"><span class="comment">//无需释放 strUUID</span></span><br><span class="line"><span class="comment">//CFRelease(strUUID);</span></span><br><span class="line">    </span><br><span class="line"><span class="built_in">CFRelease</span>(uuid);</span><br></pre></td></tr></table></figure>
+
+<h2 id="bridge"><a href="#bridge" class="headerlink" title="__bridge"></a>__bridge</h2><p><code>__bridge</code> 不改变对象所有权, 需要我们自己来管理内存, 它也是我们经常使用的方法, 从某种程度上来说, 它是上面两个方法的简化版本.</p>
+<p><code>__bridge</code> 可以将 OC 对象 与 C 指针相互转换, 示例:</p>
+<figure class="highlight objc"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment">//CFString -&gt; OC 对象</span></span><br><span class="line"><span class="built_in">CFStringRef</span> cfString = <span class="built_in">CFStringCreateWithCString</span>(kCFAllocatorDefault, <span class="string">&quot;very&quot;</span>, kCFStringEncodingUTF8);</span><br><span class="line"><span class="built_in">NSString</span> *nsString = (__bridge <span class="built_in">NSString</span> *)cfString;</span><br><span class="line"><span class="built_in">NSLog</span>(<span class="string">@&quot;CFString -&gt; NSString: %@&quot;</span>, nsString);</span><br><span class="line"><span class="built_in">CFRelease</span>(cfString);</span><br></pre></td></tr></table></figure>
+
+<p>如果将 <code>CFRelease(cfString)</code> 注释掉, Xcode 的静态检测器会告诉你有内存泄露的情况, 如图:<br><img class="lazy" src="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAABGdBTUEAALGPC/xhBQAAADhlWElmTU0AKgAAAAgAAYdpAAQAAAABAAAAGgAAAAAAAqACAAQAAAABAAAAAaADAAQAAAABAAAAAQAAAADa6r/EAAAAC0lEQVQIHWNgAAIAAAUAAY27m/MAAAAASUVORK5CYII=" data-src="/upload/images/2018/03/07/2.png" alt="1"></p>
+<p>再来另外一个例子, 如下:</p>
+<figure class="highlight objc"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment">//OC 对象 -&gt; CFString</span></span><br><span class="line"><span class="built_in">NSString</span> *nstr = <span class="string">@&quot;itman&quot;</span>;</span><br><span class="line"><span class="built_in">CFStringRef</span> cfStringRef = (__bridge <span class="built_in">CFStringRef</span>)nstr;</span><br><span class="line"><span class="built_in">NSLog</span>(<span class="string">@&quot;NSString -&gt; CFString: %@&quot;</span>, cfStringRef);</span><br><span class="line"><span class="built_in">CFRelease</span>(cfStringRef);</span><br></pre></td></tr></table></figure>
+
+<p>无论是使用 <code>CFRelease(cfStringRef)</code>, 还是注释掉 <code>CFRelease(cfStringRef)</code>, 静态检测器都不会报错. 说明这种情况下, 当前的内存管理已经被 OC 对象管理.</p>
+<h2 id="经典例子"><a href="#经典例子" class="headerlink" title="经典例子"></a>经典例子</h2><h3 id="NSString-与-CFString-转换"><a href="#NSString-与-CFString-转换" class="headerlink" title="NSString 与 CFString 转换"></a>NSString 与 CFString 转换</h3><p>1、NSString → CFString</p>
+<figure class="highlight objc"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br></pre></td><td class="code"><pre><span class="line">&#123;</span><br><span class="line">    <span class="built_in">NSString</span> *string = <span class="string">@&quot;veryitman.com&quot;</span>;</span><br><span class="line">    <span class="comment">// 方法1: 不需要释放</span></span><br><span class="line">    <span class="built_in">CFStringRef</span> cfStr = (__bridge <span class="built_in">CFStringRef</span>)string;</span><br><span class="line">    </span><br><span class="line">    <span class="comment">// 方法2: 需要释放, 这里 retain 了</span></span><br><span class="line">    <span class="built_in">CFStringRef</span> cfStr2 = (__bridge_retained <span class="built_in">CFStringRef</span>)string;</span><br><span class="line">    <span class="built_in">CFRelease</span>(cfStr2);</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<p>2、CFString → NSString</p>
+<figure class="highlight objc"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br></pre></td><td class="code"><pre><span class="line"><span class="built_in">CFStringRef</span> cfStr = <span class="built_in">CFStringCreateWithCString</span>(kCFAllocatorDefault, <span class="string">&quot;veryitman&quot;</span>, kCFStringEncodingUnicode);</span><br><span class="line">    </span><br><span class="line"><span class="comment">// 方法1: 需要释放</span></span><br><span class="line"><span class="built_in">NSString</span> *string = (__bridge <span class="built_in">NSString</span> *)cfStr;</span><br><span class="line"><span class="built_in">NSLog</span>(<span class="string">@&quot;OC string: %@&quot;</span>, string);</span><br><span class="line"><span class="built_in">CFRelease</span>(cfStr);</span><br><span class="line">    </span><br><span class="line"><span class="comment">// 方法2: 不需要释放, __bridge_transfer 自带 release</span></span><br><span class="line">string = (__bridge_transfer <span class="built_in">NSString</span> *)cfStr;</span><br></pre></td></tr></table></figure>
+
+<h3 id="野指针"><a href="#野指针" class="headerlink" title="野指针"></a>野指针</h3><p>运行下面的示例:</p>
+<figure class="highlight objc"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">void</span> *p;</span><br><span class="line">&#123;</span><br><span class="line">    <span class="built_in">NSObject</span> *objc = [[<span class="built_in">NSObject</span> alloc] init];</span><br><span class="line">    p = (__bridge <span class="keyword">void</span>*)objc;</span><br><span class="line">&#125;</span><br><span class="line">    </span><br><span class="line"><span class="built_in">NSLog</span>(<span class="string">@&quot;mark: %@&quot;</span>, (__bridge <span class="built_in">NSObject</span>*)p);</span><br></pre></td></tr></table></figure>
+
+<p>会直接 crash, 如图:</p>
+<p><img class="lazy" src="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAABGdBTUEAALGPC/xhBQAAADhlWElmTU0AKgAAAAgAAYdpAAQAAAABAAAAGgAAAAAAAqACAAQAAAABAAAAAaADAAQAAAABAAAAAQAAAADa6r/EAAAAC0lEQVQIHWNgAAIAAAUAAY27m/MAAAAASUVORK5CYII=" data-src="/upload/images/2018/03/07/1.jpg" alt="1"></p>
+<p>当 <code>objc</code> 这个对象超出作用域范围，其内存就会被回收，接着在作用域范围外用 <code>void *p</code> 去访问 <code>objc</code> 的内存，就造成了野指针.</p>
+<p>结合上面所说的, 我们可以让指针 p 对 objc 进行引用即 retain 操作, 修改如下:</p>
+<figure class="highlight objc"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">void</span> *p;</span><br><span class="line">&#123;</span><br><span class="line">    <span class="built_in">NSObject</span> *objc = [[<span class="built_in">NSObject</span> alloc] init];</span><br><span class="line">    <span class="comment">//p = (__bridge void*)objc;</span></span><br><span class="line">    p = (__bridge_retained <span class="keyword">void</span>*)objc;</span><br><span class="line">&#125;</span><br><span class="line">    </span><br><span class="line"><span class="built_in">NSLog</span>(<span class="string">@&quot;mark: %@&quot;</span>, (__bridge <span class="built_in">NSObject</span>*)p);</span><br><span class="line">    </span><br><span class="line"><span class="comment">// 一定要释放</span></span><br><span class="line"><span class="built_in">CFRelease</span>(p);</span><br></pre></td></tr></table></figure>
+
+<p>可以正常的运行. 还可以修改为另一种方式:</p>
+<figure class="highlight objc"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">void</span> *p;</span><br><span class="line">&#123;</span><br><span class="line">    <span class="built_in">NSObject</span> *objc = [[<span class="built_in">NSObject</span> alloc] init];</span><br><span class="line">    <span class="comment">//p = (__bridge void*)objc;</span></span><br><span class="line">    <span class="comment">//p = (__bridge_retained void*)objc;</span></span><br><span class="line">    p = (<span class="keyword">void</span> *)<span class="built_in">CFBridgingRetain</span>(objc);</span><br><span class="line">&#125;</span><br><span class="line">    </span><br><span class="line"><span class="built_in">NSLog</span>(<span class="string">@&quot;mark: %@&quot;</span>, (__bridge <span class="built_in">NSObject</span>*)p);</span><br><span class="line">    </span><br><span class="line"><span class="comment">// 一定要释放</span></span><br><span class="line"><span class="built_in">CFRelease</span>(p);</span><br></pre></td></tr></table></figure>
+
+<hr>
+<p><strong>扫码关注，你我就各多一个朋友~</strong></p>
+<p><img class="lazy" src="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAABGdBTUEAALGPC/xhBQAAADhlWElmTU0AKgAAAAgAAYdpAAQAAAABAAAAGgAAAAAAAqACAAQAAAABAAAAAaADAAQAAAABAAAAAQAAAADa6r/EAAAAC0lEQVQIHWNgAAIAAAUAAY27m/MAAAAASUVORK5CYII=" data-src="/upload/me/qrcode_wx.jpg"></p>
+
+
+
+
+</article>
+
+<div class="related-wrap reveal" id="read-next"><section class="header cap theme"><span>接下来阅读</span></section><section class="body fs14"><a id="next" href="/2018/02/26/%E9%9F%B3%E8%A7%86%E9%A2%91%E7%BC%96%E7%A8%8B-iOS-%E6%8E%A8%E6%B5%81/">音视频编程: iOS 推流<span class="note">较早</span></a><div class="line"></div><a id="prev" href="/2018/03/11/GO-%E5%86%99%E7%AC%AC%E4%B8%80%E4%B8%AA-GOLang-%E7%A8%8B%E5%BA%8F/">GO: 写第一个 GOLang 程序<span class="note">较新</span></a></section></div>
+
+
+
+
+
+
+  <div class='related-wrap md reveal' id="comments">
+    <div class='cmt-title cap theme'>
+      快来参与讨论吧
+    </div>
+    <div class='cmt-body valine'>
+      
+
+<div id="valine_container" class="valine_thread"><svg class="loading" style="vertical-align: middle;fill: currentColor;overflow: hidden;" viewBox="0 0 1024 1024" version="1.1" xmlns="http://www.w3.org/2000/svg" p-id="2709"><path d="M832 512c0-176-144-320-320-320V128c211.2 0 384 172.8 384 384h-64zM192 512c0 176 144 320 320 320v64C300.8 896 128 723.2 128 512h64z" p-id="2710"></path></svg></div>
+
+    </div>
+  </div>
+
+
+
+      
+<footer class="page-footer reveal fs12"><hr><div class="text"><p>本博客所有文章除特别声明外，均采用 <a target="_blank" rel="noopener" href="https://creativecommons.org/licenses/by-nc-sa/4.0/">CC BY-NC-SA 4.0</a> 许可协议，转载请注明出处。</p>
+<p>veryitman</p>
+</div></footer>
+
+      <div class='float-panel mobile-only blur' style='display:none'>
+  <button type='button' class='sidebar-toggle mobile' onclick='sidebar.toggle()'>
+    <svg class="icon" style="width: 1em; height: 1em;vertical-align: middle;fill: currentColor;overflow: hidden;" viewBox="0 0 1024 1024" version="1.1" xmlns="http://www.w3.org/2000/svg" p-id="15301"><path d="M566.407 808.3c26.9-0.1 49.3-20.8 51.6-47.6-1.9-27.7-23.9-49.7-51.6-51.6h-412.6c-28.2-1.4-52.6 19.5-55.5 47.6 2.3 26.8 24.6 47.5 51.6 47.6h416.5v4z m309.3-249.9c26.9-0.1 49.3-20.8 51.6-47.6-2.2-26.8-24.6-47.5-51.6-47.6h-721.9c-27.7-2.8-52.5 17.4-55.3 45.1-0.1 0.8-0.1 1.7-0.2 2.5 0.9 27.2 23.6 48.5 50.7 47.6H875.707z m-103.1-245.9c26.9-0.1 49.3-20.8 51.6-47.6-0.4-28.3-23.2-51.1-51.5-51.6h-618.9c-29.5-1.1-54.3 21.9-55.5 51.4v0.2c1.4 27.8 25.2 49.2 53 47.8 0.8 0 1.7-0.1 2.5-0.2h618.8z" p-id="15302"></path><path d="M566.407 808.3c26.9-0.1 49.3-20.8 51.6-47.6-1.9-27.7-23.9-49.7-51.6-51.6h-412.6c-28.2-1.4-52.6 19.5-55.5 47.6 1.9 27.7 23.9 49.7 51.6 51.6h416.5z m309.3-249.9c26.9-0.1 49.3-20.8 51.6-47.6-2.2-26.8-24.6-47.5-51.6-47.6h-721.9c-27.7-2.8-52.5 17.4-55.3 45.1-0.1 0.8-0.1 1.7-0.2 2.5 0.9 27.2 23.6 48.5 50.7 47.6H875.707z m-103.1-245.9c26.9-0.1 49.3-20.8 51.6-47.6-0.4-28.3-23.2-51.1-51.5-51.6h-618.9c-29.5-1.1-54.3 21.9-55.5 51.4v0.2c1.4 27.8 25.2 49.2 53 47.8 0.8 0 1.7-0.1 2.5-0.2h618.8z" p-id="15303"></path></svg>
+  </button>
+</div>
+
+    </div>
+  </div>
+  <div class='scripts'>
+    <script type="text/javascript">
+  stellar = {
+    // 懒加载 css https://github.com/filamentgroup/loadCSS
+    loadCSS: (href, before, media, attributes) => {
+      var doc = window.document;
+      var ss = doc.createElement("link");
+      var ref;
+      if (before) {
+        ref = before;
+      } else {
+        var refs = (doc.body || doc.getElementsByTagName("head")[0]).childNodes;
+        ref = refs[refs.length - 1];
+      }
+      var sheets = doc.styleSheets;
+      if (attributes) {
+        for (var attributeName in attributes) {
+          if (attributes.hasOwnProperty(attributeName)) {
+            ss.setAttribute(attributeName, attributes[attributeName]);
+          }
+        }
+      }
+      ss.rel = "stylesheet";
+      ss.href = href;
+      ss.media = "only x";
+      function ready(cb) {
+        if (doc.body) {
+          return cb();
+        }
+        setTimeout(function () {
+          ready(cb);
+        });
+      }
+      ready(function () {
+        ref.parentNode.insertBefore(ss, before ? ref : ref.nextSibling);
+      });
+      var onloadcssdefined = function (cb) {
+        var resolvedHref = ss.href;
+        var i = sheets.length;
+        while (i--) {
+          if (sheets[i].href === resolvedHref) {
+            return cb();
+          }
+        }
+        setTimeout(function () {
+          onloadcssdefined(cb);
+        });
+      };
+      function loadCB() {
+        if (ss.addEventListener) {
+          ss.removeEventListener("load", loadCB);
+        }
+        ss.media = media || "all";
+      }
+      if (ss.addEventListener) {
+        ss.addEventListener("load", loadCB);
+      }
+      ss.onloadcssdefined = onloadcssdefined;
+      onloadcssdefined(loadCB);
+      return ss;
+    },
+
+    // 从 butterfly 和 volantis 获得灵感
+    loadScript: (src, opt) => new Promise((resolve, reject) => {
+      var script = document.createElement('script');
+      script.src = src;
+      if (opt) {
+        for (let key of Object.keys(opt)) {
+          script[key] = opt[key]
+        }
+      } else {
+        // 默认异步，如果需要同步，第二个参数传入 {} 即可
+        script.async = true
+      }
+      script.onerror = reject
+      script.onload = script.onreadystatechange = function() {
+        const loadState = this.readyState
+        if (loadState && loadState !== 'loaded' && loadState !== 'complete') return
+        script.onload = script.onreadystatechange = null
+        resolve()
+      }
+      document.head.appendChild(script)
+    }),
+
+    // https://github.com/jerryc127/hexo-theme-butterfly
+    jQuery: (fn) => {
+      if (typeof jQuery === 'undefined') {
+        stellar.loadScript(stellar.plugins.jQuery).then(fn)
+      } else {
+        fn()
+      }
+    }
+  };
+  stellar.github = 'https://github.com/xaoxuu/hexo-theme-stellar/tree/1.6.1';
+  stellar.config = {
+    date_suffix: {
+      just: '刚刚',
+      min: '分钟前',
+      hour: '小时前',
+      day: '天前',
+      month: '个月前',
+    },
+  };
+
+  // required plugins (only load if needs)
+  stellar.plugins = {
+    jQuery: 'https://cdn.jsdelivr.net/npm/jquery@3.5.1/dist/jquery.min.js',
+    sitesjs: '/js/plugins/sites.js',
+    friendsjs: '/js/plugins/friends.js',
+  };
+
+  // optional plugins
+  if ('true' == 'true') {
+    stellar.plugins.lazyload = Object.assign({"enable":true,"js":"https://cdn.jsdelivr.net/npm/vanilla-lazyload@17.3.1/dist/lazyload.min.js","transition":"blur"});
+  }
+  if ('true' == 'true') {
+    stellar.plugins.swiper = Object.assign({"enable":true,"css":"https://unpkg.com/swiper@6/swiper-bundle.min.css","js":"https://unpkg.com/swiper@6/swiper-bundle.min.js"});
+  }
+  if ('' == 'true') {
+    stellar.plugins.scrollreveal = Object.assign({"enable":null,"js":"https://cdn.jsdelivr.net/npm/scrollreveal@4.0.9/dist/scrollreveal.min.js","distance":"8px","duration":500,"interval":100,"scale":1});
+  }
+  if ('true' == 'true') {
+    stellar.plugins.preload = Object.assign({"enable":true,"service":"flying_pages","instant_page":"https://cdn.jsdelivr.net/gh/volantis-x/cdn-volantis@4.1.2/js/instant_page.js","flying_pages":"https://cdn.jsdelivr.net/gh/gijo-varghese/flying-pages@2.1.2/flying-pages.min.js"});
+  }
+</script>
+
+<!-- required -->
+
+  
+<script src="/js/main.js" async></script>
+
+
+
+<!-- optional -->
+
+  <script>
+  function getEmojiMaps() {
+    function emoji(path, idx, ext) {
+      return path + "/" + path + "-" + idx + "." + ext;
+    }
+    var emojiMaps = {};
+    for (var i = 1; i <= 54; i++) {
+      emojiMaps['tieba-' + i] = emoji('tieba', i, 'png');
+    }
+    for (var i = 1; i <= 101; i++) {
+      emojiMaps['qq-' + i] = emoji('qq', i, 'gif');
+    }
+    for (var i = 1; i <= 116; i++) {
+      emojiMaps['aru-' + i] = emoji('aru', i, 'gif');
+    }
+    for (var i = 1; i <= 125; i++) {
+      emojiMaps['twemoji-' + i] = emoji('twemoji', i, 'png');
+    }
+    for (var i = 1; i <= 4; i++) {
+      emojiMaps['weibo-' + i] = emoji('weibo', i, 'png');
+    }
+    return emojiMaps;
+  }
+  function load_comment(){
+    if(!document.getElementById("valine_container"))return;
+    stellar.loadScript('https://cdn.jsdelivr.net/gh/XuxuGood/simple-blog-cdn@main/js/Valine.min.js', {defer:true}).then(function () {
+      const el = document.getElementById("valine_container");
+      var path = el.getAttribute('comment_id');
+      const placeholder = "欢迎您留言~";
+      if (!path) {
+        path = decodeURI(window.location.pathname);
+      }
+      var valine = new Valine();
+      valine.init(Object.assign({"js":"https://cdn.jsdelivr.net/gh/XuxuGood/simple-blog-cdn@main/js/Valine.min.js","appId":"FY2C9UCttYNaE1j8umenqdCE-gzGzoHsz","appKey":"4i7xMwkfSEGmEDhi6SceKFxz","placeholder":"欢迎您留言~","requiredFields":["nick","mail"],"enableQQ":true,"recordIP":false,"avatar":"robohash","pageSize":10,"lang":"zh-cn","highlight":true,"mathJax":false,"tagMeta":["博主","小伙伴","访客"],"metaPlaceholder":{"nick":"昵称/QQ号(必填)","mail":"邮箱（必填，完全保密）"},"master":["6783037F2DF30EAB99F9FC256157D875"],"friends":["6783037F2DF30EAB99F9FC256157D875"],"comment_count":true}, {
+        el: '#valine_container',
+        path: path,
+        placeholder: placeholder,
+        emojiCDN: 'https://cdn.jsdelivr.net/gh/volantis-x/cdn-emoji/valine/',
+        emojiMaps: getEmojiMaps(),
+      }));
+    });
+  }
+  window.addEventListener('DOMContentLoaded', (event) => {
+    console.log('DOM fully loaded and parsed');
+    load_comment();
+  });
+
+</script>
+
+
+
+
+<!-- inject -->
+
+
+  </div>
+</body>
+</html>

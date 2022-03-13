@@ -1,0 +1,375 @@
+<!DOCTYPE html>
+<html lang='zh-CN'>
+
+<head>
+  <meta name="generator" content="Hexo 6.0.0">
+  <meta charset="utf-8">
+  
+
+  <meta http-equiv='x-dns-prefetch-control' content='on' />
+  <link rel='dns-prefetch' href='https://cdn.jsdelivr.net'>
+  <link rel="preconnect" href="https://cdn.jsdelivr.net" crossorigin>
+
+  <meta name="renderer" content="webkit">
+  <meta name="force-rendering" content="webkit">
+  <meta http-equiv="X-UA-Compatible" content="IE=Edge,chrome=1">
+  <meta name="HandheldFriendly" content="True" >
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1">
+  <meta name="theme-color" content="#f8f8f8">
+  <title>Wireshark: 简单分析 TCP 三次挥手 - Veryitman</title>
+
+  
+    <meta name="description" content="话说握手你要是开发人员，相信你一定听说过 TCP（Transmission Control Protocol 传输控制协议）或是 TCP 握手的说法。 所谓握手，通俗来讲就是通信双方协商在后续通信过程中需要使用的通信信息的过程。TCP 为了建立可靠的连接需要三次握手，后续给大家分享 TLS 为了实现加密、校验、身份认证同样需要握手的过程。 TCP 三次握手可以使用下图来表达： 本篇给大家分享如何使">
+<meta property="og:type" content="article">
+<meta property="og:title" content="Wireshark: 简单分析 TCP 三次挥手">
+<meta property="og:url" content="http://example.com/2018/09/09/Wireshark-%E7%AE%80%E5%8D%95%E5%88%86%E6%9E%90-TCP-%E4%B8%89%E6%AC%A1%E6%8C%A5%E6%89%8B/index.html">
+<meta property="og:site_name" content="Veryitman">
+<meta property="og:description" content="话说握手你要是开发人员，相信你一定听说过 TCP（Transmission Control Protocol 传输控制协议）或是 TCP 握手的说法。 所谓握手，通俗来讲就是通信双方协商在后续通信过程中需要使用的通信信息的过程。TCP 为了建立可靠的连接需要三次握手，后续给大家分享 TLS 为了实现加密、校验、身份认证同样需要握手的过程。 TCP 三次握手可以使用下图来表达： 本篇给大家分享如何使">
+<meta property="og:locale" content="zh_CN">
+<meta property="og:image" content="http://example.com/upload/images/2018/09/09/1.jpg">
+<meta property="og:image" content="http://example.com/upload/images/2018/09/09/2.png">
+<meta property="og:image" content="http://example.com/upload/images/2018/09/09/3.jpg">
+<meta property="og:image" content="http://example.com/upload/images/2018/09/09/8.jpg">
+<meta property="og:image" content="http://example.com/upload/images/2018/09/09/4.jpg">
+<meta property="og:image" content="http://example.com/upload/images/2018/09/09/5.jpg">
+<meta property="og:image" content="http://example.com/upload/images/2018/09/09/6.jpg">
+<meta property="og:image" content="http://example.com/upload/images/2018/09/09/7.jpg">
+<meta property="og:image" content="http://example.com/upload/me/qrcode_wx.jpg">
+<meta property="article:published_time" content="2018-09-09T14:43:09.000Z">
+<meta property="article:modified_time" content="2022-03-09T14:53:24.346Z">
+<meta property="article:author" content="veryitman">
+<meta property="article:tag" content="Wireshark tcp ip udp">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:image" content="http://example.com/upload/images/2018/09/09/1.jpg">
+  
+  
+
+  <!-- feed -->
+  
+
+  
+    
+<link rel="stylesheet" href="/css/main.css">
+
+  
+
+  
+
+  
+</head>
+
+<body>
+  
+
+
+  <div class='l_body' id='start'>
+    <aside class='l_left' layout='post'>
+    
+
+
+<header class="header">
+
+<div class="logo-wrap"><a class="title" href="/"><div class="main">Veryitman</div></a></div>
+<nav class="menu dis-select"></nav></header>
+
+<div class="widgets">
+
+<div class="widget-wrap single" id="toc"><div class="widget-header cap dis-select"><span class="name">本文目录</span></div><div class="widget-body fs14"><div class="doc-tree active"><ol class="toc"><li class="toc-item toc-level-2"><a class="toc-link" href="#%E8%AF%9D%E8%AF%B4%E6%8F%A1%E6%89%8B"><span class="toc-text">话说握手</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#%E7%BD%91%E7%BB%9C%E6%A8%A1%E5%9E%8B"><span class="toc-text">网络模型</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#%E4%B8%89%E6%AC%A1%E6%8F%A1%E6%89%8B%E8%BF%87%E7%A8%8B"><span class="toc-text">三次握手过程</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#%E4%B8%BA%E4%BB%80%E4%B9%88%E6%98%AF%E4%B8%89%E6%AC%A1%E6%8F%A1%E6%89%8B"><span class="toc-text">为什么是三次握手</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#%E5%8F%82%E8%80%83%E9%98%85%E8%AF%BB"><span class="toc-text">参考阅读</span></a></li></ol></div></div></div>
+
+
+</div>
+
+
+    </aside>
+    <div class='l_main'>
+      
+
+      
+
+
+<div class="bread-nav fs12"><div id="breadcrumb"><a class="cap breadcrumb" href="/">主页</a><span class="sep"></span><a class="cap breadcrumb" href="/">文章</a><span class="sep"></span><a class="cap breadcrumb-link" href="/categories/%E7%BD%91%E7%BB%9C%E5%8D%8F%E8%AE%AE/">网络协议</a></div><div id="post-meta">发布于&nbsp;<time datetime="2018-09-09T14:43:09.000Z">2018-09-09</time></div></div>
+
+<article class='content md post'>
+<h1 class="article-title"><span>Wireshark: 简单分析 TCP 三次挥手</span></h1>
+<h2 id="话说握手"><a href="#话说握手" class="headerlink" title="话说握手"></a>话说握手</h2><p>你要是开发人员，相信你一定听说过 TCP（Transmission Control Protocol 传输控制协议）或是 TCP 握手的说法。</p>
+<p>所谓<strong>握手</strong>，通俗来讲就是通信双方协商在后续通信过程中需要使用的通信信息的过程。TCP 为了建立可靠的连接需要三次握手，后续给大家分享 TLS 为了实现加密、校验、身份认证同样需要握手的过程。</p>
+<p>TCP 三次握手可以使用下图来表达：<br><img class="lazy" src="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAABGdBTUEAALGPC/xhBQAAADhlWElmTU0AKgAAAAgAAYdpAAQAAAABAAAAGgAAAAAAAqACAAQAAAABAAAAAaADAAQAAAABAAAAAQAAAADa6r/EAAAAC0lEQVQIHWNgAAIAAAUAAY27m/MAAAAASUVORK5CYII=" data-src="/upload/images/2018/09/09/1.jpg"></p>
+<p>本篇给大家分享如何使用 <code>Wireshark</code> 来跟踪 HTTP 包，查看 TCP 握手的过程。</p>
+<p>在看下面内容之前，先简单看一下 TCP 协议报头。</p>
+<p>下图是 TCP 报头的格式：<br><img class="lazy" src="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAABGdBTUEAALGPC/xhBQAAADhlWElmTU0AKgAAAAgAAYdpAAQAAAABAAAAGgAAAAAAAqACAAQAAAABAAAAAaADAAQAAAABAAAAAQAAAADa6r/EAAAAC0lEQVQIHWNgAAIAAAUAAY27m/MAAAAASUVORK5CYII=" data-src="/upload/images/2018/09/09/2.png"></p>
+<p>其中，Seq(Sequence Number) 是 32 位的序列号，<code>Acknowledgment number</code> 称之为确认序号，也是 32 位的，但是他不是标志位 ACK，这个要区别开，当 ACK 置 1 时 <code>Acknowledgment number</code> 才有效，指接收方期待的下一个报文段的序列号。</p>
+<p>TCP 报头信息中有六个控制位(标志位)，分别是：SYN、ACK、PSH、FIN、RST 和 URG。</p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br></pre></td><td class="code"><pre><span class="line">SYN: 表示建立连接</span><br><span class="line">FIN: 表示关闭连接</span><br><span class="line">ACK: 表示响应</span><br><span class="line">PSH: 表示有数据传输</span><br><span class="line">RST: 表示连接重置</span><br><span class="line">URG: 表示紧急数据</span><br></pre></td></tr></table></figure>
+
+<p><strong>Seq 序列号有两个作用：</strong><br>第一，在 SYN 置 1 时，此为当前连接的初始序列号(Initial Sequence Number, ISN)该值是个随机值，数据的第一个字节序号为此 ISN+1。</p>
+<p>第二，在 SYN 置 0 时，为当前连接报文段的累计数据包字节数。</p>
+<p>TCP 协议设计比较复杂，其涉及的知识较多，这里大家整不明白也没有关系，并不影响你阅读下面的内容，如果对 TCP 协议本身感兴趣，可以去拜读【TCP&#x2F;IP 详解，卷 1：协议】这本书。</p>
+<h2 id="网络模型"><a href="#网络模型" class="headerlink" title="网络模型"></a>网络模型</h2><p>每次说到网络层，就要拿出类似下面的网络模型图，OSI 将网络模型分为7层，TCP&#x2F;IP 模型将网络模型分为 4 层，网络 4 层模型由 7 层模型简化合并而来，没有本质的区别，如图：<br><img class="lazy" src="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAABGdBTUEAALGPC/xhBQAAADhlWElmTU0AKgAAAAgAAYdpAAQAAAABAAAAGgAAAAAAAqACAAQAAAABAAAAAaADAAQAAAABAAAAAQAAAADa6r/EAAAAC0lEQVQIHWNgAAIAAAUAAY27m/MAAAAASUVORK5CYII=" data-src="/upload/images/2018/09/09/3.jpg"></p>
+<p>HTTP 仅仅是个协议，属于应用层的面向对象的协议，从上图可以看出 HTTP 是在 TCP 基础之上的。</p>
+<blockquote>
+<p>HTTP 协议一共有五大特点</p>
+</blockquote>
+<p><em>1、支持客户&#x2F;服务器模式</em><br><em>2、简单快速</em><br><em>3、灵活</em><br><em>4、无连接</em><br><em>5、无状态</em></p>
+<p>这里强调一下 <strong>无连接</strong> 和 <strong>无状态</strong> 这两个特点。</p>
+<p><strong>无连接</strong>，指的是限制每次连接只处理一个请求。服务器处理完客户端的请求，并收到客户端的应答后，即断开连接。采用这种方式可以节省传输时间。<code>Keep-Alive</code> 特性不在本篇讨论范围，暂时你可以将其忽略。</p>
+<p><strong>无状态</strong>，指的是协议对于事务处理没有记忆能力，服务器不知道客户端是什么状态。即我们给服务器发送 HTTP 请求之后，服务器根据请求，会给我们发送数据过来，但是发送完，不会记录任何信息。</p>
+<p>可以利用 HTTP 的这两个特点来分析 TCP 三次握手的过程。</p>
+<h2 id="三次握手过程"><a href="#三次握手过程" class="headerlink" title="三次握手过程"></a>三次握手过程</h2><p>三次过程如下面草图，如下所示：</p>
+<p><img class="lazy" src="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAABGdBTUEAALGPC/xhBQAAADhlWElmTU0AKgAAAAgAAYdpAAQAAAABAAAAGgAAAAAAAqACAAQAAAABAAAAAaADAAQAAAABAAAAAQAAAADa6r/EAAAAC0lEQVQIHWNgAAIAAAUAAY27m/MAAAAASUVORK5CYII=" data-src="/upload/images/2018/09/09/8.jpg"></p>
+<p>我们用实际例子来看一下这个过程，以 GET 请求下面地址为例，使用 <code>Wireshark</code> 抓包。</p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">http://www.baidu.com/news/detailV3.html?id=1279391&amp;COMMON_ACCESS_TOKEN=(null)&amp;COMMON_ACCESS_TOKEN_SECRET=(null)&amp;_cT=IOS&amp;_cV=3.1.3&amp;_cA=PM</span><br></pre></td></tr></table></figure>
+
+<p>看返回结果，选中 <code>HTTP/1.1 200 OK</code> 右键, 在弹出框中选择 <code>Follow/TCP Stream</code>，如下图所示：<br><img class="lazy" src="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAABGdBTUEAALGPC/xhBQAAADhlWElmTU0AKgAAAAgAAYdpAAQAAAABAAAAGgAAAAAAAqACAAQAAAABAAAAAaADAAQAAAABAAAAAQAAAADa6r/EAAAAC0lEQVQIHWNgAAIAAAUAAY27m/MAAAAASUVORK5CYII=" data-src="/upload/images/2018/09/09/4.jpg"></p>
+<p>关闭弹出的弹窗，回到主界面，看到如下图所示的三次（红色 1、2、3处） TCP 握手过程：<br><img class="lazy" src="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAABGdBTUEAALGPC/xhBQAAADhlWElmTU0AKgAAAAgAAYdpAAQAAAABAAAAGgAAAAAAAqACAAQAAAABAAAAAaADAAQAAAABAAAAAQAAAADa6r/EAAAAC0lEQVQIHWNgAAIAAAUAAY27m/MAAAAASUVORK5CYII=" data-src="/upload/images/2018/09/09/5.jpg"></p>
+<p>第一次，请求客户端发送一个 [SYN] 包，序列号是 0（seq&#x3D;0）。</p>
+<p>第二次，服务器收到 [SYN] 包，然后会发送一个 [SYN, ACK] 包，序列号是 0，ACK 置 1（seq&#x3D;0，ack&#x3D;1）。</p>
+<p>第三次，客户端请求服务器，客户端会发送一个 [ACK] 包，序列号是 1，Ack 置 1（seq&#x3D;1，ack&#x3D;1）来回复服务器。</p>
+<p><strong>这里注意一下</strong>，大写的 <code>ACK</code> 是一个 bit 位表示确认，小写的 <code>ack</code> 是一个确认序列号，表示数值。</p>
+<p>简单的画一个草图，如下：<br><img class="lazy" src="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAABGdBTUEAALGPC/xhBQAAADhlWElmTU0AKgAAAAgAAYdpAAQAAAABAAAAGgAAAAAAAqACAAQAAAABAAAAAaADAAQAAAABAAAAAQAAAADa6r/EAAAAC0lEQVQIHWNgAAIAAAUAAY27m/MAAAAASUVORK5CYII=" data-src="/upload/images/2018/09/09/6.jpg"></p>
+<p><strong>这个过程，简单描述为下面三个步骤：</strong></p>
+<p>双方在建立连接之前都处于 CLOSED 的状态。</p>
+<p>1、发送方给接收方发送 SYN 信号，此时发送方处于 <code>SYN_SENT</code> 状态。<br>2、接收方确认并回复给发送方 SYN&#x2F;ACK 信号，此时接收方处于 <code>SYN_RCVD</code> 状态。<br>3、发送方给接收方发送确认 ACK 信号，发送完毕后，发送方(客户端)进入 <code>ESTABLISHED</code> 状态，当接收端(服务端)接收到这个包时，也进入 <code>ESTABLISHED</code> 状态，TCP 握手结束。</p>
+<p>上面的步骤，建议感兴趣的朋友去实际操作一下。</p>
+<h2 id="为什么是三次握手"><a href="#为什么是三次握手" class="headerlink" title="为什么是三次握手"></a>为什么是三次握手</h2><p>回头再来想一想，TCP 的连接为什么需要三次握手呢，为什么不是一次，两次呢？一次不就挺好吗，三次是不是有点多此一举了？</p>
+<p>TCP 协议不是一个人定出来的而是一群人拟定的，设计三次握手固然有它的意义，是经过精心设计且在性能和效率上面衡量过的。</p>
+<p>在知乎 <a target="_blank" rel="noopener" href="https://www.zhihu.com/question/24853633">TCP 为什么是三次握手，而不是两次或四次？</a> 上面有不错的答案，虽然有些回答比较搞笑，但是很好理解，比如这位仁兄：<br><img class="lazy" src="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAABGdBTUEAALGPC/xhBQAAADhlWElmTU0AKgAAAAgAAYdpAAQAAAABAAAAGgAAAAAAAqACAAQAAAABAAAAAaADAAQAAAABAAAAAQAAAADa6r/EAAAAC0lEQVQIHWNgAAIAAAUAAY27m/MAAAAASUVORK5CYII=" data-src="/upload/images/2018/09/09/7.jpg"></p>
+<p>我们不妨换个思路来想这个问题，TCP 协议设计初衷是 <code>让数据进行可靠，高效，安全的传输</code>，如果握手是一次，两次或四次，就无法很好的保证 TCP 的 <code>可靠，安全及高效</code> 的传输，说不定哪天有人设计出来一种可替代 TCP 协议的其他协议就是两次握手或者不需要握手，哈哈！</p>
+<h2 id="参考阅读"><a href="#参考阅读" class="headerlink" title="参考阅读"></a>参考阅读</h2><p><a target="_blank" rel="noopener" href="https://cloud.tencent.com/info/d6b27fce815445c3c5f783a39ec204f6.html">如何理解HTTP协议的“无连接，无状态”特点?</a></p>
+<p><a target="_blank" rel="noopener" href="https://www.zhihu.com/question/24853633">TCP 为什么是三次握手，而不是两次或四次？</a></p>
+<hr>
+<p><strong>扫码关注，你我就各多一个朋友~</strong></p>
+<p><img class="lazy" src="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAABGdBTUEAALGPC/xhBQAAADhlWElmTU0AKgAAAAgAAYdpAAQAAAABAAAAGgAAAAAAAqACAAQAAAABAAAAAaADAAQAAAABAAAAAQAAAADa6r/EAAAAC0lEQVQIHWNgAAIAAAUAAY27m/MAAAAASUVORK5CYII=" data-src="/upload/me/qrcode_wx.jpg"></p>
+
+
+
+
+</article>
+
+<div class="related-wrap reveal" id="read-next"><section class="header cap theme"><span>接下来阅读</span></section><section class="body fs14"><a id="next" href="/2018/09/01/Wireshark%EF%BC%9A%E6%8A%93%E5%8F%96-HTTP-%E5%8C%85/">Wireshark：抓取 HTTP 包<span class="note">较早</span></a><div class="line"></div><a id="prev" href="/2018/09/16/HTTP-%E6%BC%94%E8%BF%9B%E5%8F%B2/">HTTP 演进史<span class="note">较新</span></a></section></div>
+
+
+
+
+
+
+  <div class='related-wrap md reveal' id="comments">
+    <div class='cmt-title cap theme'>
+      快来参与讨论吧
+    </div>
+    <div class='cmt-body valine'>
+      
+
+<div id="valine_container" class="valine_thread"><svg class="loading" style="vertical-align: middle;fill: currentColor;overflow: hidden;" viewBox="0 0 1024 1024" version="1.1" xmlns="http://www.w3.org/2000/svg" p-id="2709"><path d="M832 512c0-176-144-320-320-320V128c211.2 0 384 172.8 384 384h-64zM192 512c0 176 144 320 320 320v64C300.8 896 128 723.2 128 512h64z" p-id="2710"></path></svg></div>
+
+    </div>
+  </div>
+
+
+
+      
+<footer class="page-footer reveal fs12"><hr><div class="text"><p>本博客所有文章除特别声明外，均采用 <a target="_blank" rel="noopener" href="https://creativecommons.org/licenses/by-nc-sa/4.0/">CC BY-NC-SA 4.0</a> 许可协议，转载请注明出处。</p>
+<p>veryitman</p>
+</div></footer>
+
+      <div class='float-panel mobile-only blur' style='display:none'>
+  <button type='button' class='sidebar-toggle mobile' onclick='sidebar.toggle()'>
+    <svg class="icon" style="width: 1em; height: 1em;vertical-align: middle;fill: currentColor;overflow: hidden;" viewBox="0 0 1024 1024" version="1.1" xmlns="http://www.w3.org/2000/svg" p-id="15301"><path d="M566.407 808.3c26.9-0.1 49.3-20.8 51.6-47.6-1.9-27.7-23.9-49.7-51.6-51.6h-412.6c-28.2-1.4-52.6 19.5-55.5 47.6 2.3 26.8 24.6 47.5 51.6 47.6h416.5v4z m309.3-249.9c26.9-0.1 49.3-20.8 51.6-47.6-2.2-26.8-24.6-47.5-51.6-47.6h-721.9c-27.7-2.8-52.5 17.4-55.3 45.1-0.1 0.8-0.1 1.7-0.2 2.5 0.9 27.2 23.6 48.5 50.7 47.6H875.707z m-103.1-245.9c26.9-0.1 49.3-20.8 51.6-47.6-0.4-28.3-23.2-51.1-51.5-51.6h-618.9c-29.5-1.1-54.3 21.9-55.5 51.4v0.2c1.4 27.8 25.2 49.2 53 47.8 0.8 0 1.7-0.1 2.5-0.2h618.8z" p-id="15302"></path><path d="M566.407 808.3c26.9-0.1 49.3-20.8 51.6-47.6-1.9-27.7-23.9-49.7-51.6-51.6h-412.6c-28.2-1.4-52.6 19.5-55.5 47.6 1.9 27.7 23.9 49.7 51.6 51.6h416.5z m309.3-249.9c26.9-0.1 49.3-20.8 51.6-47.6-2.2-26.8-24.6-47.5-51.6-47.6h-721.9c-27.7-2.8-52.5 17.4-55.3 45.1-0.1 0.8-0.1 1.7-0.2 2.5 0.9 27.2 23.6 48.5 50.7 47.6H875.707z m-103.1-245.9c26.9-0.1 49.3-20.8 51.6-47.6-0.4-28.3-23.2-51.1-51.5-51.6h-618.9c-29.5-1.1-54.3 21.9-55.5 51.4v0.2c1.4 27.8 25.2 49.2 53 47.8 0.8 0 1.7-0.1 2.5-0.2h618.8z" p-id="15303"></path></svg>
+  </button>
+</div>
+
+    </div>
+  </div>
+  <div class='scripts'>
+    <script type="text/javascript">
+  stellar = {
+    // 懒加载 css https://github.com/filamentgroup/loadCSS
+    loadCSS: (href, before, media, attributes) => {
+      var doc = window.document;
+      var ss = doc.createElement("link");
+      var ref;
+      if (before) {
+        ref = before;
+      } else {
+        var refs = (doc.body || doc.getElementsByTagName("head")[0]).childNodes;
+        ref = refs[refs.length - 1];
+      }
+      var sheets = doc.styleSheets;
+      if (attributes) {
+        for (var attributeName in attributes) {
+          if (attributes.hasOwnProperty(attributeName)) {
+            ss.setAttribute(attributeName, attributes[attributeName]);
+          }
+        }
+      }
+      ss.rel = "stylesheet";
+      ss.href = href;
+      ss.media = "only x";
+      function ready(cb) {
+        if (doc.body) {
+          return cb();
+        }
+        setTimeout(function () {
+          ready(cb);
+        });
+      }
+      ready(function () {
+        ref.parentNode.insertBefore(ss, before ? ref : ref.nextSibling);
+      });
+      var onloadcssdefined = function (cb) {
+        var resolvedHref = ss.href;
+        var i = sheets.length;
+        while (i--) {
+          if (sheets[i].href === resolvedHref) {
+            return cb();
+          }
+        }
+        setTimeout(function () {
+          onloadcssdefined(cb);
+        });
+      };
+      function loadCB() {
+        if (ss.addEventListener) {
+          ss.removeEventListener("load", loadCB);
+        }
+        ss.media = media || "all";
+      }
+      if (ss.addEventListener) {
+        ss.addEventListener("load", loadCB);
+      }
+      ss.onloadcssdefined = onloadcssdefined;
+      onloadcssdefined(loadCB);
+      return ss;
+    },
+
+    // 从 butterfly 和 volantis 获得灵感
+    loadScript: (src, opt) => new Promise((resolve, reject) => {
+      var script = document.createElement('script');
+      script.src = src;
+      if (opt) {
+        for (let key of Object.keys(opt)) {
+          script[key] = opt[key]
+        }
+      } else {
+        // 默认异步，如果需要同步，第二个参数传入 {} 即可
+        script.async = true
+      }
+      script.onerror = reject
+      script.onload = script.onreadystatechange = function() {
+        const loadState = this.readyState
+        if (loadState && loadState !== 'loaded' && loadState !== 'complete') return
+        script.onload = script.onreadystatechange = null
+        resolve()
+      }
+      document.head.appendChild(script)
+    }),
+
+    // https://github.com/jerryc127/hexo-theme-butterfly
+    jQuery: (fn) => {
+      if (typeof jQuery === 'undefined') {
+        stellar.loadScript(stellar.plugins.jQuery).then(fn)
+      } else {
+        fn()
+      }
+    }
+  };
+  stellar.github = 'https://github.com/xaoxuu/hexo-theme-stellar/tree/1.6.1';
+  stellar.config = {
+    date_suffix: {
+      just: '刚刚',
+      min: '分钟前',
+      hour: '小时前',
+      day: '天前',
+      month: '个月前',
+    },
+  };
+
+  // required plugins (only load if needs)
+  stellar.plugins = {
+    jQuery: 'https://cdn.jsdelivr.net/npm/jquery@3.5.1/dist/jquery.min.js',
+    sitesjs: '/js/plugins/sites.js',
+    friendsjs: '/js/plugins/friends.js',
+  };
+
+  // optional plugins
+  if ('true' == 'true') {
+    stellar.plugins.lazyload = Object.assign({"enable":true,"js":"https://cdn.jsdelivr.net/npm/vanilla-lazyload@17.3.1/dist/lazyload.min.js","transition":"blur"});
+  }
+  if ('true' == 'true') {
+    stellar.plugins.swiper = Object.assign({"enable":true,"css":"https://unpkg.com/swiper@6/swiper-bundle.min.css","js":"https://unpkg.com/swiper@6/swiper-bundle.min.js"});
+  }
+  if ('' == 'true') {
+    stellar.plugins.scrollreveal = Object.assign({"enable":null,"js":"https://cdn.jsdelivr.net/npm/scrollreveal@4.0.9/dist/scrollreveal.min.js","distance":"8px","duration":500,"interval":100,"scale":1});
+  }
+  if ('true' == 'true') {
+    stellar.plugins.preload = Object.assign({"enable":true,"service":"flying_pages","instant_page":"https://cdn.jsdelivr.net/gh/volantis-x/cdn-volantis@4.1.2/js/instant_page.js","flying_pages":"https://cdn.jsdelivr.net/gh/gijo-varghese/flying-pages@2.1.2/flying-pages.min.js"});
+  }
+</script>
+
+<!-- required -->
+
+  
+<script src="/js/main.js" async></script>
+
+
+
+<!-- optional -->
+
+  <script>
+  function getEmojiMaps() {
+    function emoji(path, idx, ext) {
+      return path + "/" + path + "-" + idx + "." + ext;
+    }
+    var emojiMaps = {};
+    for (var i = 1; i <= 54; i++) {
+      emojiMaps['tieba-' + i] = emoji('tieba', i, 'png');
+    }
+    for (var i = 1; i <= 101; i++) {
+      emojiMaps['qq-' + i] = emoji('qq', i, 'gif');
+    }
+    for (var i = 1; i <= 116; i++) {
+      emojiMaps['aru-' + i] = emoji('aru', i, 'gif');
+    }
+    for (var i = 1; i <= 125; i++) {
+      emojiMaps['twemoji-' + i] = emoji('twemoji', i, 'png');
+    }
+    for (var i = 1; i <= 4; i++) {
+      emojiMaps['weibo-' + i] = emoji('weibo', i, 'png');
+    }
+    return emojiMaps;
+  }
+  function load_comment(){
+    if(!document.getElementById("valine_container"))return;
+    stellar.loadScript('https://cdn.jsdelivr.net/gh/XuxuGood/simple-blog-cdn@main/js/Valine.min.js', {defer:true}).then(function () {
+      const el = document.getElementById("valine_container");
+      var path = el.getAttribute('comment_id');
+      const placeholder = "欢迎您留言~";
+      if (!path) {
+        path = decodeURI(window.location.pathname);
+      }
+      var valine = new Valine();
+      valine.init(Object.assign({"js":"https://cdn.jsdelivr.net/gh/XuxuGood/simple-blog-cdn@main/js/Valine.min.js","appId":"FY2C9UCttYNaE1j8umenqdCE-gzGzoHsz","appKey":"4i7xMwkfSEGmEDhi6SceKFxz","placeholder":"欢迎您留言~","requiredFields":["nick","mail"],"enableQQ":true,"recordIP":false,"avatar":"robohash","pageSize":10,"lang":"zh-cn","highlight":true,"mathJax":false,"tagMeta":["博主","小伙伴","访客"],"metaPlaceholder":{"nick":"昵称/QQ号(必填)","mail":"邮箱（必填，完全保密）"},"master":["6783037F2DF30EAB99F9FC256157D875"],"friends":["6783037F2DF30EAB99F9FC256157D875"],"comment_count":true}, {
+        el: '#valine_container',
+        path: path,
+        placeholder: placeholder,
+        emojiCDN: 'https://cdn.jsdelivr.net/gh/volantis-x/cdn-emoji/valine/',
+        emojiMaps: getEmojiMaps(),
+      }));
+    });
+  }
+  window.addEventListener('DOMContentLoaded', (event) => {
+    console.log('DOM fully loaded and parsed');
+    load_comment();
+  });
+
+</script>
+
+
+
+
+<!-- inject -->
+
+
+  </div>
+</body>
+</html>

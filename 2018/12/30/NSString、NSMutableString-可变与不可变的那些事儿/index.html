@@ -1,0 +1,469 @@
+<!DOCTYPE html>
+<html lang='zh-CN'>
+
+<head>
+  <meta name="generator" content="Hexo 6.0.0">
+  <meta charset="utf-8">
+  
+
+  <meta http-equiv='x-dns-prefetch-control' content='on' />
+  <link rel='dns-prefetch' href='https://cdn.jsdelivr.net'>
+  <link rel="preconnect" href="https://cdn.jsdelivr.net" crossorigin>
+
+  <meta name="renderer" content="webkit">
+  <meta name="force-rendering" content="webkit">
+  <meta http-equiv="X-UA-Compatible" content="IE=Edge,chrome=1">
+  <meta name="HandheldFriendly" content="True" >
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1">
+  <meta name="theme-color" content="#f8f8f8">
+  <title>NSString、NSMutableString 可变与不可变的那些事儿 - Veryitman</title>
+
+  
+    <meta name="description" content="简介这篇文章的主要包含如下内容：  可变对象和不可变对象 NSString 的 copy 和 mutableCopy NSMutableString 的 copy 和 mutableCopy property 中 copy、strong 修饰 NSString property 中 copy、strong 修饰 NSMutableString  很多 iOS 开发的朋友会争论一个问题，我用 cop">
+<meta property="og:type" content="article">
+<meta property="og:title" content="NSString、NSMutableString 可变与不可变的那些事儿">
+<meta property="og:url" content="http://example.com/2018/12/30/NSString%E3%80%81NSMutableString-%E5%8F%AF%E5%8F%98%E4%B8%8E%E4%B8%8D%E5%8F%AF%E5%8F%98%E7%9A%84%E9%82%A3%E4%BA%9B%E4%BA%8B%E5%84%BF/index.html">
+<meta property="og:site_name" content="Veryitman">
+<meta property="og:description" content="简介这篇文章的主要包含如下内容：  可变对象和不可变对象 NSString 的 copy 和 mutableCopy NSMutableString 的 copy 和 mutableCopy property 中 copy、strong 修饰 NSString property 中 copy、strong 修饰 NSMutableString  很多 iOS 开发的朋友会争论一个问题，我用 cop">
+<meta property="og:locale" content="zh_CN">
+<meta property="og:image" content="http://example.com/upload/images/2018/12/30/1.jpg">
+<meta property="og:image" content="http://example.com/upload/images/2018/12/30/2.jpg">
+<meta property="og:image" content="http://example.com/upload/images/2018/12/30/3.jpg">
+<meta property="og:image" content="http://example.com/upload/me/qrcode_wx.jpg">
+<meta property="article:published_time" content="2018-12-30T08:24:39.000Z">
+<meta property="article:modified_time" content="2022-03-09T14:53:24.349Z">
+<meta property="article:author" content="veryitman">
+<meta property="article:tag" content="NSString NSMutableString copy mutableCopy">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:image" content="http://example.com/upload/images/2018/12/30/1.jpg">
+  
+  
+
+  <!-- feed -->
+  
+
+  
+    
+<link rel="stylesheet" href="/css/main.css">
+
+  
+
+  
+
+  
+</head>
+
+<body>
+  
+
+
+  <div class='l_body' id='start'>
+    <aside class='l_left' layout='post'>
+    
+
+
+<header class="header">
+
+<div class="logo-wrap"><a class="title" href="/"><div class="main">Veryitman</div></a></div>
+<nav class="menu dis-select"></nav></header>
+
+<div class="widgets">
+
+<div class="widget-wrap single" id="toc"><div class="widget-header cap dis-select"><span class="name">本文目录</span></div><div class="widget-body fs14"><div class="doc-tree active"><ol class="toc"><li class="toc-item toc-level-2"><a class="toc-link" href="#%E7%AE%80%E4%BB%8B"><span class="toc-text">简介</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#%E5%8F%AF%E5%8F%98%E5%AF%B9%E8%B1%A1%E5%92%8C%E4%B8%8D%E5%8F%AF%E5%8F%98%E5%AF%B9%E8%B1%A1"><span class="toc-text">可变对象和不可变对象</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#NSString-%E7%9A%84-copy-%E5%92%8C-mutableCopy"><span class="toc-text">NSString 的 copy 和 mutableCopy</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#NSMutableString-%E7%9A%84-copy-%E5%92%8C-mutableCopy"><span class="toc-text">NSMutableString 的 copy 和 mutableCopy</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#copy%E3%80%81strong-%E4%BF%AE%E9%A5%B0-NSString"><span class="toc-text">copy、strong 修饰 NSString</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#copy%E3%80%81strong-%E4%BF%AE%E9%A5%B0-NSMutableString"><span class="toc-text">copy、strong 修饰 NSMutableString</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#%E5%B0%8F%E7%BB%93"><span class="toc-text">小结</span></a></li></ol></div></div></div>
+
+
+</div>
+
+
+    </aside>
+    <div class='l_main'>
+      
+
+      
+
+
+<div class="bread-nav fs12"><div id="breadcrumb"><a class="cap breadcrumb" href="/">主页</a><span class="sep"></span><a class="cap breadcrumb" href="/">文章</a><span class="sep"></span><a class="cap breadcrumb-link" href="/categories/iOS/">iOS</a></div><div id="post-meta">发布于&nbsp;<time datetime="2018-12-30T08:24:39.000Z">2018-12-30</time></div></div>
+
+<article class='content md post'>
+<h1 class="article-title"><span>NSString、NSMutableString 可变与不可变的那些事儿</span></h1>
+<h2 id="简介"><a href="#简介" class="headerlink" title="简介"></a>简介</h2><p>这篇文章的主要包含如下内容：</p>
+<ul>
+<li>可变对象和不可变对象</li>
+<li>NSString 的 copy 和 mutableCopy</li>
+<li>NSMutableString 的 copy 和 mutableCopy</li>
+<li>property 中 copy、strong 修饰 NSString</li>
+<li>property 中 copy、strong 修饰 NSMutableString</li>
+</ul>
+<p>很多 iOS 开发的朋友会争论一个问题，我用 <code>copy</code> 和 <code>strong</code> 来修饰 <code>NSString</code> 对象都是一样的效果，在大部分情况下，这二者确实是没有区别，但是在特殊情况下，二者截然不同，所以我们必须搞清楚里面的道道。</p>
+<p>我已经尽力简化了这篇文章的内容了，但依然需要你花个15分钟左右的时间，所以当你心情不错又没有其他事情的情况下，就可以来阅读了。</p>
+<h2 id="可变对象和不可变对象"><a href="#可变对象和不可变对象" class="headerlink" title="可变对象和不可变对象"></a>可变对象和不可变对象</h2><p>在 <code>Objective-C</code> 中最常用来处理字符串的是 <code>NSString</code> 与 <code>NSMutableString</code> 这两个类，<code>NSString</code> 被创建赋值后字符串的内容与长度不能再做动态的修改，除非重新给这个字符串赋值。而 <code>NSMutableString</code> 被创建赋值后可以动态的修改字符串的内容。</p>
+<p>那么简单来说，可变对象是指，对象的内容是可变的，例如 <code>NSMutableString</code> 对象。不可变的对象则相反，表示其内容不可变，例如 <code>NSString</code> 对象。</p>
+<p>可变与不可变是针对对象来说的。在实际开发中，要根据实际的业务场景来选择使用可变还是不可变对象。今天我们只讨论 <code>Objective-C</code> 中 <code>NSString</code> 与 <code>NSMutableString</code> 这两个类，关于其他集合类的可变与不可变特性，后面专门再来写文章分享。</p>
+<h2 id="NSString-的-copy-和-mutableCopy"><a href="#NSString-的-copy-和-mutableCopy" class="headerlink" title="NSString 的 copy 和 mutableCopy"></a>NSString 的 copy 和 mutableCopy</h2><p>在 <code>NSString.h</code> 中，我们可以看到其定义如下：</p>
+<figure class="highlight objc"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line"><span class="class"><span class="keyword">@interface</span> <span class="title">NSString</span> : <span class="title">NSObject</span> &lt;<span class="title">NSCopying</span>, <span class="title">NSMutableCopying</span>, <span class="title">NSSecureCoding</span>&gt;</span></span><br></pre></td></tr></table></figure>
+
+<p><code>NSString.h</code> 本身实现了 <code>NSCopying</code>, <code>NSMutableCopying</code> 这两个协议，协议的定义如下内容所示：</p>
+<figure class="highlight objc"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br></pre></td><td class="code"><pre><span class="line"><span class="class"><span class="keyword">@protocol</span> <span class="title">NSCopying</span></span></span><br><span class="line"></span><br><span class="line">- (<span class="keyword">id</span>)copyWithZone:(<span class="keyword">nullable</span> <span class="built_in">NSZone</span> *)zone;</span><br><span class="line"></span><br><span class="line"><span class="keyword">@end</span></span><br><span class="line"></span><br><span class="line"><span class="class"><span class="keyword">@protocol</span> <span class="title">NSMutableCopying</span></span></span><br><span class="line"></span><br><span class="line">- (<span class="keyword">id</span>)mutableCopyWithZone:(<span class="keyword">nullable</span> <span class="built_in">NSZone</span> *)zone;</span><br><span class="line"></span><br><span class="line"><span class="keyword">@end</span></span><br></pre></td></tr></table></figure>
+
+<p>也就是说，我们可以针对 <code>NSString</code> 对象进行 <code>copy</code> 和 <code>mutableCopy</code> 的操作，妥妥的。</p>
+<p>举一个简单的栗子，示例代码如下：</p>
+<figure class="highlight objc"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br></pre></td><td class="code"><pre><span class="line"><span class="built_in">NSString</span> *name = <span class="string">@&quot;www.&quot;</span>;</span><br><span class="line"><span class="built_in">NSLog</span>(<span class="string">@&quot;name addr: %p, name content: %@&quot;</span>, name, name);</span><br><span class="line">    </span><br><span class="line"><span class="built_in">NSString</span> *name1 = name;</span><br><span class="line"><span class="built_in">NSLog</span>(<span class="string">@&quot;name1 addr: %p, name1 content: %@&quot;</span>, name1, name1);</span><br><span class="line">    </span><br><span class="line"><span class="built_in">NSString</span> *name2 = [name <span class="keyword">copy</span>];</span><br><span class="line"><span class="built_in">NSLog</span>(<span class="string">@&quot;name2 addr: %p, name2 content: %@&quot;</span>, name2, name2);</span><br></pre></td></tr></table></figure>
+
+<p>输出结果，如下：</p>
+<figure class="highlight objc"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line">name  addr: <span class="number">0x10090ecf8</span>, name  content: www.</span><br><span class="line">name1 addr: <span class="number">0x10090ecf8</span>, name1 content: www.</span><br><span class="line">name2 addr: <span class="number">0x10090ecf8</span>, name2 content: www.</span><br></pre></td></tr></table></figure>
+
+<p>从输出结果可以看出，三个对象的内容和地址都是一样的，经过 <code>name</code> 对象 <code>copy</code> 后的 <code>name2</code> 与 <code>name</code> 还是指向同一块内存地址。</p>
+<p>在断点过程中，发现无论是 <code>name</code> 还是 <code>name1</code>、<code>name2</code> 对象，其都是 <code>ConstantString</code>，表明三者都是不可变对象，如下图所示：<br><img class="lazy" src="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAABGdBTUEAALGPC/xhBQAAADhlWElmTU0AKgAAAAgAAYdpAAQAAAABAAAAGgAAAAAAAqACAAQAAAABAAAAAaADAAQAAAABAAAAAQAAAADa6r/EAAAAC0lEQVQIHWNgAAIAAAUAAY27m/MAAAAASUVORK5CYII=" data-src="/upload/images/2018/12/30/1.jpg"></p>
+<p>从这张图也说明了一个问题，<code>NSString</code> 对象经过 <code>copy</code> 后仍然是不可变对象。</p>
+<p>紧接着，我们再来看看 <code>mutableCopy</code> 的使用情况，例子如下：</p>
+<figure class="highlight objc"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br></pre></td><td class="code"><pre><span class="line"><span class="built_in">NSString</span> *name = <span class="string">@&quot;www.&quot;</span>;</span><br><span class="line"><span class="built_in">NSLog</span>(<span class="string">@&quot;name addr: %p, name content: %@&quot;</span>, name, name);</span><br><span class="line">    </span><br><span class="line"><span class="built_in">NSString</span> *name1 = name;</span><br><span class="line"><span class="built_in">NSLog</span>(<span class="string">@&quot;name1 addr: %p, name1 content: %@&quot;</span>, name1, name1);</span><br><span class="line">    </span><br><span class="line"><span class="built_in">NSString</span> *name2 = [name <span class="keyword">copy</span>];</span><br><span class="line"><span class="built_in">NSLog</span>(<span class="string">@&quot;name2 addr: %p, name2 content: %@&quot;</span>, name2, name2);</span><br><span class="line">    </span><br><span class="line"><span class="keyword">id</span> name3 = [name mutableCopy];</span><br><span class="line"><span class="built_in">NSLog</span>(<span class="string">@&quot;name3 addr: %p, name3 content: %@&quot;</span>, name3, name3);</span><br></pre></td></tr></table></figure>
+
+<p>对象 <code>name3</code> 是经过 <code>name</code> 对象 <code>mutableCopy</code> 后的，这个时候因为我不确定 <code>name3</code> 到底是可变的还是不可变的，所以采用了 <code>id</code> 来修饰 <code>name3</code> 对象。</p>
+<p>可以看一下输出内容：</p>
+<figure class="highlight objc"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><span class="line">name  addr: <span class="number">0x104a6acf8</span>, name  content: www.</span><br><span class="line">name1 addr: <span class="number">0x104a6acf8</span>, name1 content: www.</span><br><span class="line">name2 addr: <span class="number">0x104a6acf8</span>, name2 content: www.</span><br><span class="line">name3 addr: <span class="number">0x1c0052cf0</span>, name3 content: www.</span><br></pre></td></tr></table></figure>
+
+<p>可以看出，<code>name3</code> 的地址变了，再看一下断点的截图：<br><img class="lazy" src="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAABGdBTUEAALGPC/xhBQAAADhlWElmTU0AKgAAAAgAAYdpAAQAAAABAAAAGgAAAAAAAqACAAQAAAABAAAAAaADAAQAAAABAAAAAQAAAADa6r/EAAAAC0lEQVQIHWNgAAIAAAUAAY27m/MAAAAASUVORK5CYII=" data-src="/upload/images/2018/12/30/2.jpg"></p>
+<p>充分说明了 <code>name3</code> 经过不可变的 <code>name</code> 进行<code>mutableCopy</code> 后变成了可变对象。那么可以将上面的示例代码稍作修改：</p>
+<figure class="highlight objc"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><span class="line"><span class="built_in">NSMutableString</span> *name3 = [name mutableCopy];</span><br><span class="line"><span class="built_in">NSLog</span>(<span class="string">@&quot;name3 addr: %p, name3 content: %@&quot;</span>, name3, name3);</span><br><span class="line">[name3 appendString:<span class="string">@&quot;veryitman.com&quot;</span>];</span><br><span class="line"><span class="built_in">NSLog</span>(<span class="string">@&quot;name3 addr: %p, name3 content: %@&quot;</span>, name3, name3);</span><br></pre></td></tr></table></figure>
+
+<p>从下面的输出结果也充分说明了 <code>name3</code> 经过不可变的 <code>name</code> 进行 <code>mutableCopy</code> 后变成了可变对象。输出结果如下：</p>
+<figure class="highlight objc"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">name3 addr: <span class="number">0x1d0058270</span>, name3 content: www.veryitman.com</span><br></pre></td></tr></table></figure>
+
+<p><strong>结论 1：</strong></p>
+<ul>
+<li>不可变的 <code>NSString</code> 对象经过 <code>copy</code> 后，还是不可变对象。</li>
+<li>不可变的 <code>NSString</code> 对象经过 <code>mutableCopy</code> 后，变成了可变的 <code>NSMutableString</code> 对象。</li>
+</ul>
+<h2 id="NSMutableString-的-copy-和-mutableCopy"><a href="#NSMutableString-的-copy-和-mutableCopy" class="headerlink" title="NSMutableString 的 copy 和 mutableCopy"></a>NSMutableString 的 copy 和 mutableCopy</h2><p>类 <code>NSMutableString</code> 继承自 <code>NSString</code> 的，其当然也是实现了 <code>NSCopying</code>, <code>NSMutableCopying</code> 这两个协议的。</p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">@interface NSMutableString : NSString</span><br></pre></td></tr></table></figure>
+
+<p>我们还是看例子，示例代码如下：</p>
+<figure class="highlight objc"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br></pre></td><td class="code"><pre><span class="line"><span class="built_in">NSMutableString</span> *name = [<span class="built_in">NSMutableString</span> stringWithString:<span class="string">@&quot;www.&quot;</span>];</span><br><span class="line"><span class="built_in">NSLog</span>(<span class="string">@&quot;name  addr: %p, name  content: %@&quot;</span>, name, name);</span><br><span class="line"></span><br><span class="line"><span class="comment">// 简单赋值</span></span><br><span class="line"><span class="built_in">NSMutableString</span> *name1 = name;</span><br><span class="line"><span class="built_in">NSLog</span>(<span class="string">@&quot;name1 addr: %p, name1 content: %@&quot;</span>, name1, name1);</span><br><span class="line">   </span><br><span class="line"><span class="comment">// 使用 copy    </span></span><br><span class="line"><span class="keyword">id</span> name2 = [name <span class="keyword">copy</span>];</span><br><span class="line"><span class="built_in">NSLog</span>(<span class="string">@&quot;name2 addr: %p, name2 content: %@&quot;</span>, name2, name2);</span><br><span class="line"> </span><br><span class="line"><span class="comment">// 使用 mutableCopy   </span></span><br><span class="line"><span class="keyword">id</span> name3 = [name mutableCopy];</span><br><span class="line"><span class="built_in">NSLog</span>(<span class="string">@&quot;name3 addr: %p, name3 content: %@&quot;</span>, name3, name3);</span><br></pre></td></tr></table></figure>
+
+<p>因为事先我们不知道 <code>NSMutableString</code> 经过 <code>copy</code> 和 <code>mutableCopy</code> 之后到底会变成可变还是不可变，上面的例子暂时将 <code>name2</code> 和 <code>name3</code> 用 <code>id</code> 来表示。</p>
+<p>断点截图如下：<br><img class="lazy" src="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAABGdBTUEAALGPC/xhBQAAADhlWElmTU0AKgAAAAgAAYdpAAQAAAABAAAAGgAAAAAAAqACAAQAAAABAAAAAaADAAQAAAABAAAAAQAAAADa6r/EAAAAC0lEQVQIHWNgAAIAAAUAAY27m/MAAAAASUVORK5CYII=" data-src="/upload/images/2018/12/30/3.jpg"></p>
+<p>结合一下输出的日志：</p>
+<figure class="highlight objc"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><span class="line">name  addr: <span class="number">0x1d044a980</span>, name  content: www.</span><br><span class="line">name1 addr: <span class="number">0x1d044a980</span>, name1 content: www.</span><br><span class="line">name2 addr: <span class="number">0xa0000002e7777774</span>, name2 content: www.</span><br><span class="line">name3 addr: <span class="number">0x1d044a5f0</span>, name3 content: www.</span><br></pre></td></tr></table></figure>
+
+<p>可以看出 <code>name2</code> 是一个不可变的 <code>NSString</code> 对象， <code>name</code>、<code>name1</code> 和 <code>name3</code> 都是可变的 <code>NSMutableString</code> 对象。</p>
+<p>也可以从另外一个角度来验证一下上面的说法，我们修改一下代码：</p>
+<figure class="highlight objc"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br></pre></td><td class="code"><pre><span class="line"><span class="built_in">NSMutableString</span> *name2 = [name <span class="keyword">copy</span>];</span><br><span class="line"><span class="built_in">NSLog</span>(<span class="string">@&quot;name2 addr: %p, name2 content: %@&quot;</span>, name2, name2);</span><br><span class="line">[name2 appendString:<span class="string">@&quot;veryitman.com&quot;</span>];</span><br><span class="line">    </span><br><span class="line"><span class="built_in">NSMutableString</span> *name3 = [name mutableCopy];</span><br><span class="line"><span class="built_in">NSLog</span>(<span class="string">@&quot;name3 addr: %p, name3 content: %@&quot;</span>, name3, name3);</span><br><span class="line">[name3 appendString:<span class="string">@&quot;veryitman.com&quot;</span>];</span><br></pre></td></tr></table></figure>
+
+<p>运行后，可以看到，代码 <code>[name2 appendString:@&quot;veryitman.com&quot;]</code> 这里会引起 Crash，报错内容如下：</p>
+<figure class="highlight objc"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br></pre></td><td class="code"><pre><span class="line"> -[<span class="built_in">NSTaggedPointerString</span> appendString:]: unrecognized selector sent to instance <span class="number">0xa0000002e7777774</span></span><br><span class="line"> </span><br><span class="line">*** Terminating app due to uncaught exception <span class="string">&#x27;NSInvalidArgumentException&#x27;</span></span><br><span class="line"></span><br><span class="line">reason: <span class="string">&#x27;-[NSTaggedPointerString appendString:]: unrecognized selector sent to instance 0xa0000002e7777774&#x27;</span></span><br></pre></td></tr></table></figure>
+
+<p>也充分说明了，<code>name2</code> 是一个不可变的 <code>NSString</code> 对象。</p>
+<p><strong>结论 2：</strong></p>
+<ul>
+<li>可变的 <code>NSMutableString</code> 对象经过 <code>copy</code> 后，会变成不可变的 <code>NSString</code> 对象。</li>
+<li>可变的 <code>NSMutableString</code> 对象经过 <code>mutableCopy</code> 后，仍然是可变的 <code>NSMutableString</code> 对象。</li>
+</ul>
+<h2 id="copy、strong-修饰-NSString"><a href="#copy、strong-修饰-NSString" class="headerlink" title="copy、strong 修饰 NSString"></a>copy、strong 修饰 NSString</h2><p>创建 Employee 文件，如下：</p>
+<figure class="highlight objc"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br></pre></td><td class="code"><pre><span class="line"><span class="class"><span class="keyword">@interface</span> <span class="title">Employee</span> : <span class="title">NSObject</span></span></span><br><span class="line"></span><br><span class="line"><span class="keyword">@property</span> (<span class="keyword">nonatomic</span>, <span class="keyword">copy</span>) <span class="built_in">NSString</span> *userName;</span><br><span class="line"></span><br><span class="line"><span class="keyword">@end</span></span><br></pre></td></tr></table></figure>
+
+<p>其 <code>userName</code> 属性是 <code>copy</code>。</p>
+<p>使用示例，如下：</p>
+<figure class="highlight objc"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br></pre></td><td class="code"><pre><span class="line">Employee *employee = [Employee new];</span><br><span class="line">employee.userName = <span class="string">@&quot;John&quot;</span>;</span><br><span class="line"><span class="built_in">NSLog</span>(<span class="string">@&quot;--before-- employee.userName addr: %p, employee.userName content: %@&quot;</span>, employee.userName, employee.userName);</span><br><span class="line">        </span><br><span class="line"><span class="comment">// 创建一个可变对象</span></span><br><span class="line"><span class="built_in">NSMutableString</span> *newUserName = [[<span class="built_in">NSMutableString</span> alloc] initWithString:<span class="string">@&quot;new_user_name&quot;</span>];</span><br><span class="line"><span class="built_in">NSLog</span>(<span class="string">@&quot;newUserName addr: %p, newUserName content: %@&quot;</span>, newUserName, newUserName);</span><br><span class="line">    </span><br><span class="line"><span class="comment">// 将一个新的对像赋值给 employee.userName，此时 employee.userName 的地址肯定会变化</span></span><br><span class="line">employee.userName = newUserName;</span><br><span class="line"><span class="built_in">NSLog</span>(<span class="string">@&quot;---after1--- employee.userName addr: %p, employee.userName content: %@&quot;</span>, employee.userName, employee.userName);</span><br><span class="line">    </span><br><span class="line"><span class="comment">// 试图改变 newUserName 的内容，看 employee.userName 的内容是否改变</span></span><br><span class="line">[newUserName appendString:<span class="string">@&quot;_hello&quot;</span>];</span><br><span class="line"></span><br><span class="line"><span class="comment">// newUserName 的内容被改变成了 new_user_name_hello</span></span><br><span class="line"><span class="built_in">NSLog</span>(<span class="string">@&quot;newUserName addr: %p, newUserName content: %@&quot;</span>, newUserName, newUserName);</span><br><span class="line"></span><br><span class="line"><span class="comment">// employee.userName 的内容未变化</span></span><br><span class="line"><span class="built_in">NSLog</span>(<span class="string">@&quot;---after2--- employee.userName addr: %p, employee.userName content: %@&quot;</span>, employee.userName, employee.userName);</span><br><span class="line">    </span><br><span class="line"><span class="comment">// Crash，因为 employee.userName 还是不可变对象</span></span><br><span class="line"><span class="comment">// [(NSMutableString *)(employee.userName) appendString:@&quot;nana&quot;];</span></span><br></pre></td></tr></table></figure>
+
+<p>在上面的示例中，故意将 <code>NSMutableString</code> 对象 <code>newUserName</code> 赋值给不可变的 <code>NSString</code> 对象 <code>employee.userName</code>，看一下输出结果，如下：</p>
+<figure class="highlight objc"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br></pre></td><td class="code"><pre><span class="line">--before-- employee.userName addr: <span class="number">0x100096cf8</span>, employee.userName content: John</span><br><span class="line"></span><br><span class="line">newUserName addr: <span class="number">0x174070a00</span>, newUserName content: new_user_name</span><br><span class="line"></span><br><span class="line">---after1--- employee.userName addr: <span class="number">0x174023b80</span>, employee.userName content: new_user_name</span><br><span class="line"></span><br><span class="line">newUserName addr: <span class="number">0x174070a00</span>, newUserName content: new_user_name_hello</span><br><span class="line"></span><br><span class="line">---after2--- employee.userName addr: <span class="number">0x174023b80</span>, employee.userName content: new_user_name</span><br></pre></td></tr></table></figure>
+
+<p>按照 </p>
+<figure class="highlight objc"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">可变的 `<span class="built_in">NSMutableString</span>` 对象经过 `<span class="keyword">copy</span>` 后，会变成不可变的 `<span class="built_in">NSString</span>` 对象。</span><br></pre></td></tr></table></figure>
+
+<p>这个结论来看，<code>employee.userName</code> 肯定是不可变的对象，即使改变 <code>newUserName</code> 的内容也不会影响 <code>employee.userName</code> 这个对象的内容。</p>
+<p>那么，我们将 <code>employee.userName</code> 的属性修饰符 <code>copy</code> 改为 <code>strong</code>，又会是什么样子呢？</p>
+<p>我们修改两处代码</p>
+<p><strong>Employee.h</strong></p>
+<figure class="highlight objc"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br></pre></td><td class="code"><pre><span class="line"><span class="class"><span class="keyword">@interface</span> <span class="title">Employee</span> : <span class="title">NSObject</span></span></span><br><span class="line"></span><br><span class="line"><span class="comment">//@property (nonatomic, copy) NSString *userName;</span></span><br><span class="line"></span><br><span class="line"><span class="keyword">@property</span> (<span class="keyword">nonatomic</span>, <span class="keyword">strong</span>) <span class="built_in">NSString</span> *userName;</span><br><span class="line"></span><br><span class="line"><span class="keyword">@end</span></span><br></pre></td></tr></table></figure>
+
+<p>示例代码，只是打开之前会 crash 的部分</p>
+<figure class="highlight objc"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment">// employee.userName 经过 strong 修饰过后， 彻底变成了可变对象</span></span><br><span class="line">[(<span class="built_in">NSMutableString</span> *)(employee.userName) appendString:<span class="string">@&quot;_oc&quot;</span>];</span><br><span class="line"><span class="built_in">NSLog</span>(<span class="string">@&quot;---after3--- employee.userName addr: %p, employee.userName content: %@&quot;</span>, employee.userName, employee.userName);</span><br></pre></td></tr></table></figure>
+
+<p>看一下输出日志：</p>
+<figure class="highlight objc"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br></pre></td><td class="code"><pre><span class="line">--before-- employee.userName addr: <span class="number">0x1000a6cf8</span>, employee.userName content: John</span><br><span class="line"></span><br><span class="line">newUserName addr: <span class="number">0x17426b280</span>, newUserName content: new_user_name</span><br><span class="line"></span><br><span class="line">---after1--- employee.userName addr: <span class="number">0x17426b280</span>, employee.userName content: new_user_name</span><br><span class="line"></span><br><span class="line">newUserName addr: <span class="number">0x17426b280</span>, newUserName content: new_user_name_hello</span><br><span class="line"></span><br><span class="line">---after2--- employee.userName addr: <span class="number">0x17426b280</span>, employee.userName content: new_user_name_hello</span><br><span class="line"></span><br><span class="line">---after3--- employee.userName addr: <span class="number">0x17426b280</span>, employee.userName content: new_user_name_hello_oc</span><br></pre></td></tr></table></figure>
+
+<p>可以看到 <code>employee.userName</code> 最终和 <code>newUserName</code> 的地址、内容完全相同了，彻底变成了可变对象。</p>
+<p>另外，如果不是将可变的 <code>NSMutableString</code> 对象赋值给不可变的 <code>NSString</code> 对象，换句话说，<code>NSString</code> 对 <code>NSString</code> 赋值，那么使用 <code>strong</code> 和 <code>copy</code> 效果都是一样的。</p>
+<p>示例代码（无论 <code>employee.userName</code> 使用 <code>strong</code> 还是 <code>copy</code>，效果都是 <code>employee.userName</code> 不可变的）：</p>
+<figure class="highlight objc"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br></pre></td><td class="code"><pre><span class="line">Employee *employee = [Employee new];</span><br><span class="line">employee.userName = <span class="string">@&quot;John&quot;</span>;</span><br><span class="line"><span class="built_in">NSLog</span>(<span class="string">@&quot;--before-- employee.userName addr: %p, employee.userName content: %@&quot;</span>, employee.userName, employee.userName);</span><br><span class="line">    </span><br><span class="line"><span class="comment">// 创建一个不可变对象</span></span><br><span class="line"><span class="built_in">NSString</span> *newUserName = <span class="string">@&quot;new_user_name&quot;</span>;</span><br><span class="line"><span class="built_in">NSLog</span>(<span class="string">@&quot;newUserName addr: %p, newUserName content: %@&quot;</span>, newUserName, newUserName);</span><br><span class="line">    </span><br><span class="line"><span class="comment">// 将一个新的对像赋值给 employee.userName，此时 employee.userName 的地址肯定会变化</span></span><br><span class="line">employee.userName = newUserName;</span><br><span class="line"><span class="built_in">NSLog</span>(<span class="string">@&quot;---after1--- employee.userName addr: %p, employee.userName content: %@&quot;</span>, employee.userName, employee.userName);</span><br></pre></td></tr></table></figure>
+
+<h2 id="copy、strong-修饰-NSMutableString"><a href="#copy、strong-修饰-NSMutableString" class="headerlink" title="copy、strong 修饰 NSMutableString"></a>copy、strong 修饰 NSMutableString</h2><p>在 property 的修饰语中，只有 <code>copy</code> 修饰语而没有 <code>mutableCopy</code> 的修饰语。</p>
+<p><strong>Employee.h</strong></p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br></pre></td><td class="code"><pre><span class="line">@interface Employee : NSObject</span><br><span class="line"></span><br><span class="line">@property (nonatomic, copy) NSMutableString *userName;</span><br><span class="line"></span><br><span class="line">@end</span><br></pre></td></tr></table></figure>
+
+<p>示例代码：</p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br></pre></td><td class="code"><pre><span class="line">Employee *employee = [Employee new];</span><br><span class="line">employee.userName = [NSMutableString stringWithString:@&quot;John&quot;];</span><br><span class="line">NSLog(@&quot;--before-- employee.userName addr: %p, employee.userName content: %@&quot;, employee.userName, employee.userName);</span><br><span class="line"></span><br><span class="line">// 创建一个可变对象</span><br><span class="line">NSMutableString *newUserName = [NSMutableString stringWithFormat:@&quot;new_user_name&quot;];</span><br><span class="line">NSLog(@&quot;newUserName addr: %p, newUserName content: %@&quot;, newUserName, newUserName);</span><br><span class="line"></span><br><span class="line">// 将一个新的对像赋值给 employee.userName，此时 employee.userName 的地址肯定会变化</span><br><span class="line">employee.userName = newUserName;</span><br><span class="line">NSLog(@&quot;---after1--- employee.userName addr: %p, employee.userName content: %@&quot;, employee.userName, employee.userName);</span><br><span class="line">    </span><br><span class="line">// employee.userName 虽然是 NSMutableString 对象，但经过 copy 修饰过后，仍然是不可变对象</span><br><span class="line">// 所以，运行到这里会引起 crash</span><br><span class="line">[employee.userName appendString:@&quot;_oc&quot;];</span><br><span class="line">NSLog(@&quot;---after2--- employee.userName addr: %p, employee.userName content: %@&quot;, employee.userName, employee.userName);</span><br></pre></td></tr></table></figure>
+
+<p>可以看出 <code>copy</code> 后的的可变对象还是不可变的。</p>
+<p>那么，我们将 <code>employee.userName</code> 的属性修饰符 <code>copy</code> 改为 <code>strong</code>，又会是什么样子呢？</p>
+<p><strong>Employee.h</strong></p>
+<figure class="highlight objc"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br></pre></td><td class="code"><pre><span class="line"><span class="class"><span class="keyword">@interface</span> <span class="title">Employee</span> : <span class="title">NSObject</span></span></span><br><span class="line"></span><br><span class="line"><span class="keyword">@property</span> (<span class="keyword">nonatomic</span>, <span class="keyword">strong</span>) <span class="built_in">NSString</span> *userName;</span><br><span class="line"></span><br><span class="line"><span class="keyword">@end</span></span><br></pre></td></tr></table></figure>
+
+<p>示例代码：</p>
+<figure class="highlight objc"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br></pre></td><td class="code"><pre><span class="line">Employee *employee = [Employee new];</span><br><span class="line">employee.userName = [<span class="built_in">NSMutableString</span> stringWithString:<span class="string">@&quot;John&quot;</span>];</span><br><span class="line"><span class="built_in">NSLog</span>(<span class="string">@&quot;--before-- employee.userName addr: %p, employee.userName content: %@&quot;</span>, employee.userName, employee.userName);</span><br><span class="line"></span><br><span class="line"><span class="comment">// 创建一个可变对象</span></span><br><span class="line"><span class="built_in">NSMutableString</span> *newUserName = [<span class="built_in">NSMutableString</span> stringWithFormat:<span class="string">@&quot;new_user_name&quot;</span>];</span><br><span class="line"><span class="built_in">NSLog</span>(<span class="string">@&quot;newUserName addr: %p, newUserName content: %@&quot;</span>, newUserName, newUserName);</span><br><span class="line"></span><br><span class="line"><span class="comment">// 将一个新的对像赋值给 employee.userName，此时 employee.userName 的地址肯定会变化</span></span><br><span class="line">employee.userName = newUserName;</span><br><span class="line"><span class="built_in">NSLog</span>(<span class="string">@&quot;---after1--- employee.userName addr: %p, employee.userName content: %@&quot;</span>, employee.userName, employee.userName);</span><br><span class="line">    </span><br><span class="line"><span class="comment">// employee.userName 虽然是 NSMutableString 对象，但经过 strong 修饰过后，变成了可变对象</span></span><br><span class="line">[employee.userName appendString:<span class="string">@&quot;_hello&quot;</span>];</span><br><span class="line"><span class="built_in">NSLog</span>(<span class="string">@&quot;---after2--- employee.userName addr: %p, employee.userName content: %@&quot;</span>, employee.userName, employee.userName);</span><br><span class="line">    </span><br><span class="line">[newUserName appendString:<span class="string">@&quot;_oc&quot;</span>];</span><br><span class="line"><span class="comment">// newUserName 的内容被改变成了 new_user_name_hello_oc</span></span><br><span class="line"><span class="built_in">NSLog</span>(<span class="string">@&quot;newUserName addr: %p, newUserName content: %@&quot;</span>, newUserName, newUserName);</span><br><span class="line"><span class="comment">// employee.userName 的内容发生了变化</span></span><br><span class="line"><span class="built_in">NSLog</span>(<span class="string">@&quot;---after2--- employee.userName addr: %p, employee.userName content: %@&quot;</span>, employee.userName, employee.userName);</span><br></pre></td></tr></table></figure>
+
+<p>经过 <code>strong</code> 修饰后，可变的 <code>NSMutableString</code> 对象还是可变的对象。</p>
+<p>在这个部分的开始，说过在 property 中没有 <code>mutableCopy</code> 的修饰语，那么我们能否达到 <code>mutableCopy</code> 的效果呢？</p>
+<p>很显然是可以的，我们可以重写属性的 <code>set</code> 方法，改造一下 <code>Employee</code> 的代码，如下：</p>
+<p><strong>Employee.h</strong></p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br></pre></td><td class="code"><pre><span class="line">@interface Employee : NSObject</span><br><span class="line"></span><br><span class="line">@property (nonatomic, copy) NSMutableString *userName;</span><br><span class="line"></span><br><span class="line">@end</span><br></pre></td></tr></table></figure>
+
+<p><strong>Employee.m</strong></p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br></pre></td><td class="code"><pre><span class="line">#import &quot;Employee.h&quot;</span><br><span class="line"></span><br><span class="line">@implementation Employee</span><br><span class="line"></span><br><span class="line">- (void)setUserName:(NSMutableString *)userName</span><br><span class="line">&#123;</span><br><span class="line">    _userName = [userName mutableCopy];</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line">@end</span><br></pre></td></tr></table></figure>
+
+<p>这样，就达到了和是 <code>strong</code> 修饰语一样的效果了。</p>
+<p>大家，可以使用同样的方法来实践一下 <code>NSArray</code>、<code>NSMutableArry</code> 等集合数据的 <code>copy</code> 以及 <code>mutableCopy</code> 的效果了。</p>
+<h2 id="小结"><a href="#小结" class="headerlink" title="小结"></a>小结</h2><ul>
+<li><p>不可变的 <code>NSString</code> 对象经过 <code>copy</code> 后，还是不可变对象。</p>
+</li>
+<li><p>不可变的 <code>NSString</code> 对象经过 <code>mutableCopy</code> 后，变成了可变的 <code>NSMutableString</code> 对象。</p>
+</li>
+<li><p>可变的 <code>NSMutableString</code> 对象经过 <code>copy</code> 后，会变成不可变的 <code>NSString</code> 对象。</p>
+</li>
+<li><p>可变的 <code>NSMutableString</code> 对象经过 <code>mutableCopy</code> 后，仍然是可变的 <code>NSMutableString</code> 对象。</p>
+</li>
+<li><p>不可变的 <code>NSString</code> 对象在 property 中，尽量使用 <code>copy</code> 来修饰，因为使用 <code>strong</code> 修饰符可变字符串如果给不可变字符串赋值后，会导致你原本预期发生了变化，除非你有特殊的目的才使用 <code>strong</code> 修饰符。</p>
+</li>
+<li><p>可变的 <code>NSMutableString</code> 对象在 property 中，尽量使用 <code>strong</code> 来修饰，除非你有特殊的目的才使用 <code>copy</code> 修饰符。</p>
+</li>
+<li><p>虽然在 property 中没有 <code>mutableCopy</code> 修饰符，但是可以通过重写其 <code>set</code> 方法来达到目的。</p>
+</li>
+</ul>
+<hr>
+<p><strong>扫码关注，你我就各多一个朋友~</strong></p>
+<p><img class="lazy" src="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAABGdBTUEAALGPC/xhBQAAADhlWElmTU0AKgAAAAgAAYdpAAQAAAABAAAAGgAAAAAAAqACAAQAAAABAAAAAaADAAQAAAABAAAAAQAAAADa6r/EAAAAC0lEQVQIHWNgAAIAAAUAAY27m/MAAAAASUVORK5CYII=" data-src="/upload/me/qrcode_wx.jpg"></p>
+
+
+
+
+</article>
+
+<div class="related-wrap reveal" id="read-next"><section class="header cap theme"><span>接下来阅读</span></section><section class="body fs14"><a id="next" href="/2018/12/23/OC-self/">OC: self<span class="note">较早</span></a><div class="line"></div><a id="prev" href="/2018/12/31/2018%EF%BC%8C%E4%B8%8D%E4%BC%9A%E9%87%8D%E6%9D%A5/">2018，不会重来<span class="note">较新</span></a></section></div>
+
+
+
+
+
+
+  <div class='related-wrap md reveal' id="comments">
+    <div class='cmt-title cap theme'>
+      快来参与讨论吧
+    </div>
+    <div class='cmt-body valine'>
+      
+
+<div id="valine_container" class="valine_thread"><svg class="loading" style="vertical-align: middle;fill: currentColor;overflow: hidden;" viewBox="0 0 1024 1024" version="1.1" xmlns="http://www.w3.org/2000/svg" p-id="2709"><path d="M832 512c0-176-144-320-320-320V128c211.2 0 384 172.8 384 384h-64zM192 512c0 176 144 320 320 320v64C300.8 896 128 723.2 128 512h64z" p-id="2710"></path></svg></div>
+
+    </div>
+  </div>
+
+
+
+      
+<footer class="page-footer reveal fs12"><hr><div class="text"><p>本博客所有文章除特别声明外，均采用 <a target="_blank" rel="noopener" href="https://creativecommons.org/licenses/by-nc-sa/4.0/">CC BY-NC-SA 4.0</a> 许可协议，转载请注明出处。</p>
+<p>veryitman</p>
+</div></footer>
+
+      <div class='float-panel mobile-only blur' style='display:none'>
+  <button type='button' class='sidebar-toggle mobile' onclick='sidebar.toggle()'>
+    <svg class="icon" style="width: 1em; height: 1em;vertical-align: middle;fill: currentColor;overflow: hidden;" viewBox="0 0 1024 1024" version="1.1" xmlns="http://www.w3.org/2000/svg" p-id="15301"><path d="M566.407 808.3c26.9-0.1 49.3-20.8 51.6-47.6-1.9-27.7-23.9-49.7-51.6-51.6h-412.6c-28.2-1.4-52.6 19.5-55.5 47.6 2.3 26.8 24.6 47.5 51.6 47.6h416.5v4z m309.3-249.9c26.9-0.1 49.3-20.8 51.6-47.6-2.2-26.8-24.6-47.5-51.6-47.6h-721.9c-27.7-2.8-52.5 17.4-55.3 45.1-0.1 0.8-0.1 1.7-0.2 2.5 0.9 27.2 23.6 48.5 50.7 47.6H875.707z m-103.1-245.9c26.9-0.1 49.3-20.8 51.6-47.6-0.4-28.3-23.2-51.1-51.5-51.6h-618.9c-29.5-1.1-54.3 21.9-55.5 51.4v0.2c1.4 27.8 25.2 49.2 53 47.8 0.8 0 1.7-0.1 2.5-0.2h618.8z" p-id="15302"></path><path d="M566.407 808.3c26.9-0.1 49.3-20.8 51.6-47.6-1.9-27.7-23.9-49.7-51.6-51.6h-412.6c-28.2-1.4-52.6 19.5-55.5 47.6 1.9 27.7 23.9 49.7 51.6 51.6h416.5z m309.3-249.9c26.9-0.1 49.3-20.8 51.6-47.6-2.2-26.8-24.6-47.5-51.6-47.6h-721.9c-27.7-2.8-52.5 17.4-55.3 45.1-0.1 0.8-0.1 1.7-0.2 2.5 0.9 27.2 23.6 48.5 50.7 47.6H875.707z m-103.1-245.9c26.9-0.1 49.3-20.8 51.6-47.6-0.4-28.3-23.2-51.1-51.5-51.6h-618.9c-29.5-1.1-54.3 21.9-55.5 51.4v0.2c1.4 27.8 25.2 49.2 53 47.8 0.8 0 1.7-0.1 2.5-0.2h618.8z" p-id="15303"></path></svg>
+  </button>
+</div>
+
+    </div>
+  </div>
+  <div class='scripts'>
+    <script type="text/javascript">
+  stellar = {
+    // 懒加载 css https://github.com/filamentgroup/loadCSS
+    loadCSS: (href, before, media, attributes) => {
+      var doc = window.document;
+      var ss = doc.createElement("link");
+      var ref;
+      if (before) {
+        ref = before;
+      } else {
+        var refs = (doc.body || doc.getElementsByTagName("head")[0]).childNodes;
+        ref = refs[refs.length - 1];
+      }
+      var sheets = doc.styleSheets;
+      if (attributes) {
+        for (var attributeName in attributes) {
+          if (attributes.hasOwnProperty(attributeName)) {
+            ss.setAttribute(attributeName, attributes[attributeName]);
+          }
+        }
+      }
+      ss.rel = "stylesheet";
+      ss.href = href;
+      ss.media = "only x";
+      function ready(cb) {
+        if (doc.body) {
+          return cb();
+        }
+        setTimeout(function () {
+          ready(cb);
+        });
+      }
+      ready(function () {
+        ref.parentNode.insertBefore(ss, before ? ref : ref.nextSibling);
+      });
+      var onloadcssdefined = function (cb) {
+        var resolvedHref = ss.href;
+        var i = sheets.length;
+        while (i--) {
+          if (sheets[i].href === resolvedHref) {
+            return cb();
+          }
+        }
+        setTimeout(function () {
+          onloadcssdefined(cb);
+        });
+      };
+      function loadCB() {
+        if (ss.addEventListener) {
+          ss.removeEventListener("load", loadCB);
+        }
+        ss.media = media || "all";
+      }
+      if (ss.addEventListener) {
+        ss.addEventListener("load", loadCB);
+      }
+      ss.onloadcssdefined = onloadcssdefined;
+      onloadcssdefined(loadCB);
+      return ss;
+    },
+
+    // 从 butterfly 和 volantis 获得灵感
+    loadScript: (src, opt) => new Promise((resolve, reject) => {
+      var script = document.createElement('script');
+      script.src = src;
+      if (opt) {
+        for (let key of Object.keys(opt)) {
+          script[key] = opt[key]
+        }
+      } else {
+        // 默认异步，如果需要同步，第二个参数传入 {} 即可
+        script.async = true
+      }
+      script.onerror = reject
+      script.onload = script.onreadystatechange = function() {
+        const loadState = this.readyState
+        if (loadState && loadState !== 'loaded' && loadState !== 'complete') return
+        script.onload = script.onreadystatechange = null
+        resolve()
+      }
+      document.head.appendChild(script)
+    }),
+
+    // https://github.com/jerryc127/hexo-theme-butterfly
+    jQuery: (fn) => {
+      if (typeof jQuery === 'undefined') {
+        stellar.loadScript(stellar.plugins.jQuery).then(fn)
+      } else {
+        fn()
+      }
+    }
+  };
+  stellar.github = 'https://github.com/xaoxuu/hexo-theme-stellar/tree/1.6.1';
+  stellar.config = {
+    date_suffix: {
+      just: '刚刚',
+      min: '分钟前',
+      hour: '小时前',
+      day: '天前',
+      month: '个月前',
+    },
+  };
+
+  // required plugins (only load if needs)
+  stellar.plugins = {
+    jQuery: 'https://cdn.jsdelivr.net/npm/jquery@3.5.1/dist/jquery.min.js',
+    sitesjs: '/js/plugins/sites.js',
+    friendsjs: '/js/plugins/friends.js',
+  };
+
+  // optional plugins
+  if ('true' == 'true') {
+    stellar.plugins.lazyload = Object.assign({"enable":true,"js":"https://cdn.jsdelivr.net/npm/vanilla-lazyload@17.3.1/dist/lazyload.min.js","transition":"blur"});
+  }
+  if ('true' == 'true') {
+    stellar.plugins.swiper = Object.assign({"enable":true,"css":"https://unpkg.com/swiper@6/swiper-bundle.min.css","js":"https://unpkg.com/swiper@6/swiper-bundle.min.js"});
+  }
+  if ('' == 'true') {
+    stellar.plugins.scrollreveal = Object.assign({"enable":null,"js":"https://cdn.jsdelivr.net/npm/scrollreveal@4.0.9/dist/scrollreveal.min.js","distance":"8px","duration":500,"interval":100,"scale":1});
+  }
+  if ('true' == 'true') {
+    stellar.plugins.preload = Object.assign({"enable":true,"service":"flying_pages","instant_page":"https://cdn.jsdelivr.net/gh/volantis-x/cdn-volantis@4.1.2/js/instant_page.js","flying_pages":"https://cdn.jsdelivr.net/gh/gijo-varghese/flying-pages@2.1.2/flying-pages.min.js"});
+  }
+</script>
+
+<!-- required -->
+
+  
+<script src="/js/main.js" async></script>
+
+
+
+<!-- optional -->
+
+  <script>
+  function getEmojiMaps() {
+    function emoji(path, idx, ext) {
+      return path + "/" + path + "-" + idx + "." + ext;
+    }
+    var emojiMaps = {};
+    for (var i = 1; i <= 54; i++) {
+      emojiMaps['tieba-' + i] = emoji('tieba', i, 'png');
+    }
+    for (var i = 1; i <= 101; i++) {
+      emojiMaps['qq-' + i] = emoji('qq', i, 'gif');
+    }
+    for (var i = 1; i <= 116; i++) {
+      emojiMaps['aru-' + i] = emoji('aru', i, 'gif');
+    }
+    for (var i = 1; i <= 125; i++) {
+      emojiMaps['twemoji-' + i] = emoji('twemoji', i, 'png');
+    }
+    for (var i = 1; i <= 4; i++) {
+      emojiMaps['weibo-' + i] = emoji('weibo', i, 'png');
+    }
+    return emojiMaps;
+  }
+  function load_comment(){
+    if(!document.getElementById("valine_container"))return;
+    stellar.loadScript('https://cdn.jsdelivr.net/gh/XuxuGood/simple-blog-cdn@main/js/Valine.min.js', {defer:true}).then(function () {
+      const el = document.getElementById("valine_container");
+      var path = el.getAttribute('comment_id');
+      const placeholder = "欢迎您留言~";
+      if (!path) {
+        path = decodeURI(window.location.pathname);
+      }
+      var valine = new Valine();
+      valine.init(Object.assign({"js":"https://cdn.jsdelivr.net/gh/XuxuGood/simple-blog-cdn@main/js/Valine.min.js","appId":"FY2C9UCttYNaE1j8umenqdCE-gzGzoHsz","appKey":"4i7xMwkfSEGmEDhi6SceKFxz","placeholder":"欢迎您留言~","requiredFields":["nick","mail"],"enableQQ":true,"recordIP":false,"avatar":"robohash","pageSize":10,"lang":"zh-cn","highlight":true,"mathJax":false,"tagMeta":["博主","小伙伴","访客"],"metaPlaceholder":{"nick":"昵称/QQ号(必填)","mail":"邮箱（必填，完全保密）"},"master":["6783037F2DF30EAB99F9FC256157D875"],"friends":["6783037F2DF30EAB99F9FC256157D875"],"comment_count":true}, {
+        el: '#valine_container',
+        path: path,
+        placeholder: placeholder,
+        emojiCDN: 'https://cdn.jsdelivr.net/gh/volantis-x/cdn-emoji/valine/',
+        emojiMaps: getEmojiMaps(),
+      }));
+    });
+  }
+  window.addEventListener('DOMContentLoaded', (event) => {
+    console.log('DOM fully loaded and parsed');
+    load_comment();
+  });
+
+</script>
+
+
+
+
+<!-- inject -->
+
+
+  </div>
+</body>
+</html>

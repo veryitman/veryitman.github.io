@@ -1,0 +1,371 @@
+<!DOCTYPE html>
+<html lang='zh-CN'>
+
+<head>
+  <meta name="generator" content="Hexo 6.0.0">
+  <meta charset="utf-8">
+  
+
+  <meta http-equiv='x-dns-prefetch-control' content='on' />
+  <link rel='dns-prefetch' href='https://cdn.jsdelivr.net'>
+  <link rel="preconnect" href="https://cdn.jsdelivr.net" crossorigin>
+
+  <meta name="renderer" content="webkit">
+  <meta name="force-rendering" content="webkit">
+  <meta http-equiv="X-UA-Compatible" content="IE=Edge,chrome=1">
+  <meta name="HandheldFriendly" content="True" >
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1">
+  <meta name="theme-color" content="#f8f8f8">
+  <title>音视频编程: iOS 使用 faad2 - Veryitman</title>
+
+  
+    <meta name="description" content="最近在看人工智能相关的知识，无意中发现了一个巨牛的 人工智能教程，分享一下给大家。 教程不仅是零基础，通俗易懂，而且非常风趣幽默，像看小说一样！觉得太牛了，所以分享给大家。点 这里 可以直接看教程。 简介本次分享使用 faad2 解码 AAC 音频文件, 将 AAC 文件转换为 WAV 文件并使用 AVAudioPlayer 进行播放。 在博文 音视频编程: 简单分析 WAV 文件 给大家简单的分">
+<meta property="og:type" content="article">
+<meta property="og:title" content="音视频编程: iOS 使用 faad2">
+<meta property="og:url" content="http://example.com/2018/02/20/%E9%9F%B3%E8%A7%86%E9%A2%91%E7%BC%96%E7%A8%8B-iOS-%E4%BD%BF%E7%94%A8-faad2/index.html">
+<meta property="og:site_name" content="Veryitman">
+<meta property="og:description" content="最近在看人工智能相关的知识，无意中发现了一个巨牛的 人工智能教程，分享一下给大家。 教程不仅是零基础，通俗易懂，而且非常风趣幽默，像看小说一样！觉得太牛了，所以分享给大家。点 这里 可以直接看教程。 简介本次分享使用 faad2 解码 AAC 音频文件, 将 AAC 文件转换为 WAV 文件并使用 AVAudioPlayer 进行播放。 在博文 音视频编程: 简单分析 WAV 文件 给大家简单的分">
+<meta property="og:locale" content="zh_CN">
+<meta property="og:image" content="http://example.com/upload/images/2018/02/20/11.jpg">
+<meta property="og:image" content="http://example.com/upload/images/2018/02/20/22.jpg">
+<meta property="article:published_time" content="2018-02-20T15:29:29.000Z">
+<meta property="article:modified_time" content="2022-03-09T14:53:24.341Z">
+<meta property="article:author" content="veryitman">
+<meta property="article:tag" content="音视频 wav pcm faad2 aac">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:image" content="http://example.com/upload/images/2018/02/20/11.jpg">
+  
+  
+
+  <!-- feed -->
+  
+
+  
+    
+<link rel="stylesheet" href="/css/main.css">
+
+  
+
+  
+
+  
+</head>
+
+<body>
+  
+
+
+  <div class='l_body' id='start'>
+    <aside class='l_left' layout='post'>
+    
+
+
+<header class="header">
+
+<div class="logo-wrap"><a class="title" href="/"><div class="main">Veryitman</div></a></div>
+<nav class="menu dis-select"></nav></header>
+
+<div class="widgets">
+
+<div class="widget-wrap single" id="toc"><div class="widget-header cap dis-select"><span class="name">本文目录</span></div><div class="widget-body fs14"><div class="doc-tree active"><ol class="toc"><li class="toc-item toc-level-2"><a class="toc-link" href="#%E7%AE%80%E4%BB%8B"><span class="toc-text">简介</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#%E4%BE%8B%E5%AD%90%E4%BB%8B%E7%BB%8D"><span class="toc-text">例子介绍</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#%E5%B7%A5%E7%A8%8B%E5%AE%9E%E6%88%98"><span class="toc-text">工程实战</span></a><ol class="toc-child"><li class="toc-item toc-level-3"><a class="toc-link" href="#%E5%BC%95%E5%85%A5-faad2"><span class="toc-text">引入 faad2</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#%E7%BC%96%E7%A0%81%E5%AE%9E%E7%8E%B0"><span class="toc-text">编码实现</span></a></li></ol></li><li class="toc-item toc-level-2"><a class="toc-link" href="#%E9%BA%BB%E7%83%A6"><span class="toc-text">麻烦</span></a></li></ol></div></div></div>
+
+
+</div>
+
+
+    </aside>
+    <div class='l_main'>
+      
+
+      
+
+
+<div class="bread-nav fs12"><div id="breadcrumb"><a class="cap breadcrumb" href="/">主页</a><span class="sep"></span><a class="cap breadcrumb" href="/">文章</a><span class="sep"></span><a class="cap breadcrumb-link" href="/categories/iOS/">iOS</a></div><div id="post-meta">发布于&nbsp;<time datetime="2018-02-20T15:29:29.000Z">2018-02-20</time></div></div>
+
+<article class='content md post'>
+<h1 class="article-title"><span>音视频编程: iOS 使用 faad2</span></h1>
+<p>最近在看人工智能相关的知识，无意中发现了一个巨牛的 <a target="_blank" rel="noopener" href="https://www.cbedai.net/androidbluetooth">人工智能教程</a>，分享一下给大家。</p>
+<p>教程不仅是零基础，通俗易懂，而且非常风趣幽默，像看小说一样！觉得太牛了，所以分享给大家。点 <a target="_blank" rel="noopener" href="https://www.cbedai.net/androidbluetooth">这里</a> 可以直接看教程。</p>
+<h2 id="简介"><a href="#简介" class="headerlink" title="简介"></a>简介</h2><p>本次分享使用 faad2 解码 AAC 音频文件, 将 AAC 文件转换为 WAV 文件并使用 AVAudioPlayer 进行播放。</p>
+<p>在博文 <a target="_blank" rel="noopener" href="http://www.veryitman.com/2018/02/20/%E9%9F%B3%E8%A7%86%E9%A2%91%E7%BC%96%E7%A8%8B-%E7%AE%80%E5%8D%95%E5%88%86%E6%9E%90-WAV-%E6%96%87%E4%BB%B6/">音视频编程: 简单分析 WAV 文件</a> 给大家简单的分析了一下 WAV 的数据头协议, 其实也是为了这篇博文来服务的, 所以阅读本文之前, 建议先看上文。</p>
+<p><strong>该系列博文:</strong></p>
+<ul>
+<li><p><a target="_blank" rel="noopener" href="http://www.veryitman.com/2018/02/14/%E9%9F%B3%E8%A7%86%E9%A2%91%E7%BC%96%E7%A8%8B-%E7%BC%96%E8%AF%91-faac-faad2/">音视频编程: 编译 faac&#x2F;faad2</a></p>
+</li>
+<li><p><a target="_blank" rel="noopener" href="http://www.veryitman.com/2018/02/16/%E9%9F%B3%E8%A7%86%E9%A2%91%E7%BC%96%E7%A8%8B-iOS-%E4%BD%BF%E7%94%A8-faac-%E7%BC%96%E7%A0%81/">音视频编程: iOS 使用 faac 编码</a></p>
+</li>
+<li><p><a target="_blank" rel="noopener" href="http://www.veryitman.com/2018/02/20/%E9%9F%B3%E8%A7%86%E9%A2%91%E7%BC%96%E7%A8%8B-%E7%AE%80%E5%8D%95%E5%88%86%E6%9E%90-WAV-%E6%96%87%E4%BB%B6/">音视频编程: 简单分析 WAV 文件</a></p>
+</li>
+<li><p><a target="_blank" rel="noopener" href="http://www.veryitman.com/2018/02/20/%E9%9F%B3%E8%A7%86%E9%A2%91%E7%BC%96%E7%A8%8B-iOS-%E4%BD%BF%E7%94%A8-faad2/">音视频编程: iOS 使用 faad2</a> (本篇)</p>
+</li>
+<li><p><a target="_blank" rel="noopener" href="http://www.veryitman.com/2018/02/25/%E9%9F%B3%E8%A7%86%E9%A2%91%E7%BC%96%E7%A8%8B-%E6%9E%84%E5%BB%BA-nginx-%E6%8E%A8%E6%B5%81%E6%9C%8D%E5%8A%A1%E5%99%A8/">音视频编程: 构建 nginx 推流服务器</a></p>
+</li>
+</ul>
+<h2 id="例子介绍"><a href="#例子介绍" class="headerlink" title="例子介绍"></a>例子介绍</h2><p>本文以一个实际的例子, 使用 faad2的各个函数来解码 AAC 数据.</p>
+<p>主要有以下几个步骤:</p>
+<ul>
+<li>获取输入文件</li>
+<li>获取 faad 解码器句柄</li>
+<li>初始化 faad 解码器</li>
+<li>根据文件解析文件帧, 并写入输出文件中</li>
+<li>写入文件头将其封装为 WAV 格式的音频文件</li>
+<li>关闭 faad 解码器句柄</li>
+</ul>
+<h2 id="工程实战"><a href="#工程实战" class="headerlink" title="工程实战"></a>工程实战</h2><h3 id="引入-faad2"><a href="#引入-faad2" class="headerlink" title="引入 faad2"></a>引入 faad2</h3><p>将编译好的 faad2 导入工程即可.</p>
+<p><img class="lazy" src="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAABGdBTUEAALGPC/xhBQAAADhlWElmTU0AKgAAAAgAAYdpAAQAAAABAAAAGgAAAAAAAqACAAQAAAABAAAAAaADAAQAAAABAAAAAQAAAADa6r/EAAAAC0lEQVQIHWNgAAIAAAUAAY27m/MAAAAASUVORK5CYII=" data-src="/upload/images/2018/02/20/11.jpg" alt="1"><br>其中关键的 API 在 neaacdec.h 中有描述.</p>
+<p>工程效果图:<br><img class="lazy" src="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAABGdBTUEAALGPC/xhBQAAADhlWElmTU0AKgAAAAgAAYdpAAQAAAABAAAAGgAAAAAAAqACAAQAAAABAAAAAaADAAQAAAABAAAAAQAAAADa6r/EAAAAC0lEQVQIHWNgAAIAAAUAAY27m/MAAAAASUVORK5CYII=" data-src="/upload/images/2018/02/20/22.jpg" alt="1"></p>
+<h3 id="编码实现"><a href="#编码实现" class="headerlink" title="编码实现"></a>编码实现</h3><p>在 <a target="_blank" rel="noopener" href="http://www.veryitman.com/2018/02/20/%E9%9F%B3%E8%A7%86%E9%A2%91%E7%BC%96%E7%A8%8B-%E7%AE%80%E5%8D%95%E5%88%86%E6%9E%90-WAV-%E6%96%87%E4%BB%B6/">音视频编程: 简单分析 WAV 文件</a> 中已经定义了 WAV 的数据头.</p>
+<figure class="highlight c"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br></pre></td><td class="code"><pre><span class="line"><span class="class"><span class="keyword">struct</span> <span class="title">MZWavAudioFileHeader</span></span></span><br><span class="line"><span class="class">&#123;</span></span><br><span class="line">    <span class="type">char</span>       riff[<span class="number">4</span>];       <span class="comment">// 字符串 &quot;RIFF&quot;</span></span><br><span class="line">    <span class="type">uint32_t</span>   totalLength; <span class="comment">// 文件总大小, 包括PCM 数据大小和该文件头大小</span></span><br><span class="line">    <span class="type">char</span>       wave[<span class="number">4</span>];     <span class="comment">// 字符串 &quot;WAVE&quot;</span></span><br><span class="line">    <span class="type">char</span>       fmt[<span class="number">4</span>];      <span class="comment">// 字符串 &quot;fmt &quot;</span></span><br><span class="line">    <span class="type">uint32_t</span>   format;      <span class="comment">// WAV 头大小, 固定为值 16</span></span><br><span class="line">    <span class="type">uint16_t</span>   pcm;         <span class="comment">// PCM 编码方式, 固定值为 1</span></span><br><span class="line">    <span class="type">uint16_t</span>   channels;    <span class="comment">// 声道数量, 为 2</span></span><br><span class="line">    <span class="type">uint32_t</span>   frequency;   <span class="comment">// 采样频率</span></span><br><span class="line">    <span class="type">uint32_t</span>   bytes_per_second; <span class="comment">// 每秒字节数(码率), 其值=采样率x通道数x位深度/8</span></span><br><span class="line">    <span class="type">uint16_t</span>   bytes_by_capture; <span class="comment">// 采样块大小</span></span><br><span class="line">    <span class="type">uint16_t</span>   bits_per_sample; <span class="comment">// 采样点大小, 这里是 16 位</span></span><br><span class="line">    <span class="type">char</span>       data[<span class="number">4</span>];         <span class="comment">// 字符串 &quot;data&quot;</span></span><br><span class="line">    <span class="type">uint32_t</span>   bytes_in_pcmdata;  <span class="comment">// pcm 数据长度</span></span><br><span class="line">&#125;;</span><br></pre></td></tr></table></figure>
+
+<p>现在实现写入数据头的方法 <code>mz_write_wav_header</code></p>
+<figure class="highlight c"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br><span class="line">39</span><br><span class="line">40</span><br><span class="line">41</span><br><span class="line">42</span><br><span class="line">43</span><br><span class="line">44</span><br><span class="line">45</span><br><span class="line">46</span><br><span class="line">47</span><br><span class="line">48</span><br><span class="line">49</span><br><span class="line">50</span><br><span class="line">51</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment">/**</span></span><br><span class="line"><span class="comment"> * 写入 wav 头数据.</span></span><br><span class="line"><span class="comment"> *</span></span><br><span class="line"><span class="comment"> *  @param file  wav 文件指针.</span></span><br><span class="line"><span class="comment"> *  @param total_samples_per_channel 每个声道的采样数.</span></span><br><span class="line"><span class="comment"> *  @param samplerate 采样率.</span></span><br><span class="line"><span class="comment"> *  @param channels 声道数.</span></span><br><span class="line"><span class="comment"> */</span></span><br><span class="line"><span class="type">void</span> <span class="title function_">mz_write_wav_header</span><span class="params">(FILE *file, <span class="type">int</span> total_samples_per_channel, <span class="type">int</span> samplerate, <span class="type">int</span> channels)</span> &#123;</span><br><span class="line">    </span><br><span class="line">    <span class="keyword">if</span> (<span class="literal">NULL</span> == file) &#123;</span><br><span class="line">        <span class="keyword">return</span>;</span><br><span class="line">    &#125;</span><br><span class="line">    </span><br><span class="line">    <span class="keyword">if</span> (total_samples_per_channel &lt;= <span class="number">0</span>) &#123;</span><br><span class="line">        <span class="keyword">return</span>;</span><br><span class="line">    &#125;</span><br><span class="line">    </span><br><span class="line">    <span class="built_in">printf</span>(<span class="string">&quot;FAAD. total_samples_per_channel: %i, samplerate: %i, channels: %i\n&quot;</span>,</span><br><span class="line">           total_samples_per_channel, samplerate, channels);</span><br><span class="line">    </span><br><span class="line">    <span class="class"><span class="keyword">struct</span> <span class="title">MZWavAudioFileHeader</span> <span class="title">wavHeader</span>;</span></span><br><span class="line">    </span><br><span class="line">    <span class="comment">// 写入 RIFF</span></span><br><span class="line">    <span class="built_in">strcpy</span>(wavHeader.riff, <span class="string">&quot;RIFF&quot;</span>);</span><br><span class="line">    </span><br><span class="line">    wavHeader.bits_per_sample = <span class="number">16</span>;</span><br><span class="line">    </span><br><span class="line">    wavHeader.totalLength = (total_samples_per_channel * channels * wavHeader.bits_per_sample/<span class="number">8</span>) + <span class="keyword">sizeof</span>(wavHeader) - <span class="number">8</span>;</span><br><span class="line">    </span><br><span class="line">    <span class="comment">// 写入 WAVE 和 fmt</span></span><br><span class="line">    <span class="built_in">strcpy</span>(wavHeader.wave, <span class="string">&quot;WAVE&quot;</span>);</span><br><span class="line">    <span class="built_in">strcpy</span>(wavHeader.fmt, <span class="string">&quot;fmt &quot;</span>);</span><br><span class="line">    </span><br><span class="line">    wavHeader.format = <span class="number">16</span>;</span><br><span class="line">    wavHeader.pcm = <span class="number">1</span>;</span><br><span class="line">    wavHeader.channels = channels;</span><br><span class="line">    wavHeader.frequency = samplerate;</span><br><span class="line">    </span><br><span class="line">    <span class="comment">// 每秒的字节数(码率)=采样率x通道数x位深度/8</span></span><br><span class="line">    wavHeader.bytes_per_second = wavHeader.channels * wavHeader.frequency * wavHeader.bits_per_sample/<span class="number">8</span>;</span><br><span class="line">    </span><br><span class="line">    wavHeader.bytes_by_capture = wavHeader.channels*wavHeader.bits_per_sample/<span class="number">8</span>;</span><br><span class="line">    </span><br><span class="line">    wavHeader.bytes_in_pcmdata = total_samples_per_channel * wavHeader.channels * wavHeader.bits_per_sample/<span class="number">8</span>;</span><br><span class="line">    </span><br><span class="line">    <span class="comment">// 写入 data</span></span><br><span class="line">    <span class="built_in">strcpy</span>(wavHeader.data, <span class="string">&quot;data&quot;</span>);</span><br><span class="line">    </span><br><span class="line">    fwrite(&amp;wavHeader, <span class="number">1</span>, <span class="keyword">sizeof</span>(wavHeader), file);</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<p>解码主要用到了 FAAD2 中的 <code>NeAACDecDecode</code> 函数. 函数原型如下:</p>
+<figure class="highlight c"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><span class="line"><span class="type">void</span>* NEAACDECAPI <span class="title function_">NeAACDecDecode</span><span class="params">(NeAACDecHandle hDecoder,</span></span><br><span class="line"><span class="params">                                 NeAACDecFrameInfo *hInfo,</span></span><br><span class="line"><span class="params">                                 <span class="type">unsigned</span> <span class="type">char</span> *buffer,</span></span><br><span class="line"><span class="params">                                 <span class="type">unsigned</span> <span class="type">long</span> buffer_size)</span>;</span><br></pre></td></tr></table></figure>
+
+<p>对应帧定义的结构体: <code>NeAACDecFrameInfo</code>, 定义如下:</p>
+<figure class="highlight c"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">typedef</span> <span class="class"><span class="keyword">struct</span> <span class="title">NeAACDecFrameInfo</span></span></span><br><span class="line"><span class="class">&#123;</span></span><br><span class="line">    <span class="type">unsigned</span> <span class="type">long</span> bytesconsumed;</span><br><span class="line">    <span class="type">unsigned</span> <span class="type">long</span> samples;</span><br><span class="line">    <span class="type">unsigned</span> <span class="type">char</span> channels;</span><br><span class="line">    <span class="type">unsigned</span> <span class="type">char</span> error;</span><br><span class="line">    <span class="type">unsigned</span> <span class="type">long</span> samplerate;</span><br><span class="line"></span><br><span class="line">    <span class="comment">/* SBR: 0: off, 1: on; upsample, 2: on; downsampled, 3: off; upsampled */</span></span><br><span class="line">    <span class="type">unsigned</span> <span class="type">char</span> sbr;</span><br><span class="line"></span><br><span class="line">    <span class="comment">/* MPEG-4 ObjectType */</span></span><br><span class="line">    <span class="type">unsigned</span> <span class="type">char</span> object_type;</span><br><span class="line"></span><br><span class="line">    <span class="comment">/* AAC header type; MP4 will be signalled as RAW also */</span></span><br><span class="line">    <span class="type">unsigned</span> <span class="type">char</span> header_type;</span><br><span class="line"></span><br><span class="line">    <span class="comment">/* multichannel configuration */</span></span><br><span class="line">    <span class="type">unsigned</span> <span class="type">char</span> num_front_channels;</span><br><span class="line">    <span class="type">unsigned</span> <span class="type">char</span> num_side_channels;</span><br><span class="line">    <span class="type">unsigned</span> <span class="type">char</span> num_back_channels;</span><br><span class="line">    <span class="type">unsigned</span> <span class="type">char</span> num_lfe_channels;</span><br><span class="line">    <span class="type">unsigned</span> <span class="type">char</span> channel_position[<span class="number">64</span>];</span><br><span class="line"></span><br><span class="line">    <span class="comment">/* PS: 0: off, 1: on */</span></span><br><span class="line">    <span class="type">unsigned</span> <span class="type">char</span> ps;</span><br><span class="line">&#125; NeAACDecFrameInfo;</span><br></pre></td></tr></table></figure>
+
+<p>具体的解码实现, 我放到了 Github 上面了, 大家可以去 <a target="_blank" rel="noopener" href="https://github.com/veryitman/faacfaad2">这里</a> 查看.</p>
+<h2 id="麻烦"><a href="#麻烦" class="headerlink" title="麻烦"></a>麻烦</h2><blockquote>
+<p>解码 aac, 解决采样频率和通道数不对的问题</p>
+</blockquote>
+<figure class="highlight objc"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment">//防止采样频率加倍</span></span><br><span class="line">NeAACDecConfigurationPtr conf = NeAACDecGetCurrentConfiguration(decoder);</span><br><span class="line">conf-&gt;dontUpSampleImplicitSBR = <span class="number">1</span>;</span><br><span class="line">NeAACDecSetConfiguration(decoder, conf);</span><br></pre></td></tr></table></figure>
+
+<figure class="highlight objc"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment">//从双声道的数据中提取单通道  </span></span><br><span class="line"><span class="keyword">for</span>(i=<span class="number">0</span>,j=<span class="number">0</span>; i&lt;<span class="number">4096</span> &amp;&amp; j&lt;<span class="number">2048</span>; i+=<span class="number">4</span>, j+=<span class="number">2</span>) &#123;</span><br><span class="line"></span><br><span class="line">	frame_mono[j]=pcm_data[i];</span><br><span class="line">	frame_mono[j+<span class="number">1</span>]=pcm_data[i+<span class="number">1</span>];</span><br><span class="line">&#125;  </span><br></pre></td></tr></table></figure>
+
+<p>具体可以查阅 FAAD2 的源码. 感谢 <a target="_blank" rel="noopener" href="http://blog.csdn.net/machh/article/details/47153111">使用FAAD库解码AAC实例及 及 faad解码后的通道数不正确的问题</a> 提供.</p>
+
+
+
+
+</article>
+
+<div class="related-wrap reveal" id="read-next"><section class="header cap theme"><span>接下来阅读</span></section><section class="body fs14"><a id="next" href="/2018/02/20/%E9%9F%B3%E8%A7%86%E9%A2%91%E7%BC%96%E7%A8%8B-%E7%AE%80%E5%8D%95%E5%88%86%E6%9E%90-WAV-%E6%96%87%E4%BB%B6/">音视频编程: 简单分析 WAV 文件<span class="note">较早</span></a><div class="line"></div><a id="prev" href="/2018/02/22/NSLog-%E6%A0%BC%E5%BC%8F%E5%8C%96%E8%BE%93%E5%87%BA-NSInteger-NSUInteger/">NSLog 格式化输出 NSInteger/NSUInteger<span class="note">较新</span></a></section></div>
+
+
+
+
+
+
+  <div class='related-wrap md reveal' id="comments">
+    <div class='cmt-title cap theme'>
+      快来参与讨论吧
+    </div>
+    <div class='cmt-body valine'>
+      
+
+<div id="valine_container" class="valine_thread"><svg class="loading" style="vertical-align: middle;fill: currentColor;overflow: hidden;" viewBox="0 0 1024 1024" version="1.1" xmlns="http://www.w3.org/2000/svg" p-id="2709"><path d="M832 512c0-176-144-320-320-320V128c211.2 0 384 172.8 384 384h-64zM192 512c0 176 144 320 320 320v64C300.8 896 128 723.2 128 512h64z" p-id="2710"></path></svg></div>
+
+    </div>
+  </div>
+
+
+
+      
+<footer class="page-footer reveal fs12"><hr><div class="text"><p>本博客所有文章除特别声明外，均采用 <a target="_blank" rel="noopener" href="https://creativecommons.org/licenses/by-nc-sa/4.0/">CC BY-NC-SA 4.0</a> 许可协议，转载请注明出处。</p>
+<p>veryitman</p>
+</div></footer>
+
+      <div class='float-panel mobile-only blur' style='display:none'>
+  <button type='button' class='sidebar-toggle mobile' onclick='sidebar.toggle()'>
+    <svg class="icon" style="width: 1em; height: 1em;vertical-align: middle;fill: currentColor;overflow: hidden;" viewBox="0 0 1024 1024" version="1.1" xmlns="http://www.w3.org/2000/svg" p-id="15301"><path d="M566.407 808.3c26.9-0.1 49.3-20.8 51.6-47.6-1.9-27.7-23.9-49.7-51.6-51.6h-412.6c-28.2-1.4-52.6 19.5-55.5 47.6 2.3 26.8 24.6 47.5 51.6 47.6h416.5v4z m309.3-249.9c26.9-0.1 49.3-20.8 51.6-47.6-2.2-26.8-24.6-47.5-51.6-47.6h-721.9c-27.7-2.8-52.5 17.4-55.3 45.1-0.1 0.8-0.1 1.7-0.2 2.5 0.9 27.2 23.6 48.5 50.7 47.6H875.707z m-103.1-245.9c26.9-0.1 49.3-20.8 51.6-47.6-0.4-28.3-23.2-51.1-51.5-51.6h-618.9c-29.5-1.1-54.3 21.9-55.5 51.4v0.2c1.4 27.8 25.2 49.2 53 47.8 0.8 0 1.7-0.1 2.5-0.2h618.8z" p-id="15302"></path><path d="M566.407 808.3c26.9-0.1 49.3-20.8 51.6-47.6-1.9-27.7-23.9-49.7-51.6-51.6h-412.6c-28.2-1.4-52.6 19.5-55.5 47.6 1.9 27.7 23.9 49.7 51.6 51.6h416.5z m309.3-249.9c26.9-0.1 49.3-20.8 51.6-47.6-2.2-26.8-24.6-47.5-51.6-47.6h-721.9c-27.7-2.8-52.5 17.4-55.3 45.1-0.1 0.8-0.1 1.7-0.2 2.5 0.9 27.2 23.6 48.5 50.7 47.6H875.707z m-103.1-245.9c26.9-0.1 49.3-20.8 51.6-47.6-0.4-28.3-23.2-51.1-51.5-51.6h-618.9c-29.5-1.1-54.3 21.9-55.5 51.4v0.2c1.4 27.8 25.2 49.2 53 47.8 0.8 0 1.7-0.1 2.5-0.2h618.8z" p-id="15303"></path></svg>
+  </button>
+</div>
+
+    </div>
+  </div>
+  <div class='scripts'>
+    <script type="text/javascript">
+  stellar = {
+    // 懒加载 css https://github.com/filamentgroup/loadCSS
+    loadCSS: (href, before, media, attributes) => {
+      var doc = window.document;
+      var ss = doc.createElement("link");
+      var ref;
+      if (before) {
+        ref = before;
+      } else {
+        var refs = (doc.body || doc.getElementsByTagName("head")[0]).childNodes;
+        ref = refs[refs.length - 1];
+      }
+      var sheets = doc.styleSheets;
+      if (attributes) {
+        for (var attributeName in attributes) {
+          if (attributes.hasOwnProperty(attributeName)) {
+            ss.setAttribute(attributeName, attributes[attributeName]);
+          }
+        }
+      }
+      ss.rel = "stylesheet";
+      ss.href = href;
+      ss.media = "only x";
+      function ready(cb) {
+        if (doc.body) {
+          return cb();
+        }
+        setTimeout(function () {
+          ready(cb);
+        });
+      }
+      ready(function () {
+        ref.parentNode.insertBefore(ss, before ? ref : ref.nextSibling);
+      });
+      var onloadcssdefined = function (cb) {
+        var resolvedHref = ss.href;
+        var i = sheets.length;
+        while (i--) {
+          if (sheets[i].href === resolvedHref) {
+            return cb();
+          }
+        }
+        setTimeout(function () {
+          onloadcssdefined(cb);
+        });
+      };
+      function loadCB() {
+        if (ss.addEventListener) {
+          ss.removeEventListener("load", loadCB);
+        }
+        ss.media = media || "all";
+      }
+      if (ss.addEventListener) {
+        ss.addEventListener("load", loadCB);
+      }
+      ss.onloadcssdefined = onloadcssdefined;
+      onloadcssdefined(loadCB);
+      return ss;
+    },
+
+    // 从 butterfly 和 volantis 获得灵感
+    loadScript: (src, opt) => new Promise((resolve, reject) => {
+      var script = document.createElement('script');
+      script.src = src;
+      if (opt) {
+        for (let key of Object.keys(opt)) {
+          script[key] = opt[key]
+        }
+      } else {
+        // 默认异步，如果需要同步，第二个参数传入 {} 即可
+        script.async = true
+      }
+      script.onerror = reject
+      script.onload = script.onreadystatechange = function() {
+        const loadState = this.readyState
+        if (loadState && loadState !== 'loaded' && loadState !== 'complete') return
+        script.onload = script.onreadystatechange = null
+        resolve()
+      }
+      document.head.appendChild(script)
+    }),
+
+    // https://github.com/jerryc127/hexo-theme-butterfly
+    jQuery: (fn) => {
+      if (typeof jQuery === 'undefined') {
+        stellar.loadScript(stellar.plugins.jQuery).then(fn)
+      } else {
+        fn()
+      }
+    }
+  };
+  stellar.github = 'https://github.com/xaoxuu/hexo-theme-stellar/tree/1.6.1';
+  stellar.config = {
+    date_suffix: {
+      just: '刚刚',
+      min: '分钟前',
+      hour: '小时前',
+      day: '天前',
+      month: '个月前',
+    },
+  };
+
+  // required plugins (only load if needs)
+  stellar.plugins = {
+    jQuery: 'https://cdn.jsdelivr.net/npm/jquery@3.5.1/dist/jquery.min.js',
+    sitesjs: '/js/plugins/sites.js',
+    friendsjs: '/js/plugins/friends.js',
+  };
+
+  // optional plugins
+  if ('true' == 'true') {
+    stellar.plugins.lazyload = Object.assign({"enable":true,"js":"https://cdn.jsdelivr.net/npm/vanilla-lazyload@17.3.1/dist/lazyload.min.js","transition":"blur"});
+  }
+  if ('true' == 'true') {
+    stellar.plugins.swiper = Object.assign({"enable":true,"css":"https://unpkg.com/swiper@6/swiper-bundle.min.css","js":"https://unpkg.com/swiper@6/swiper-bundle.min.js"});
+  }
+  if ('' == 'true') {
+    stellar.plugins.scrollreveal = Object.assign({"enable":null,"js":"https://cdn.jsdelivr.net/npm/scrollreveal@4.0.9/dist/scrollreveal.min.js","distance":"8px","duration":500,"interval":100,"scale":1});
+  }
+  if ('true' == 'true') {
+    stellar.plugins.preload = Object.assign({"enable":true,"service":"flying_pages","instant_page":"https://cdn.jsdelivr.net/gh/volantis-x/cdn-volantis@4.1.2/js/instant_page.js","flying_pages":"https://cdn.jsdelivr.net/gh/gijo-varghese/flying-pages@2.1.2/flying-pages.min.js"});
+  }
+</script>
+
+<!-- required -->
+
+  
+<script src="/js/main.js" async></script>
+
+
+
+<!-- optional -->
+
+  <script>
+  function getEmojiMaps() {
+    function emoji(path, idx, ext) {
+      return path + "/" + path + "-" + idx + "." + ext;
+    }
+    var emojiMaps = {};
+    for (var i = 1; i <= 54; i++) {
+      emojiMaps['tieba-' + i] = emoji('tieba', i, 'png');
+    }
+    for (var i = 1; i <= 101; i++) {
+      emojiMaps['qq-' + i] = emoji('qq', i, 'gif');
+    }
+    for (var i = 1; i <= 116; i++) {
+      emojiMaps['aru-' + i] = emoji('aru', i, 'gif');
+    }
+    for (var i = 1; i <= 125; i++) {
+      emojiMaps['twemoji-' + i] = emoji('twemoji', i, 'png');
+    }
+    for (var i = 1; i <= 4; i++) {
+      emojiMaps['weibo-' + i] = emoji('weibo', i, 'png');
+    }
+    return emojiMaps;
+  }
+  function load_comment(){
+    if(!document.getElementById("valine_container"))return;
+    stellar.loadScript('https://cdn.jsdelivr.net/gh/XuxuGood/simple-blog-cdn@main/js/Valine.min.js', {defer:true}).then(function () {
+      const el = document.getElementById("valine_container");
+      var path = el.getAttribute('comment_id');
+      const placeholder = "欢迎您留言~";
+      if (!path) {
+        path = decodeURI(window.location.pathname);
+      }
+      var valine = new Valine();
+      valine.init(Object.assign({"js":"https://cdn.jsdelivr.net/gh/XuxuGood/simple-blog-cdn@main/js/Valine.min.js","appId":"FY2C9UCttYNaE1j8umenqdCE-gzGzoHsz","appKey":"4i7xMwkfSEGmEDhi6SceKFxz","placeholder":"欢迎您留言~","requiredFields":["nick","mail"],"enableQQ":true,"recordIP":false,"avatar":"robohash","pageSize":10,"lang":"zh-cn","highlight":true,"mathJax":false,"tagMeta":["博主","小伙伴","访客"],"metaPlaceholder":{"nick":"昵称/QQ号(必填)","mail":"邮箱（必填，完全保密）"},"master":["6783037F2DF30EAB99F9FC256157D875"],"friends":["6783037F2DF30EAB99F9FC256157D875"],"comment_count":true}, {
+        el: '#valine_container',
+        path: path,
+        placeholder: placeholder,
+        emojiCDN: 'https://cdn.jsdelivr.net/gh/volantis-x/cdn-emoji/valine/',
+        emojiMaps: getEmojiMaps(),
+      }));
+    });
+  }
+  window.addEventListener('DOMContentLoaded', (event) => {
+    console.log('DOM fully loaded and parsed');
+    load_comment();
+  });
+
+</script>
+
+
+
+
+<!-- inject -->
+
+
+  </div>
+</body>
+</html>

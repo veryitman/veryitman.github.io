@@ -1,0 +1,409 @@
+<!DOCTYPE html>
+<html lang='zh-CN'>
+
+<head>
+  <meta name="generator" content="Hexo 6.0.0">
+  <meta charset="utf-8">
+  
+
+  <meta http-equiv='x-dns-prefetch-control' content='on' />
+  <link rel='dns-prefetch' href='https://cdn.jsdelivr.net'>
+  <link rel="preconnect" href="https://cdn.jsdelivr.net" crossorigin>
+
+  <meta name="renderer" content="webkit">
+  <meta name="force-rendering" content="webkit">
+  <meta http-equiv="X-UA-Compatible" content="IE=Edge,chrome=1">
+  <meta name="HandheldFriendly" content="True" >
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1">
+  <meta name="theme-color" content="#f8f8f8">
+  <title>Cocos2d-js: 首次在 Mac 上面运行 - Veryitman</title>
+
+  
+    <meta name="description" content="Cocos2d-js 介绍如果你是刚接触 Cocos2d-js 开发的人, 一定会被 Cocos2d-js 和 Cocos2d-HTML5 以及 Cocos2d-x 搞得晕头转向. 下面简单介绍一下 Cocos2d-js 的前世今生. 目前 Cocos2d-x 支持使用 C++、Lua、Javascript 语言来进行开发，且内置 JavaScript 引擎，通过 C++ 解析 Javascrip">
+<meta property="og:type" content="article">
+<meta property="og:title" content="Cocos2d-js: 首次在 Mac 上面运行">
+<meta property="og:url" content="http://example.com/2017/05/14/Cocos2d-js-%E9%A6%96%E6%AC%A1%E5%9C%A8-Mac-%E4%B8%8A%E9%9D%A2%E8%BF%90%E8%A1%8C/index.html">
+<meta property="og:site_name" content="Veryitman">
+<meta property="og:description" content="Cocos2d-js 介绍如果你是刚接触 Cocos2d-js 开发的人, 一定会被 Cocos2d-js 和 Cocos2d-HTML5 以及 Cocos2d-x 搞得晕头转向. 下面简单介绍一下 Cocos2d-js 的前世今生. 目前 Cocos2d-x 支持使用 C++、Lua、Javascript 语言来进行开发，且内置 JavaScript 引擎，通过 C++ 解析 Javascrip">
+<meta property="og:locale" content="zh_CN">
+<meta property="og:image" content="http://example.com/upload/images/2017/05/14/3.png">
+<meta property="og:image" content="http://example.com/upload/images/2017/05/14/4.jpg">
+<meta property="og:image" content="http://example.com/upload/images/2017/05/14/1.jpg">
+<meta property="og:image" content="http://example.com/upload/images/2017/05/14/2.jpg">
+<meta property="article:published_time" content="2017-05-14T12:36:27.000Z">
+<meta property="article:modified_time" content="2022-03-09T14:53:24.296Z">
+<meta property="article:author" content="veryitman">
+<meta property="article:tag" content="cocos cocos2d-js">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:image" content="http://example.com/upload/images/2017/05/14/3.png">
+  
+  
+
+  <!-- feed -->
+  
+
+  
+    
+<link rel="stylesheet" href="/css/main.css">
+
+  
+
+  
+
+  
+</head>
+
+<body>
+  
+
+
+  <div class='l_body' id='start'>
+    <aside class='l_left' layout='post'>
+    
+
+
+<header class="header">
+
+<div class="logo-wrap"><a class="title" href="/"><div class="main">Veryitman</div></a></div>
+<nav class="menu dis-select"></nav></header>
+
+<div class="widgets">
+
+<div class="widget-wrap single" id="toc"><div class="widget-header cap dis-select"><span class="name">本文目录</span></div><div class="widget-body fs14"><div class="doc-tree active"><ol class="toc"><li class="toc-item toc-level-2"><a class="toc-link" href="#Cocos2d-js-%E4%BB%8B%E7%BB%8D"><span class="toc-text">Cocos2d-js 介绍</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#%E6%90%AD%E5%BB%BA-Cocos2d-js-%E5%BC%80%E5%8F%91%E7%8E%AF%E5%A2%83"><span class="toc-text">搭建 Cocos2d-js 开发环境</span></a><ol class="toc-child"><li class="toc-item toc-level-4"><a class="toc-link" href="#1-%E4%B8%8B%E8%BD%BD-Cocos2d-x"><span class="toc-text">1.下载 Cocos2d-x</span></a></li><li class="toc-item toc-level-4"><a class="toc-link" href="#%E8%AE%BE%E7%BD%AE%E7%8E%AF%E5%A2%83%E5%8F%98%E9%87%8F"><span class="toc-text">设置环境变量</span></a></li><li class="toc-item toc-level-4"><a class="toc-link" href="#%E5%88%9B%E5%BB%BA-js-%E5%B7%A5%E7%A8%8B"><span class="toc-text">创建 js 工程</span></a></li><li class="toc-item toc-level-4"><a class="toc-link" href="#%E5%B7%A5%E7%A8%8B%E5%8F%91%E5%B8%83"><span class="toc-text">工程发布</span></a></li><li class="toc-item toc-level-4"><a class="toc-link" href="#%E8%BF%90%E8%A1%8C"><span class="toc-text">运行</span></a></li></ol></li></ol></li><li class="toc-item toc-level-2"><a class="toc-link" href="#%E6%9C%AC%E5%9C%B0%E8%BF%90%E8%A1%8C-index-html-%E7%9A%84%E9%97%AE%E9%A2%98"><span class="toc-text">本地运行 index.html 的问题</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#%E6%9B%B4%E6%96%B0"><span class="toc-text">更新</span></a></li></ol></div></div></div>
+
+
+</div>
+
+
+    </aside>
+    <div class='l_main'>
+      
+
+      
+
+
+<div class="bread-nav fs12"><div id="breadcrumb"><a class="cap breadcrumb" href="/">主页</a><span class="sep"></span><a class="cap breadcrumb" href="/">文章</a><span class="sep"></span><a class="cap breadcrumb-link" href="/categories/Game/">Game</a></div><div id="post-meta">发布于&nbsp;<time datetime="2017-05-14T12:36:27.000Z">2017-05-14</time></div></div>
+
+<article class='content md post'>
+<h1 class="article-title"><span>Cocos2d-js: 首次在 Mac 上面运行</span></h1>
+<h2 id="Cocos2d-js-介绍"><a href="#Cocos2d-js-介绍" class="headerlink" title="Cocos2d-js 介绍"></a>Cocos2d-js 介绍</h2><p>如果你是刚接触 Cocos2d-js 开发的人, 一定会被 Cocos2d-js 和 Cocos2d-HTML5 以及 Cocos2d-x 搞得晕头转向.</p>
+<p>下面简单介绍一下 Cocos2d-js 的前世今生.</p>
+<p>目前 Cocos2d-x 支持使用 C++、Lua、Javascript 语言来进行开发，且内置 JavaScript 引擎，通过 C++ 解析 Javascript 去执行.</p>
+<p>Cocos2d-HTML5 是使用 JavaScript 进行开发，最终运行在浏览器里的.</p>
+<p>v3.0 后，Cocos2d-HTML5 和 Cocos2d-x JSBinding 被合到了一起，称作 Cocos2d-JS.</p>
+<p>与 Cocos2d-HTML5 不同的是，Cocos2d-js 开发的程序不仅能运行在浏览器里，还能编译运行在 Mac OSX, Windows, iOS, Android 平台上.</p>
+<p>从 Cocos2d-x v3.7 版本之后, js 版本被合并到 Cocos2d-x 中了.</p>
+<p>具体可以看 <a target="_blank" rel="noopener" href="https://github.com/cocos2d/cocos2d-x/blob/cocos2d-x-3.7/docs/RELEASE_NOTES.md">Release Note</a> 这个说明.</p>
+<p>这个版本的发布日期是在2015年7月21.</p>
+<p>原来的 Cocos2d-js 版本在 [GitHub] 上面已经停止更新了.</p>
+<p>说明如下:</p>
+<blockquote>
+<p>2&#x2F;27&#x2F;2016 - This repository is no longer active.<br>Cocos2d-JS was merged with Cocos2d-x starting at version 3.7.</p>
+</blockquote>
+<p>可以看出, Cocos2d-js 原来独立的项目被合并到了 Cocos2d-x 中了.</p>
+<p>现在使用 Cocos2d-x 不仅可以创建 cpp 项目和 lua 项目, 也可以创建 js 项目了.</p>
+<p>官方有说明的:</p>
+<blockquote>
+<p>Cocos2d-JS is Cocos2d-x engine’s JavaScript version that includes Cocos2d-html5 and Cocos2d-x JavaScript Bindings.</p>
+</blockquote>
+<p>至于什么是 Cocos2d-x JavaScript Bindings, 大家自行 google, 这里不赘述.</p>
+<p>关系图大概如下:<br><img class="lazy" src="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAABGdBTUEAALGPC/xhBQAAADhlWElmTU0AKgAAAAgAAYdpAAQAAAABAAAAGgAAAAAAAqACAAQAAAABAAAAAaADAAQAAAABAAAAAQAAAADa6r/EAAAAC0lEQVQIHWNgAAIAAAUAAY27m/MAAAAASUVORK5CYII=" data-src="/upload/images/2017/05/14/3.png" alt="1"></p>
+<p>Cocos2d-x 框架图<br><img class="lazy" src="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAABGdBTUEAALGPC/xhBQAAADhlWElmTU0AKgAAAAgAAYdpAAQAAAABAAAAGgAAAAAAAqACAAQAAAABAAAAAaADAAQAAAABAAAAAQAAAADa6r/EAAAAC0lEQVQIHWNgAAIAAAUAAY27m/MAAAAASUVORK5CYII=" data-src="/upload/images/2017/05/14/4.jpg" alt="1"></p>
+<h2 id="搭建-Cocos2d-js-开发环境"><a href="#搭建-Cocos2d-js-开发环境" class="headerlink" title="搭建 Cocos2d-js 开发环境"></a>搭建 Cocos2d-js 开发环境</h2><h4 id="1-下载-Cocos2d-x"><a href="#1-下载-Cocos2d-x" class="headerlink" title="1.下载 Cocos2d-x"></a>1.下载 Cocos2d-x</h4><p>可以在官网下载最新的 Release 包, 点击 下载地址, 我下载的最新包是 cocos2d-x-3.15.</p>
+<p>下载解压即可, 这里我把 cocos2d-x-3.15 修改为 cocos2d-x.</p>
+<h4 id="设置环境变量"><a href="#设置环境变量" class="headerlink" title="设置环境变量"></a>设置环境变量</h4><p>在 cocos2d-x 目录, 执行</p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">python setup.py</span><br></pre></td></tr></table></figure>
+
+<p>执行完毕后, 可以看到 ‘~&#x2F;.bash_profile&#96; 的内容</p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br></pre></td><td class="code"><pre><span class="line"># Add environment variable COCOS_CONSOLE_ROOT for cocos2d-x</span><br><span class="line">export COCOS_CONSOLE_ROOT=/Users/mark/workspace/mzProjs/c2dx/cocos2d-x/tools/cocos2d-console/bin</span><br><span class="line">export PATH=$COCOS_CONSOLE_ROOT:$PATH</span><br><span class="line"># Add environment variable COCOS_TEMPLATES_ROOT for cocos2d-x</span><br><span class="line">export COCOS_TEMPLATES_ROOT=/Users/mark/workspace/mzProjs/c2dx/cocos2d-x/templates</span><br><span class="line">export PATH=$COCOS_TEMPLATES_ROOT:$PATH</span><br></pre></td></tr></table></figure>
+
+<p>这里, 没有看到我的 <code>ANT_ROOT</code> 路径, 其实该脚本智能的找到 <code>/usr/local/Cellar/ant/1.9.7/bin</code>, 但是我不想使用这个 ant, 想使用自己下载的 ant, 修改该文件如下:</p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br></pre></td><td class="code"><pre><span class="line"># Add environment variable COCOS_CONSOLE_ROOT for cocos2d-x</span><br><span class="line">export COCOS_CONSOLE_ROOT=/Users/mark/workspace/mzProjs/c2dx/cocos2d-x/tools/cocos2d-console/bin</span><br><span class="line">export PATH=$COCOS_CONSOLE_ROOT:$PATH</span><br><span class="line"># Add environment variable ANT_ROOT for cocos2d-x</span><br><span class="line">export ANT_ROOT=/Users/mark/developer/apache/apache-ant-1.10.1/bin</span><br><span class="line">export PATH=$ANT_ROOT:$PATH</span><br><span class="line"># Add environment variable COCOS_TEMPLATES_ROOT for cocos2d-x</span><br><span class="line">export COCOS_TEMPLATES_ROOT=/Users/mark/workspace/mzProjs/c2dx/cocos2d-x/templates</span><br><span class="line">export PATH=$COCOS_TEMPLATES_ROOT:$PATH</span><br></pre></td></tr></table></figure>
+
+<p>最后执行:</p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">source ~/.bash_profile</span><br></pre></td></tr></table></figure>
+
+<p>使环境变量立即生效.</p>
+<h4 id="创建-js-工程"><a href="#创建-js-工程" class="headerlink" title="创建 js 工程"></a>创建 js 工程</h4><p>cd 到任意目录, 执行:</p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">cocos new HelloJs -l js -d .</span><br></pre></td></tr></table></figure>
+
+<blockquote>
+<p>new HelloJs 表示工程名字为 HelloJs<br>-l js 表示创建 js 工程.<br>-d . 表示在当前路径创建该工程</p>
+</blockquote>
+<p>可以看到下面创建工程的过程:</p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br></pre></td><td class="code"><pre><span class="line">Copy template into /Users/mark/workspace/mzProjs/c2dx/works/HelloJs</span><br><span class="line">Copying directory from cocos root directory...</span><br><span class="line">Copying files from template directory...</span><br><span class="line">Copying Cocos2d-x files...</span><br><span class="line">Rename project name from &#x27;HelloJavascript&#x27; to &#x27;HelloJs&#x27;</span><br><span class="line">Replace the project name from &#x27;HelloJavascript&#x27; to &#x27;HelloJs&#x27;</span><br><span class="line">Replace the project package name from &#x27;org.cocos2dx.hellojavascript&#x27; to &#x27;org.cocos2dx.HelloJs&#x27;</span><br><span class="line">Replace the Mac bundle id from &#x27;org.cocos2dx.hellojavascript&#x27; to &#x27;org.cocos2dx.HelloJs&#x27;</span><br><span class="line">Replace the iOS bundle id from &#x27;org.cocos2dx.hellojavascript&#x27; to &#x27;org.cocos2dx.HelloJs&#x27;</span><br></pre></td></tr></table></figure>
+
+<p>工程目录:<br><img class="lazy" src="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAABGdBTUEAALGPC/xhBQAAADhlWElmTU0AKgAAAAgAAYdpAAQAAAABAAAAGgAAAAAAAqACAAQAAAABAAAAAaADAAQAAAABAAAAAQAAAADa6r/EAAAAC0lEQVQIHWNgAAIAAAUAAY27m/MAAAAASUVORK5CYII=" data-src="/upload/images/2017/05/14/1.jpg" alt="1"></p>
+<h4 id="工程发布"><a href="#工程发布" class="headerlink" title="工程发布"></a>工程发布</h4><p>将上面的工程编译发布.</p>
+<p>编译发布:</p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">cocos compile -p web -m release</span><br></pre></td></tr></table></figure>
+
+<blockquote>
+<p>-p web 表示编译 web 平台.<br>-m release 表示编译为 release 模式.</p>
+</blockquote>
+<p>编译输出:</p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br></pre></td><td class="code"><pre><span class="line">Building mode: release</span><br><span class="line">running: &#x27;/Users/mark/developer/apache/apache-ant-1.10.1/bin/ant -f /Users/mark/workspace/mzProjs/c2dx/works/HelloJs/publish/html5/build.xml&#x27;</span><br><span class="line">Buildfile: /Users/mark/workspace/mzProjs/c2dx/works/HelloJs/publish/html5/build.xml</span><br><span class="line">compile:</span><br><span class="line">   [jscomp] Compiling 156 file(s) with 42 extern(s)</span><br><span class="line">   [jscomp] 0 error(s), 0 warning(s)</span><br><span class="line">BUILD SUCCESSFUL</span><br><span class="line">Total time: 8 seconds</span><br></pre></td></tr></table></figure>
+
+<p>如果你在这一步编译报错, 或者执行不下去, 一般都是没有在环境变量中配置好 ant.</p>
+<p>编程成功后, 会多出 publish 目录:<br><img class="lazy" src="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAABGdBTUEAALGPC/xhBQAAADhlWElmTU0AKgAAAAgAAYdpAAQAAAABAAAAGgAAAAAAAqACAAQAAAABAAAAAaADAAQAAAABAAAAAQAAAADa6r/EAAAAC0lEQVQIHWNgAAIAAAUAAY27m/MAAAAASUVORK5CYII=" data-src="/upload/images/2017/05/14/2.jpg" alt="1"></p>
+<h4 id="运行"><a href="#运行" class="headerlink" title="运行"></a>运行</h4><p>执行 cocos run 命令来在系统默认的浏览器上面运行.</p>
+<p>cd 到工程目录, 执行:</p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">cocos run -p web -s . --port 9009</span><br></pre></td></tr></table></figure>
+
+<p>这样会帮我们在本地启动一个 webServer 来运行示例, 直接打开了默认使用的浏览器.</p>
+<blockquote>
+<p>-s: 表示当前需要执行的源码路径<br>–port: 指定端口, 如果不指定端口, 默认在 8000 端口执行.</p>
+</blockquote>
+<p>更多 cocos run 命令可以, 使用下面的命令来查看帮助:</p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">cocos run --help</span><br></pre></td></tr></table></figure>
+
+<h2 id="本地运行-index-html-的问题"><a href="#本地运行-index-html-的问题" class="headerlink" title="本地运行 index.html 的问题"></a>本地运行 index.html 的问题</h2><p>你可以用火狐浏览器(FireFox)打开本地工程目录中的 index.html, 即可看到运行效果了.<br>FireFox 应该是在本地启动了一个 WebServer 来运行.</p>
+<p>在 chrome 中直接运行 index.html, 无法看到最终效果, 一直卡在 loading 界面.</p>
+<p>打开 inspect, 可以看到报错信息:</p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line">XMLHttpRequest cannot load file:/xx/publish/html5/project.json.</span><br><span class="line">Cross origin requests are only supported for protocol schemes: http, data, chrome, chrome-extension, https.</span><br></pre></td></tr></table></figure>
+
+<p>网上有人讨论过过问题, 说是 chrome 跨域不支持 file 协议，那么即使你允许 chrome 跨域支持, 直接运行本地的 index.html 还是报错:</p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">game.min.js:54 Uncaught TypeError: Cannot read property &#x27;modules&#x27; of null</span><br></pre></td></tr></table></figure>
+
+<p>在 MacOS 上面允许 chrome 跨域访问文件的方法:</p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">open /Applications/Google\ Chrome.app --args --allow-file-access-from-files</span><br></pre></td></tr></table></figure>
+
+<p>可以看出, 在这方面, FireFox 做的比 chrome 好.</p>
+<h2 id="更新"><a href="#更新" class="headerlink" title="更新"></a>更新</h2><blockquote>
+<p>更新时间 2017-10-15</p>
+</blockquote>
+<p>在微信公众号上面看到 <a target="_blank" rel="noopener" href="https://mp.weixin.qq.com/s?__biz=MjM5ODAxNTM2NA==&mid=2659646056&idx=1&sn=239871c3775ae12af5edf9ac2381b0b2">一招教你辨别 Cocos、Cocos2d、Cocos2d-x</a> 这篇文章, 大家可以看看, 对 cocos 会有更加深入的了解.</p>
+
+
+
+
+</article>
+
+<div class="related-wrap reveal" id="read-next"><section class="header cap theme"><span>接下来阅读</span></section><section class="body fs14"><a id="next" href="/2017/04/29/%E5%B0%8F%E5%B0%8F%E7%AF%AE%E7%90%83%E9%98%9F/">小小篮球队<span class="note">较早</span></a><div class="line"></div><a id="prev" href="/2017/05/14/iOS-%E8%87%AA%E5%AE%9A%E4%B9%89-UIWebView-%E5%92%8C-WKWebView-%E7%9A%84-UserAgent/">iOS: 自定义 UIWebView 和 WKWebView 的 UserAgent<span class="note">较新</span></a></section></div>
+
+
+
+
+
+
+  <div class='related-wrap md reveal' id="comments">
+    <div class='cmt-title cap theme'>
+      快来参与讨论吧
+    </div>
+    <div class='cmt-body valine'>
+      
+
+<div id="valine_container" class="valine_thread"><svg class="loading" style="vertical-align: middle;fill: currentColor;overflow: hidden;" viewBox="0 0 1024 1024" version="1.1" xmlns="http://www.w3.org/2000/svg" p-id="2709"><path d="M832 512c0-176-144-320-320-320V128c211.2 0 384 172.8 384 384h-64zM192 512c0 176 144 320 320 320v64C300.8 896 128 723.2 128 512h64z" p-id="2710"></path></svg></div>
+
+    </div>
+  </div>
+
+
+
+      
+<footer class="page-footer reveal fs12"><hr><div class="text"><p>本博客所有文章除特别声明外，均采用 <a target="_blank" rel="noopener" href="https://creativecommons.org/licenses/by-nc-sa/4.0/">CC BY-NC-SA 4.0</a> 许可协议，转载请注明出处。</p>
+<p>veryitman</p>
+</div></footer>
+
+      <div class='float-panel mobile-only blur' style='display:none'>
+  <button type='button' class='sidebar-toggle mobile' onclick='sidebar.toggle()'>
+    <svg class="icon" style="width: 1em; height: 1em;vertical-align: middle;fill: currentColor;overflow: hidden;" viewBox="0 0 1024 1024" version="1.1" xmlns="http://www.w3.org/2000/svg" p-id="15301"><path d="M566.407 808.3c26.9-0.1 49.3-20.8 51.6-47.6-1.9-27.7-23.9-49.7-51.6-51.6h-412.6c-28.2-1.4-52.6 19.5-55.5 47.6 2.3 26.8 24.6 47.5 51.6 47.6h416.5v4z m309.3-249.9c26.9-0.1 49.3-20.8 51.6-47.6-2.2-26.8-24.6-47.5-51.6-47.6h-721.9c-27.7-2.8-52.5 17.4-55.3 45.1-0.1 0.8-0.1 1.7-0.2 2.5 0.9 27.2 23.6 48.5 50.7 47.6H875.707z m-103.1-245.9c26.9-0.1 49.3-20.8 51.6-47.6-0.4-28.3-23.2-51.1-51.5-51.6h-618.9c-29.5-1.1-54.3 21.9-55.5 51.4v0.2c1.4 27.8 25.2 49.2 53 47.8 0.8 0 1.7-0.1 2.5-0.2h618.8z" p-id="15302"></path><path d="M566.407 808.3c26.9-0.1 49.3-20.8 51.6-47.6-1.9-27.7-23.9-49.7-51.6-51.6h-412.6c-28.2-1.4-52.6 19.5-55.5 47.6 1.9 27.7 23.9 49.7 51.6 51.6h416.5z m309.3-249.9c26.9-0.1 49.3-20.8 51.6-47.6-2.2-26.8-24.6-47.5-51.6-47.6h-721.9c-27.7-2.8-52.5 17.4-55.3 45.1-0.1 0.8-0.1 1.7-0.2 2.5 0.9 27.2 23.6 48.5 50.7 47.6H875.707z m-103.1-245.9c26.9-0.1 49.3-20.8 51.6-47.6-0.4-28.3-23.2-51.1-51.5-51.6h-618.9c-29.5-1.1-54.3 21.9-55.5 51.4v0.2c1.4 27.8 25.2 49.2 53 47.8 0.8 0 1.7-0.1 2.5-0.2h618.8z" p-id="15303"></path></svg>
+  </button>
+</div>
+
+    </div>
+  </div>
+  <div class='scripts'>
+    <script type="text/javascript">
+  stellar = {
+    // 懒加载 css https://github.com/filamentgroup/loadCSS
+    loadCSS: (href, before, media, attributes) => {
+      var doc = window.document;
+      var ss = doc.createElement("link");
+      var ref;
+      if (before) {
+        ref = before;
+      } else {
+        var refs = (doc.body || doc.getElementsByTagName("head")[0]).childNodes;
+        ref = refs[refs.length - 1];
+      }
+      var sheets = doc.styleSheets;
+      if (attributes) {
+        for (var attributeName in attributes) {
+          if (attributes.hasOwnProperty(attributeName)) {
+            ss.setAttribute(attributeName, attributes[attributeName]);
+          }
+        }
+      }
+      ss.rel = "stylesheet";
+      ss.href = href;
+      ss.media = "only x";
+      function ready(cb) {
+        if (doc.body) {
+          return cb();
+        }
+        setTimeout(function () {
+          ready(cb);
+        });
+      }
+      ready(function () {
+        ref.parentNode.insertBefore(ss, before ? ref : ref.nextSibling);
+      });
+      var onloadcssdefined = function (cb) {
+        var resolvedHref = ss.href;
+        var i = sheets.length;
+        while (i--) {
+          if (sheets[i].href === resolvedHref) {
+            return cb();
+          }
+        }
+        setTimeout(function () {
+          onloadcssdefined(cb);
+        });
+      };
+      function loadCB() {
+        if (ss.addEventListener) {
+          ss.removeEventListener("load", loadCB);
+        }
+        ss.media = media || "all";
+      }
+      if (ss.addEventListener) {
+        ss.addEventListener("load", loadCB);
+      }
+      ss.onloadcssdefined = onloadcssdefined;
+      onloadcssdefined(loadCB);
+      return ss;
+    },
+
+    // 从 butterfly 和 volantis 获得灵感
+    loadScript: (src, opt) => new Promise((resolve, reject) => {
+      var script = document.createElement('script');
+      script.src = src;
+      if (opt) {
+        for (let key of Object.keys(opt)) {
+          script[key] = opt[key]
+        }
+      } else {
+        // 默认异步，如果需要同步，第二个参数传入 {} 即可
+        script.async = true
+      }
+      script.onerror = reject
+      script.onload = script.onreadystatechange = function() {
+        const loadState = this.readyState
+        if (loadState && loadState !== 'loaded' && loadState !== 'complete') return
+        script.onload = script.onreadystatechange = null
+        resolve()
+      }
+      document.head.appendChild(script)
+    }),
+
+    // https://github.com/jerryc127/hexo-theme-butterfly
+    jQuery: (fn) => {
+      if (typeof jQuery === 'undefined') {
+        stellar.loadScript(stellar.plugins.jQuery).then(fn)
+      } else {
+        fn()
+      }
+    }
+  };
+  stellar.github = 'https://github.com/xaoxuu/hexo-theme-stellar/tree/1.6.1';
+  stellar.config = {
+    date_suffix: {
+      just: '刚刚',
+      min: '分钟前',
+      hour: '小时前',
+      day: '天前',
+      month: '个月前',
+    },
+  };
+
+  // required plugins (only load if needs)
+  stellar.plugins = {
+    jQuery: 'https://cdn.jsdelivr.net/npm/jquery@3.5.1/dist/jquery.min.js',
+    sitesjs: '/js/plugins/sites.js',
+    friendsjs: '/js/plugins/friends.js',
+  };
+
+  // optional plugins
+  if ('true' == 'true') {
+    stellar.plugins.lazyload = Object.assign({"enable":true,"js":"https://cdn.jsdelivr.net/npm/vanilla-lazyload@17.3.1/dist/lazyload.min.js","transition":"blur"});
+  }
+  if ('true' == 'true') {
+    stellar.plugins.swiper = Object.assign({"enable":true,"css":"https://unpkg.com/swiper@6/swiper-bundle.min.css","js":"https://unpkg.com/swiper@6/swiper-bundle.min.js"});
+  }
+  if ('' == 'true') {
+    stellar.plugins.scrollreveal = Object.assign({"enable":null,"js":"https://cdn.jsdelivr.net/npm/scrollreveal@4.0.9/dist/scrollreveal.min.js","distance":"8px","duration":500,"interval":100,"scale":1});
+  }
+  if ('true' == 'true') {
+    stellar.plugins.preload = Object.assign({"enable":true,"service":"flying_pages","instant_page":"https://cdn.jsdelivr.net/gh/volantis-x/cdn-volantis@4.1.2/js/instant_page.js","flying_pages":"https://cdn.jsdelivr.net/gh/gijo-varghese/flying-pages@2.1.2/flying-pages.min.js"});
+  }
+</script>
+
+<!-- required -->
+
+  
+<script src="/js/main.js" async></script>
+
+
+
+<!-- optional -->
+
+  <script>
+  function getEmojiMaps() {
+    function emoji(path, idx, ext) {
+      return path + "/" + path + "-" + idx + "." + ext;
+    }
+    var emojiMaps = {};
+    for (var i = 1; i <= 54; i++) {
+      emojiMaps['tieba-' + i] = emoji('tieba', i, 'png');
+    }
+    for (var i = 1; i <= 101; i++) {
+      emojiMaps['qq-' + i] = emoji('qq', i, 'gif');
+    }
+    for (var i = 1; i <= 116; i++) {
+      emojiMaps['aru-' + i] = emoji('aru', i, 'gif');
+    }
+    for (var i = 1; i <= 125; i++) {
+      emojiMaps['twemoji-' + i] = emoji('twemoji', i, 'png');
+    }
+    for (var i = 1; i <= 4; i++) {
+      emojiMaps['weibo-' + i] = emoji('weibo', i, 'png');
+    }
+    return emojiMaps;
+  }
+  function load_comment(){
+    if(!document.getElementById("valine_container"))return;
+    stellar.loadScript('https://cdn.jsdelivr.net/gh/XuxuGood/simple-blog-cdn@main/js/Valine.min.js', {defer:true}).then(function () {
+      const el = document.getElementById("valine_container");
+      var path = el.getAttribute('comment_id');
+      const placeholder = "欢迎您留言~";
+      if (!path) {
+        path = decodeURI(window.location.pathname);
+      }
+      var valine = new Valine();
+      valine.init(Object.assign({"js":"https://cdn.jsdelivr.net/gh/XuxuGood/simple-blog-cdn@main/js/Valine.min.js","appId":"FY2C9UCttYNaE1j8umenqdCE-gzGzoHsz","appKey":"4i7xMwkfSEGmEDhi6SceKFxz","placeholder":"欢迎您留言~","requiredFields":["nick","mail"],"enableQQ":true,"recordIP":false,"avatar":"robohash","pageSize":10,"lang":"zh-cn","highlight":true,"mathJax":false,"tagMeta":["博主","小伙伴","访客"],"metaPlaceholder":{"nick":"昵称/QQ号(必填)","mail":"邮箱（必填，完全保密）"},"master":["6783037F2DF30EAB99F9FC256157D875"],"friends":["6783037F2DF30EAB99F9FC256157D875"],"comment_count":true}, {
+        el: '#valine_container',
+        path: path,
+        placeholder: placeholder,
+        emojiCDN: 'https://cdn.jsdelivr.net/gh/volantis-x/cdn-emoji/valine/',
+        emojiMaps: getEmojiMaps(),
+      }));
+    });
+  }
+  window.addEventListener('DOMContentLoaded', (event) => {
+    console.log('DOM fully loaded and parsed');
+    load_comment();
+  });
+
+</script>
+
+
+
+
+<!-- inject -->
+
+
+  </div>
+</body>
+</html>

@@ -1,0 +1,374 @@
+<!DOCTYPE html>
+<html lang='zh-CN'>
+
+<head>
+  <meta name="generator" content="Hexo 6.0.0">
+  <meta charset="utf-8">
+  
+
+  <meta http-equiv='x-dns-prefetch-control' content='on' />
+  <link rel='dns-prefetch' href='https://cdn.jsdelivr.net'>
+  <link rel="preconnect" href="https://cdn.jsdelivr.net" crossorigin>
+
+  <meta name="renderer" content="webkit">
+  <meta name="force-rendering" content="webkit">
+  <meta http-equiv="X-UA-Compatible" content="IE=Edge,chrome=1">
+  <meta name="HandheldFriendly" content="True" >
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1">
+  <meta name="theme-color" content="#f8f8f8">
+  <title>Android: Chrome 调试 WEB 页面 - Veryitman</title>
+
+  
+    <meta name="description" content="引言在 Mac OS 上面通过 Safari 调试 iOS 设备或者模拟器的 WEB 页面, 比较方便. 关于具体如何使用 Safari 来调试 iOS 设备, 可以参考 [Safari 的开发者模式] 这篇文章. 自从踏上开发的道路, 电脑上就安装了 Chrome 浏览器, 并且一直保持着更新, Chrome 以其简单设计和高效的用法吸引了大批开发者. 使用 Chrome 调试 Android">
+<meta property="og:type" content="article">
+<meta property="og:title" content="Android: Chrome 调试 WEB 页面">
+<meta property="og:url" content="http://example.com/2017/06/01/Android-Chrome-%E8%B0%83%E8%AF%95-WEB-%E9%A1%B5%E9%9D%A2/index.html">
+<meta property="og:site_name" content="Veryitman">
+<meta property="og:description" content="引言在 Mac OS 上面通过 Safari 调试 iOS 设备或者模拟器的 WEB 页面, 比较方便. 关于具体如何使用 Safari 来调试 iOS 设备, 可以参考 [Safari 的开发者模式] 这篇文章. 自从踏上开发的道路, 电脑上就安装了 Chrome 浏览器, 并且一直保持着更新, Chrome 以其简单设计和高效的用法吸引了大批开发者. 使用 Chrome 调试 Android">
+<meta property="og:locale" content="zh_CN">
+<meta property="og:image" content="http://example.com/upload/images/2017/06/01/14962450324558.jpg">
+<meta property="og:image" content="http://example.com/upload/images/2017/06/01/14962453176556.jpg">
+<meta property="og:image" content="http://example.com/upload/images/2017/06/01/14962458882973.jpg">
+<meta property="og:image" content="http://example.com/upload/images/2017/06/01/14962459967493.jpg">
+<meta property="og:image" content="http://example.com/upload/images/2017/06/01/14962461463698.jpg">
+<meta property="article:published_time" content="2017-06-01T13:42:00.000Z">
+<meta property="article:modified_time" content="2022-03-09T14:53:24.306Z">
+<meta property="article:author" content="veryitman">
+<meta property="article:tag" content="Chrome Web Debug">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:image" content="http://example.com/upload/images/2017/06/01/14962450324558.jpg">
+  
+  
+
+  <!-- feed -->
+  
+
+  
+    
+<link rel="stylesheet" href="/css/main.css">
+
+  
+
+  
+
+  
+</head>
+
+<body>
+  
+
+
+  <div class='l_body' id='start'>
+    <aside class='l_left' layout='post'>
+    
+
+
+<header class="header">
+
+<div class="logo-wrap"><a class="title" href="/"><div class="main">Veryitman</div></a></div>
+<nav class="menu dis-select"></nav></header>
+
+<div class="widgets">
+
+<div class="widget-wrap single" id="toc"><div class="widget-header cap dis-select"><span class="name">本文目录</span></div><div class="widget-body fs14"><div class="doc-tree active"><ol class="toc"><li class="toc-item toc-level-2"><a class="toc-link" href="#%E5%BC%95%E8%A8%80"><span class="toc-text">引言</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#Chrome-%E8%B0%83%E8%AF%95%E6%9D%A1%E4%BB%B6"><span class="toc-text">Chrome 调试条件</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#%E7%AE%80%E5%8D%95%E7%9A%84-Android-%E5%B7%A5%E7%A8%8B%E7%A4%BA%E4%BE%8B"><span class="toc-text">简单的 Android 工程示例</span></a><ol class="toc-child"><li class="toc-item toc-level-4"><a class="toc-link" href="#1-%E5%88%9B%E5%BB%BA-assets-%E7%9B%AE%E5%BD%95"><span class="toc-text">1. 创建 assets 目录</span></a></li><li class="toc-item toc-level-4"><a class="toc-link" href="#2-%E5%88%9B%E5%BB%BA-HTML-%E6%96%87%E4%BB%B6"><span class="toc-text">2. 创建 HTML 文件</span></a></li><li class="toc-item toc-level-4"><a class="toc-link" href="#3-%E5%9C%A8-Activity-%E4%B8%AD%E9%85%8D%E7%BD%AE-WebView"><span class="toc-text">3.在 Activity 中配置 WebView.</span></a></li><li class="toc-item toc-level-4"><a class="toc-link" href="#4-%E8%BF%90%E8%A1%8C%E7%A8%8B%E5%BA%8F"><span class="toc-text">4. 运行程序</span></a></li><li class="toc-item toc-level-4"><a class="toc-link" href="#5-%E8%B0%83%E8%AF%95%E5%87%BA%E9%94%99%E7%9A%84-HTML"><span class="toc-text">5.调试出错的 HTML</span></a></li></ol></li></ol></li></ol></div></div></div>
+
+
+</div>
+
+
+    </aside>
+    <div class='l_main'>
+      
+
+      
+
+
+<div class="bread-nav fs12"><div id="breadcrumb"><a class="cap breadcrumb" href="/">主页</a><span class="sep"></span><a class="cap breadcrumb" href="/">文章</a><span class="sep"></span><a class="cap breadcrumb-link" href="/categories/Android/">Android</a></div><div id="post-meta">发布于&nbsp;<time datetime="2017-06-01T13:42:00.000Z">2017-06-01</time></div></div>
+
+<article class='content md post'>
+<h1 class="article-title"><span>Android: Chrome 调试 WEB 页面</span></h1>
+<h2 id="引言"><a href="#引言" class="headerlink" title="引言"></a>引言</h2><p>在 Mac OS 上面通过 Safari 调试 iOS 设备或者模拟器的 WEB 页面, 比较方便.</p>
+<p>关于具体如何使用 Safari 来调试 iOS 设备, 可以参考 [Safari 的开发者模式] 这篇文章.</p>
+<p>自从踏上开发的道路, 电脑上就安装了 Chrome 浏览器, 并且一直保持着更新, Chrome 以其简单设计和高效的用法吸引了大批开发者.</p>
+<p>使用 Chrome 调试 Android 设备的 WEB 页面, 易如反掌.</p>
+<h2 id="Chrome-调试条件"><a href="#Chrome-调试条件" class="headerlink" title="Chrome 调试条件"></a>Chrome 调试条件</h2><p>使用这项技能的条件如下:</p>
+<blockquote>
+<p>1.Android 设备系统最低为4.4, 也就是 android-19</p>
+</blockquote>
+<blockquote>
+<p>2.Chrome 最好使用最新版本的, 以前的版本不支持, 最低兼容版本目前尚不清楚.</p>
+</blockquote>
+<blockquote>
+<p>3.配置 Android WebView, 使其支持 Debug 和使能 JavaScript 功能.</p>
+</blockquote>
+<blockquote>
+<p>4.设备和 PC 通过 USB 连接正常, 且支持 USB 调试的.</p>
+</blockquote>
+<p>我目前使用的设备和 Chrome 版本信息如下:</p>
+<blockquote>
+<p>Android 设备: 5.1.1版本<br>Chrome: Version 58.0.3029.110 (64-bit)</p>
+</blockquote>
+<p>我们在地址栏中输入:</p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">chrome://inspect</span><br></pre></td></tr></table></figure>
+
+<p>就可以打开设备列表界面.<br><img class="lazy" src="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAABGdBTUEAALGPC/xhBQAAADhlWElmTU0AKgAAAAgAAYdpAAQAAAABAAAAGgAAAAAAAqACAAQAAAABAAAAAaADAAQAAAABAAAAAQAAAADa6r/EAAAAC0lEQVQIHWNgAAIAAAUAAY27m/MAAAAASUVORK5CYII=" data-src="/upload/images/2017/06/01/14962450324558.jpg" alt="1"></p>
+<p>可以看到我的 Android 设备已经显示出来了.</p>
+<p>下面举个例子说明该调试工具的使用.</p>
+<h2 id="简单的-Android-工程示例"><a href="#简单的-Android-工程示例" class="headerlink" title="简单的 Android 工程示例"></a>简单的 Android 工程示例</h2><p>该工程只有一个 Activity, 使用 WebView 加载本地 HTML 文件.</p>
+<h4 id="1-创建-assets-目录"><a href="#1-创建-assets-目录" class="headerlink" title="1. 创建 assets 目录"></a>1. 创建 assets 目录</h4><p>工程切换到 Project Files 视图<br><img class="lazy" src="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAABGdBTUEAALGPC/xhBQAAADhlWElmTU0AKgAAAAgAAYdpAAQAAAABAAAAGgAAAAAAAqACAAQAAAABAAAAAaADAAQAAAABAAAAAQAAAADa6r/EAAAAC0lEQVQIHWNgAAIAAAUAAY27m/MAAAAASUVORK5CYII=" data-src="/upload/images/2017/06/01/14962453176556.jpg" alt="1"></p>
+<p>这样就可以在 src&#x2F;main 目录下新建了 assets 文件夹了.</p>
+<h4 id="2-创建-HTML-文件"><a href="#2-创建-HTML-文件" class="headerlink" title="2. 创建 HTML 文件"></a>2. 创建 HTML 文件</h4><blockquote>
+<p>该 HTML 文件, 命名为 local.html, 放在 assets 目录下面.</p>
+</blockquote>
+<p>local.html 源文件:</p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br></pre></td><td class="code"><pre><span class="line">&lt;!DOCTYPE html&gt;</span><br><span class="line">&lt;html&gt;</span><br><span class="line">&lt;body&gt;</span><br><span class="line">&lt;button onclick=&quot;myFunction()&quot;&gt;Click me&lt;/button&gt;</span><br><span class="line">&lt;p id=&quot;demo&quot;&gt;&lt;/p&gt;</span><br><span class="line">&lt;p&gt;A function is triggered when the button is clicked.&lt;/p&gt;</span><br><span class="line">&lt;script&gt;</span><br><span class="line">    function myFunction() &#123;</span><br><span class="line">        console.log(&#x27;js console.&#x27;);</span><br><span class="line">    &#125;</span><br><span class="line">&lt;/script&gt;</span><br><span class="line">&lt;/body&gt;</span><br><span class="line">&lt;/html&gt;</span><br></pre></td></tr></table></figure>
+
+<h4 id="3-在-Activity-中配置-WebView"><a href="#3-在-Activity-中配置-WebView" class="headerlink" title="3.在 Activity 中配置 WebView."></a>3.在 Activity 中配置 WebView.</h4><p>Activity.java 源文件</p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br></pre></td><td class="code"><pre><span class="line">public class MZWebPage extends AppCompatActivity &#123;</span><br><span class="line">    private WebView webView;</span><br><span class="line">    @Override</span><br><span class="line">    protected void onCreate(Bundle savedInstanceState) &#123;</span><br><span class="line">        super.onCreate(savedInstanceState);</span><br><span class="line">        setContentView(R.layout.activity_mzweb_page);</span><br><span class="line">        webView = (WebView) this.findViewById(R.id.ui_web_view);</span><br><span class="line">        // 设置 WebView 的 Debug 为可用状态</span><br><span class="line">        if (Build.VERSION.SDK_INT &gt;= Build.VERSION_CODES.KITKAT) &#123;</span><br><span class="line">            WebView.setWebContentsDebuggingEnabled(true);</span><br><span class="line">        &#125;</span><br><span class="line">        WebSettings settings = webView.getSettings();</span><br><span class="line">        </span><br><span class="line">        // 设置 JavaScript 可以使用, 否则在 HTML 中无法调用 JavaScript 代码</span><br><span class="line">        settings.setJavaScriptEnabled(true);</span><br><span class="line">        // 本地文件</span><br><span class="line">        String url = &quot;file:///android_asset/local.html&quot;;</span><br><span class="line">        webView.loadUrl(url);</span><br><span class="line">        webView.setWebViewClient(new WebViewClient() &#123;</span><br><span class="line">            @Override</span><br><span class="line">            public boolean shouldOverrideUrlLoading(WebView view, WebResourceRequest request) &#123;</span><br><span class="line">                return super.shouldOverrideUrlLoading(view, request);</span><br><span class="line">            &#125;</span><br><span class="line">        &#125;);</span><br><span class="line">        // 设置渲染视图</span><br><span class="line">        webView.setWebChromeClient(new WebChromeClient());</span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<p>对应的 xml 布局文件:</p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br></pre></td><td class="code"><pre><span class="line">&lt;?xml version=&quot;1.0&quot; encoding=&quot;utf-8&quot;?&gt;</span><br><span class="line">&lt;LinearLayout</span><br><span class="line">    xmlns:android=&quot;http://schemas.android.com/apk/res/android&quot;</span><br><span class="line">    xmlns:app=&quot;http://schemas.android.com/apk/res-auto&quot;</span><br><span class="line">    xmlns:tools=&quot;http://schemas.android.com/tools&quot;</span><br><span class="line">    android:layout_width=&quot;match_parent&quot;</span><br><span class="line">    android:layout_height=&quot;match_parent&quot;</span><br><span class="line">    tools:context=&quot;demo.droidsdk.near.idreamsky.com.nearsdk.MZWebPage&quot;&gt;</span><br><span class="line">    &lt;WebView</span><br><span class="line">        android:layout_width=&quot;match_parent&quot;</span><br><span class="line">        android:layout_height=&quot;match_parent&quot;</span><br><span class="line">        android:id=&quot;@+id/ui_web_view&quot;&gt;</span><br><span class="line">    &lt;/WebView&gt;</span><br><span class="line">&lt;/LinearLayout&gt;</span><br></pre></td></tr></table></figure>
+
+<h4 id="4-运行程序"><a href="#4-运行程序" class="headerlink" title="4. 运行程序"></a>4. 运行程序</h4><p>在 Chrome 中输入 chrome:&#x2F;&#x2F;inspect 打开, 可以看到正在运行的 local.html.<br><img class="lazy" src="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAABGdBTUEAALGPC/xhBQAAADhlWElmTU0AKgAAAAgAAYdpAAQAAAABAAAAGgAAAAAAAqACAAQAAAABAAAAAaADAAQAAAABAAAAAQAAAADa6r/EAAAAC0lEQVQIHWNgAAIAAAUAAY27m/MAAAAASUVORK5CYII=" data-src="/upload/images/2017/06/01/14962458882973.jpg" alt="1"></p>
+<p>点击 <code>inspect</code>, 进入调试界面.</p>
+<p>在调试界面, 点击页面的 Click me, 按钮, 对应的会有 log 输出.<br><img class="lazy" src="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAABGdBTUEAALGPC/xhBQAAADhlWElmTU0AKgAAAAgAAYdpAAQAAAABAAAAGgAAAAAAAqACAAQAAAABAAAAAaADAAQAAAABAAAAAQAAAADa6r/EAAAAC0lEQVQIHWNgAAIAAAUAAY27m/MAAAAASUVORK5CYII=" data-src="/upload/images/2017/06/01/14962459967493.jpg" alt="1"></p>
+<h4 id="5-调试出错的-HTML"><a href="#5-调试出错的-HTML" class="headerlink" title="5.调试出错的 HTML"></a>5.调试出错的 HTML</h4><p>修改一下 local.html 文件</p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br></pre></td><td class="code"><pre><span class="line">&lt;!DOCTYPE html&gt;</span><br><span class="line">&lt;html&gt;</span><br><span class="line">&lt;body&gt;</span><br><span class="line">&lt;button onclick=&quot;myFunction()&quot;&gt;Click me&lt;/button&gt;</span><br><span class="line">&lt;p id=&quot;demo&quot;&gt;&lt;/p&gt;</span><br><span class="line">&lt;p&gt;A function is triggered when the button is clicked.&lt;/p&gt;</span><br><span class="line">&lt;script&gt;</span><br><span class="line">    function myFunction() &#123;</span><br><span class="line">        console.log(&#x27;js console.&#x27; + var_error);</span><br><span class="line">    &#125;</span><br><span class="line">&lt;/script&gt;</span><br><span class="line">&lt;/body&gt;</span><br><span class="line">&lt;/html&gt;</span><br></pre></td></tr></table></figure>
+
+<p>这里可以看出 <code>var_error</code> 是一个不存在的变量.</p>
+<p>重新运行, 点击 Click me, 可以看到右侧的 error:<br><img class="lazy" src="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAABGdBTUEAALGPC/xhBQAAADhlWElmTU0AKgAAAAgAAYdpAAQAAAABAAAAGgAAAAAAAqACAAQAAAABAAAAAaADAAQAAAABAAAAAQAAAADa6r/EAAAAC0lEQVQIHWNgAAIAAAUAAY27m/MAAAAASUVORK5CYII=" data-src="/upload/images/2017/06/01/14962461463698.jpg" alt="1"></p>
+<p>关于 Chrome 开发者工具的更多使用, 可以参考官方文档 <a target="_blank" rel="noopener" href="https://developers.google.com/web/tools/chrome-devtools/?hl=zh-cn">Chrome 开发者工具</a>.</p>
+
+
+
+
+</article>
+
+<div class="related-wrap reveal" id="read-next"><section class="header cap theme"><span>接下来阅读</span></section><section class="body fs14"><a id="next" href="/2017/05/29/%E4%BF%9D%E6%8C%81%E4%BD%A0%E7%9A%84%E5%A5%BD%E4%B9%A0%E6%83%AF/">保持你的好习惯<span class="note">较早</span></a><div class="line"></div><a id="prev" href="/2017/07/23/Cocos2d-js-%E5%9C%A8-iOS-%E4%B8%8A%E8%BF%90%E8%A1%8C/">Cocos2d-js: 在 iOS 上运行<span class="note">较新</span></a></section></div>
+
+
+
+
+
+
+  <div class='related-wrap md reveal' id="comments">
+    <div class='cmt-title cap theme'>
+      快来参与讨论吧
+    </div>
+    <div class='cmt-body valine'>
+      
+
+<div id="valine_container" class="valine_thread"><svg class="loading" style="vertical-align: middle;fill: currentColor;overflow: hidden;" viewBox="0 0 1024 1024" version="1.1" xmlns="http://www.w3.org/2000/svg" p-id="2709"><path d="M832 512c0-176-144-320-320-320V128c211.2 0 384 172.8 384 384h-64zM192 512c0 176 144 320 320 320v64C300.8 896 128 723.2 128 512h64z" p-id="2710"></path></svg></div>
+
+    </div>
+  </div>
+
+
+
+      
+<footer class="page-footer reveal fs12"><hr><div class="text"><p>本博客所有文章除特别声明外，均采用 <a target="_blank" rel="noopener" href="https://creativecommons.org/licenses/by-nc-sa/4.0/">CC BY-NC-SA 4.0</a> 许可协议，转载请注明出处。</p>
+<p>veryitman</p>
+</div></footer>
+
+      <div class='float-panel mobile-only blur' style='display:none'>
+  <button type='button' class='sidebar-toggle mobile' onclick='sidebar.toggle()'>
+    <svg class="icon" style="width: 1em; height: 1em;vertical-align: middle;fill: currentColor;overflow: hidden;" viewBox="0 0 1024 1024" version="1.1" xmlns="http://www.w3.org/2000/svg" p-id="15301"><path d="M566.407 808.3c26.9-0.1 49.3-20.8 51.6-47.6-1.9-27.7-23.9-49.7-51.6-51.6h-412.6c-28.2-1.4-52.6 19.5-55.5 47.6 2.3 26.8 24.6 47.5 51.6 47.6h416.5v4z m309.3-249.9c26.9-0.1 49.3-20.8 51.6-47.6-2.2-26.8-24.6-47.5-51.6-47.6h-721.9c-27.7-2.8-52.5 17.4-55.3 45.1-0.1 0.8-0.1 1.7-0.2 2.5 0.9 27.2 23.6 48.5 50.7 47.6H875.707z m-103.1-245.9c26.9-0.1 49.3-20.8 51.6-47.6-0.4-28.3-23.2-51.1-51.5-51.6h-618.9c-29.5-1.1-54.3 21.9-55.5 51.4v0.2c1.4 27.8 25.2 49.2 53 47.8 0.8 0 1.7-0.1 2.5-0.2h618.8z" p-id="15302"></path><path d="M566.407 808.3c26.9-0.1 49.3-20.8 51.6-47.6-1.9-27.7-23.9-49.7-51.6-51.6h-412.6c-28.2-1.4-52.6 19.5-55.5 47.6 1.9 27.7 23.9 49.7 51.6 51.6h416.5z m309.3-249.9c26.9-0.1 49.3-20.8 51.6-47.6-2.2-26.8-24.6-47.5-51.6-47.6h-721.9c-27.7-2.8-52.5 17.4-55.3 45.1-0.1 0.8-0.1 1.7-0.2 2.5 0.9 27.2 23.6 48.5 50.7 47.6H875.707z m-103.1-245.9c26.9-0.1 49.3-20.8 51.6-47.6-0.4-28.3-23.2-51.1-51.5-51.6h-618.9c-29.5-1.1-54.3 21.9-55.5 51.4v0.2c1.4 27.8 25.2 49.2 53 47.8 0.8 0 1.7-0.1 2.5-0.2h618.8z" p-id="15303"></path></svg>
+  </button>
+</div>
+
+    </div>
+  </div>
+  <div class='scripts'>
+    <script type="text/javascript">
+  stellar = {
+    // 懒加载 css https://github.com/filamentgroup/loadCSS
+    loadCSS: (href, before, media, attributes) => {
+      var doc = window.document;
+      var ss = doc.createElement("link");
+      var ref;
+      if (before) {
+        ref = before;
+      } else {
+        var refs = (doc.body || doc.getElementsByTagName("head")[0]).childNodes;
+        ref = refs[refs.length - 1];
+      }
+      var sheets = doc.styleSheets;
+      if (attributes) {
+        for (var attributeName in attributes) {
+          if (attributes.hasOwnProperty(attributeName)) {
+            ss.setAttribute(attributeName, attributes[attributeName]);
+          }
+        }
+      }
+      ss.rel = "stylesheet";
+      ss.href = href;
+      ss.media = "only x";
+      function ready(cb) {
+        if (doc.body) {
+          return cb();
+        }
+        setTimeout(function () {
+          ready(cb);
+        });
+      }
+      ready(function () {
+        ref.parentNode.insertBefore(ss, before ? ref : ref.nextSibling);
+      });
+      var onloadcssdefined = function (cb) {
+        var resolvedHref = ss.href;
+        var i = sheets.length;
+        while (i--) {
+          if (sheets[i].href === resolvedHref) {
+            return cb();
+          }
+        }
+        setTimeout(function () {
+          onloadcssdefined(cb);
+        });
+      };
+      function loadCB() {
+        if (ss.addEventListener) {
+          ss.removeEventListener("load", loadCB);
+        }
+        ss.media = media || "all";
+      }
+      if (ss.addEventListener) {
+        ss.addEventListener("load", loadCB);
+      }
+      ss.onloadcssdefined = onloadcssdefined;
+      onloadcssdefined(loadCB);
+      return ss;
+    },
+
+    // 从 butterfly 和 volantis 获得灵感
+    loadScript: (src, opt) => new Promise((resolve, reject) => {
+      var script = document.createElement('script');
+      script.src = src;
+      if (opt) {
+        for (let key of Object.keys(opt)) {
+          script[key] = opt[key]
+        }
+      } else {
+        // 默认异步，如果需要同步，第二个参数传入 {} 即可
+        script.async = true
+      }
+      script.onerror = reject
+      script.onload = script.onreadystatechange = function() {
+        const loadState = this.readyState
+        if (loadState && loadState !== 'loaded' && loadState !== 'complete') return
+        script.onload = script.onreadystatechange = null
+        resolve()
+      }
+      document.head.appendChild(script)
+    }),
+
+    // https://github.com/jerryc127/hexo-theme-butterfly
+    jQuery: (fn) => {
+      if (typeof jQuery === 'undefined') {
+        stellar.loadScript(stellar.plugins.jQuery).then(fn)
+      } else {
+        fn()
+      }
+    }
+  };
+  stellar.github = 'https://github.com/xaoxuu/hexo-theme-stellar/tree/1.6.1';
+  stellar.config = {
+    date_suffix: {
+      just: '刚刚',
+      min: '分钟前',
+      hour: '小时前',
+      day: '天前',
+      month: '个月前',
+    },
+  };
+
+  // required plugins (only load if needs)
+  stellar.plugins = {
+    jQuery: 'https://cdn.jsdelivr.net/npm/jquery@3.5.1/dist/jquery.min.js',
+    sitesjs: '/js/plugins/sites.js',
+    friendsjs: '/js/plugins/friends.js',
+  };
+
+  // optional plugins
+  if ('true' == 'true') {
+    stellar.plugins.lazyload = Object.assign({"enable":true,"js":"https://cdn.jsdelivr.net/npm/vanilla-lazyload@17.3.1/dist/lazyload.min.js","transition":"blur"});
+  }
+  if ('true' == 'true') {
+    stellar.plugins.swiper = Object.assign({"enable":true,"css":"https://unpkg.com/swiper@6/swiper-bundle.min.css","js":"https://unpkg.com/swiper@6/swiper-bundle.min.js"});
+  }
+  if ('' == 'true') {
+    stellar.plugins.scrollreveal = Object.assign({"enable":null,"js":"https://cdn.jsdelivr.net/npm/scrollreveal@4.0.9/dist/scrollreveal.min.js","distance":"8px","duration":500,"interval":100,"scale":1});
+  }
+  if ('true' == 'true') {
+    stellar.plugins.preload = Object.assign({"enable":true,"service":"flying_pages","instant_page":"https://cdn.jsdelivr.net/gh/volantis-x/cdn-volantis@4.1.2/js/instant_page.js","flying_pages":"https://cdn.jsdelivr.net/gh/gijo-varghese/flying-pages@2.1.2/flying-pages.min.js"});
+  }
+</script>
+
+<!-- required -->
+
+  
+<script src="/js/main.js" async></script>
+
+
+
+<!-- optional -->
+
+  <script>
+  function getEmojiMaps() {
+    function emoji(path, idx, ext) {
+      return path + "/" + path + "-" + idx + "." + ext;
+    }
+    var emojiMaps = {};
+    for (var i = 1; i <= 54; i++) {
+      emojiMaps['tieba-' + i] = emoji('tieba', i, 'png');
+    }
+    for (var i = 1; i <= 101; i++) {
+      emojiMaps['qq-' + i] = emoji('qq', i, 'gif');
+    }
+    for (var i = 1; i <= 116; i++) {
+      emojiMaps['aru-' + i] = emoji('aru', i, 'gif');
+    }
+    for (var i = 1; i <= 125; i++) {
+      emojiMaps['twemoji-' + i] = emoji('twemoji', i, 'png');
+    }
+    for (var i = 1; i <= 4; i++) {
+      emojiMaps['weibo-' + i] = emoji('weibo', i, 'png');
+    }
+    return emojiMaps;
+  }
+  function load_comment(){
+    if(!document.getElementById("valine_container"))return;
+    stellar.loadScript('https://cdn.jsdelivr.net/gh/XuxuGood/simple-blog-cdn@main/js/Valine.min.js', {defer:true}).then(function () {
+      const el = document.getElementById("valine_container");
+      var path = el.getAttribute('comment_id');
+      const placeholder = "欢迎您留言~";
+      if (!path) {
+        path = decodeURI(window.location.pathname);
+      }
+      var valine = new Valine();
+      valine.init(Object.assign({"js":"https://cdn.jsdelivr.net/gh/XuxuGood/simple-blog-cdn@main/js/Valine.min.js","appId":"FY2C9UCttYNaE1j8umenqdCE-gzGzoHsz","appKey":"4i7xMwkfSEGmEDhi6SceKFxz","placeholder":"欢迎您留言~","requiredFields":["nick","mail"],"enableQQ":true,"recordIP":false,"avatar":"robohash","pageSize":10,"lang":"zh-cn","highlight":true,"mathJax":false,"tagMeta":["博主","小伙伴","访客"],"metaPlaceholder":{"nick":"昵称/QQ号(必填)","mail":"邮箱（必填，完全保密）"},"master":["6783037F2DF30EAB99F9FC256157D875"],"friends":["6783037F2DF30EAB99F9FC256157D875"],"comment_count":true}, {
+        el: '#valine_container',
+        path: path,
+        placeholder: placeholder,
+        emojiCDN: 'https://cdn.jsdelivr.net/gh/volantis-x/cdn-emoji/valine/',
+        emojiMaps: getEmojiMaps(),
+      }));
+    });
+  }
+  window.addEventListener('DOMContentLoaded', (event) => {
+    console.log('DOM fully loaded and parsed');
+    load_comment();
+  });
+
+</script>
+
+
+
+
+<!-- inject -->
+
+
+  </div>
+</body>
+</html>

@@ -1,0 +1,347 @@
+<!DOCTYPE html>
+<html lang='zh-CN'>
+
+<head>
+  <meta name="generator" content="Hexo 6.0.0">
+  <meta charset="utf-8">
+  
+
+  <meta http-equiv='x-dns-prefetch-control' content='on' />
+  <link rel='dns-prefetch' href='https://cdn.jsdelivr.net'>
+  <link rel="preconnect" href="https://cdn.jsdelivr.net" crossorigin>
+
+  <meta name="renderer" content="webkit">
+  <meta name="force-rendering" content="webkit">
+  <meta http-equiv="X-UA-Compatible" content="IE=Edge,chrome=1">
+  <meta name="HandheldFriendly" content="True" >
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1">
+  <meta name="theme-color" content="#f8f8f8">
+  <title>GameDevelopment: 与 Cocos2d 的再相逢 - Veryitman</title>
+
+  
+    <meta name="description" content="认识 Cocos2d相信很多人听说过 cocos2d-x 这个引擎, 但听过 cocos2d-objc 的人应该不多. cocos2d-objc 是 cocos 系列的 objective-c 版本.开发语言是 OC.在 iOS 上面使用该版本的引擎, 基本是无缝连接(写的没有什么障碍). 欣赏一下 cocos2d-objc 的 logo, 如图: 如果你对 OC 版感兴趣, 可以通过博文 coc">
+<meta property="og:type" content="article">
+<meta property="og:title" content="GameDevelopment: 与 Cocos2d 的再相逢">
+<meta property="og:url" content="http://example.com/2016/11/12/GameDevelopment-%E4%B8%8E-Cocos2d-%E7%9A%84%E5%86%8D%E7%9B%B8%E9%80%A2/index.html">
+<meta property="og:site_name" content="Veryitman">
+<meta property="og:description" content="认识 Cocos2d相信很多人听说过 cocos2d-x 这个引擎, 但听过 cocos2d-objc 的人应该不多. cocos2d-objc 是 cocos 系列的 objective-c 版本.开发语言是 OC.在 iOS 上面使用该版本的引擎, 基本是无缝连接(写的没有什么障碍). 欣赏一下 cocos2d-objc 的 logo, 如图: 如果你对 OC 版感兴趣, 可以通过博文 coc">
+<meta property="og:locale" content="zh_CN">
+<meta property="og:image" content="http://example.com/upload/images/2016/11/12/1.png">
+<meta property="og:image" content="http://example.com/upload/images/2016/11/12/2.png">
+<meta property="article:published_time" content="2016-11-12T14:53:56.000Z">
+<meta property="article:modified_time" content="2022-03-09T14:53:24.351Z">
+<meta property="article:author" content="veryitman">
+<meta property="article:tag" content="Cocos2d Game">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:image" content="http://example.com/upload/images/2016/11/12/1.png">
+  
+  
+
+  <!-- feed -->
+  
+
+  
+    
+<link rel="stylesheet" href="/css/main.css">
+
+  
+
+  
+
+  
+</head>
+
+<body>
+  
+
+
+  <div class='l_body' id='start'>
+    <aside class='l_left' layout='post'>
+    
+
+
+<header class="header">
+
+<div class="logo-wrap"><a class="title" href="/"><div class="main">Veryitman</div></a></div>
+<nav class="menu dis-select"></nav></header>
+
+<div class="widgets">
+
+<div class="widget-wrap single" id="toc"><div class="widget-header cap dis-select"><span class="name">本文目录</span></div><div class="widget-body fs14"><div class="doc-tree active"><ol class="toc"><li class="toc-item toc-level-2"><a class="toc-link" href="#%E8%AE%A4%E8%AF%86-Cocos2d"><span class="toc-text">认识 Cocos2d</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#%E7%94%B1-libgdx-%E8%BD%AC%E5%90%91-Cocos2d"><span class="toc-text">由 libgdx 转向 Cocos2d</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#%E5%86%8D%E6%AC%A1%E4%BD%BF%E7%94%A8-Cocos2d"><span class="toc-text">再次使用 Cocos2d</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#%E5%90%8E%E8%AE%B0"><span class="toc-text">后记</span></a></li></ol></div></div></div>
+
+
+</div>
+
+
+    </aside>
+    <div class='l_main'>
+      
+
+      
+
+
+<div class="bread-nav fs12"><div id="breadcrumb"><a class="cap breadcrumb" href="/">主页</a><span class="sep"></span><a class="cap breadcrumb" href="/">文章</a><span class="sep"></span><a class="cap breadcrumb-link" href="/categories/Game/">Game</a></div><div id="post-meta">发布于&nbsp;<time datetime="2016-11-12T14:53:56.000Z">2016-11-12</time></div></div>
+
+<article class='content md post'>
+<h1 class="article-title"><span>GameDevelopment: 与 Cocos2d 的再相逢</span></h1>
+<h2 id="认识-Cocos2d"><a href="#认识-Cocos2d" class="headerlink" title="认识 Cocos2d"></a>认识 Cocos2d</h2><p>相信很多人听说过 cocos2d-x 这个引擎, 但听过 <a target="_blank" rel="noopener" href="http://cocos2d-objc.org/">cocos2d-objc</a> 的人应该不多.</p>
+<p>cocos2d-objc 是 cocos 系列的 objective-c 版本.<br>开发语言是 OC.在 iOS 上面使用该版本的引擎, 基本是无缝连接(写的没有什么障碍).</p>
+<p>欣赏一下 cocos2d-objc 的 logo, 如图:<br><img class="lazy" src="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAABGdBTUEAALGPC/xhBQAAADhlWElmTU0AKgAAAAgAAYdpAAQAAAABAAAAGgAAAAAAAqACAAQAAAABAAAAAaADAAQAAAABAAAAAQAAAADa6r/EAAAAC0lEQVQIHWNgAAIAAAUAAY27m/MAAAAASUVORK5CYII=" data-src="/upload/images/2016/11/12/1.png" alt="1"></p>
+<p>如果你对 OC 版感兴趣, 可以通过博文 <a target="_blank" rel="noopener" href="http://blog.csdn.net/veryitman/article/details/44993643">coco2d-iphone: 环境搭建</a> 去了解.</p>
+<p>cocos2d-x 目前支持 JavaScript, lua, c++ 等主流语言来开发.<br>cocos 还在迅猛发展中, 不断的完善开发工具, 广大游戏开发者依然热力贡献, 程序猿们在游戏的战场挥洒青春.</p>
+<p>现在 cocos 的开发者会得到更多的支持.</p>
+<p>下面给张图来展示 cocos 家族及其发展:<br><img class="lazy" src="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAABGdBTUEAALGPC/xhBQAAADhlWElmTU0AKgAAAAgAAYdpAAQAAAABAAAAGgAAAAAAAqACAAQAAAABAAAAAaADAAQAAAABAAAAAQAAAADa6r/EAAAAC0lEQVQIHWNgAAIAAAUAAY27m/MAAAAASUVORK5CYII=" data-src="/upload/images/2016/11/12/2.png" alt="1"></p>
+<h2 id="由-libgdx-转向-Cocos2d"><a href="#由-libgdx-转向-Cocos2d" class="headerlink" title="由 libgdx 转向 Cocos2d"></a>由 libgdx 转向 Cocos2d</h2><p>几年前, 那个时候还在开发棋牌游戏, 当时自己也是刚刚接触游戏开发这个「高逼格」的行业, 之前自己是个纯 App 开发者.</p>
+<p>内心还是蛮激动的, 心想可能要走上人生巅峰了…</p>
+<p>棋牌游戏, 当时使用的是 java 的游戏引擎 <a target="_blank" rel="noopener" href="https://libgdx.badlogicgames.com/">libgdx</a> 0.X.X 的版本, 该引擎和 Android 基本也是无缝连接, Api 设计的很好.</p>
+<p>现在 libgdx 也发展到了1.6.x 版本了, 工具也完善了很多.</p>
+<p>虽然 libgdx 也可以跨平台, 但是最终我们还是选择了 cocos2d-x 来移植该游戏.其中原因是因为 cocos2d-x 太火了, 人也好找.</p>
+<p>改为 cocos2d-x 的版本之后, 我就被安排到了另外一个项目, 也是一个棋牌游戏, 该游戏现在在腾讯的微信游戏里面运营.</p>
+<p>这个游戏是 cocos2d-objc 的引擎写的, 自己也不会 objc, 于是硬着头皮学习, 很快的就上手了这个项目.写的也是风生水起.</p>
+<p>cocos2d-objc, 现在也支持跨平台, 并且有 xcode 的插件, 可以在 xcode 里面写 Android 的代码, 调试开发等.</p>
+<p>因为接触 cocos2d, 后面就直接开搞 iOS 开发了.</p>
+<h2 id="再次使用-Cocos2d"><a href="#再次使用-Cocos2d" class="headerlink" title="再次使用 Cocos2d"></a>再次使用 Cocos2d</h2><p>互联网 IT 业的发展, 刺激了各个行业的发展, 也促进和激发了新生的技术, 在这个行业, 每个人都能体会 <code>活到老学到老</code> 这句话的含义.</p>
+<p>这两年, HTML5 的发展, 让很多程序员重新认识了 JavaScript 的重要性. 特别是最近 ReactNative 的发展, jsPacth 的开源, 微信小程序的推出, 让 JavaScript 火得不要不要的.</p>
+<p>说实话, 是时候开始学习前端相关的技术了, 至少你需要去了解.</p>
+<p>cocos2d-js 的发展, 给 HTML 游戏开发带来了很多便利. 最近我们需要开发 H5 的游戏, 直接拿起 coco2d-x(支持 JavaScript) 就撸起.</p>
+<p>去 <a target="_blank" rel="noopener" href="https://github.com/cocos2d/cocos2d-x">GitHub</a> 上面直接 clone 最新版就可以, 按照 README.md 来搭建环境就好了.</p>
+<h2 id="后记"><a href="#后记" class="headerlink" title="后记"></a>后记</h2><p>这篇博客也是有感而发, 没有实质性的内容.</p>
+<p>主要目的是想告诉大家, 技术的发展日新月异, 想在这里大展拳脚, 你需要保持一颗年轻的心, 不怕苦, 勇往直前的精神.</p>
+<p>我们需要学习的技术有很多, 我认为, 要根据项目本身的发展来适度的学习, 切记盲目的学习, 学习一门新技术之后, 要及时的运用在项目当中, 并分享给你身边的人.</p>
+<blockquote>
+<p>不拒绝不排斥新技术, 坚持学习和乐于分享, 应该是必备的技能.</p>
+</blockquote>
+
+
+
+
+</article>
+
+<div class="related-wrap reveal" id="read-next"><section class="header cap theme"><span>接下来阅读</span></section><section class="body fs14"><a id="next" href="/2016/11/08/Mac-install-Cocoapods/">Mac install Cocoapods<span class="note">较早</span></a><div class="line"></div><a id="prev" href="/2016/11/26/Mac-%E9%85%8D%E7%BD%AE-JDK1-8/">Mac 配置 JDK1.8<span class="note">较新</span></a></section></div>
+
+
+
+
+
+
+  <div class='related-wrap md reveal' id="comments">
+    <div class='cmt-title cap theme'>
+      快来参与讨论吧
+    </div>
+    <div class='cmt-body valine'>
+      
+
+<div id="valine_container" class="valine_thread"><svg class="loading" style="vertical-align: middle;fill: currentColor;overflow: hidden;" viewBox="0 0 1024 1024" version="1.1" xmlns="http://www.w3.org/2000/svg" p-id="2709"><path d="M832 512c0-176-144-320-320-320V128c211.2 0 384 172.8 384 384h-64zM192 512c0 176 144 320 320 320v64C300.8 896 128 723.2 128 512h64z" p-id="2710"></path></svg></div>
+
+    </div>
+  </div>
+
+
+
+      
+<footer class="page-footer reveal fs12"><hr><div class="text"><p>本博客所有文章除特别声明外，均采用 <a target="_blank" rel="noopener" href="https://creativecommons.org/licenses/by-nc-sa/4.0/">CC BY-NC-SA 4.0</a> 许可协议，转载请注明出处。</p>
+<p>veryitman</p>
+</div></footer>
+
+      <div class='float-panel mobile-only blur' style='display:none'>
+  <button type='button' class='sidebar-toggle mobile' onclick='sidebar.toggle()'>
+    <svg class="icon" style="width: 1em; height: 1em;vertical-align: middle;fill: currentColor;overflow: hidden;" viewBox="0 0 1024 1024" version="1.1" xmlns="http://www.w3.org/2000/svg" p-id="15301"><path d="M566.407 808.3c26.9-0.1 49.3-20.8 51.6-47.6-1.9-27.7-23.9-49.7-51.6-51.6h-412.6c-28.2-1.4-52.6 19.5-55.5 47.6 2.3 26.8 24.6 47.5 51.6 47.6h416.5v4z m309.3-249.9c26.9-0.1 49.3-20.8 51.6-47.6-2.2-26.8-24.6-47.5-51.6-47.6h-721.9c-27.7-2.8-52.5 17.4-55.3 45.1-0.1 0.8-0.1 1.7-0.2 2.5 0.9 27.2 23.6 48.5 50.7 47.6H875.707z m-103.1-245.9c26.9-0.1 49.3-20.8 51.6-47.6-0.4-28.3-23.2-51.1-51.5-51.6h-618.9c-29.5-1.1-54.3 21.9-55.5 51.4v0.2c1.4 27.8 25.2 49.2 53 47.8 0.8 0 1.7-0.1 2.5-0.2h618.8z" p-id="15302"></path><path d="M566.407 808.3c26.9-0.1 49.3-20.8 51.6-47.6-1.9-27.7-23.9-49.7-51.6-51.6h-412.6c-28.2-1.4-52.6 19.5-55.5 47.6 1.9 27.7 23.9 49.7 51.6 51.6h416.5z m309.3-249.9c26.9-0.1 49.3-20.8 51.6-47.6-2.2-26.8-24.6-47.5-51.6-47.6h-721.9c-27.7-2.8-52.5 17.4-55.3 45.1-0.1 0.8-0.1 1.7-0.2 2.5 0.9 27.2 23.6 48.5 50.7 47.6H875.707z m-103.1-245.9c26.9-0.1 49.3-20.8 51.6-47.6-0.4-28.3-23.2-51.1-51.5-51.6h-618.9c-29.5-1.1-54.3 21.9-55.5 51.4v0.2c1.4 27.8 25.2 49.2 53 47.8 0.8 0 1.7-0.1 2.5-0.2h618.8z" p-id="15303"></path></svg>
+  </button>
+</div>
+
+    </div>
+  </div>
+  <div class='scripts'>
+    <script type="text/javascript">
+  stellar = {
+    // 懒加载 css https://github.com/filamentgroup/loadCSS
+    loadCSS: (href, before, media, attributes) => {
+      var doc = window.document;
+      var ss = doc.createElement("link");
+      var ref;
+      if (before) {
+        ref = before;
+      } else {
+        var refs = (doc.body || doc.getElementsByTagName("head")[0]).childNodes;
+        ref = refs[refs.length - 1];
+      }
+      var sheets = doc.styleSheets;
+      if (attributes) {
+        for (var attributeName in attributes) {
+          if (attributes.hasOwnProperty(attributeName)) {
+            ss.setAttribute(attributeName, attributes[attributeName]);
+          }
+        }
+      }
+      ss.rel = "stylesheet";
+      ss.href = href;
+      ss.media = "only x";
+      function ready(cb) {
+        if (doc.body) {
+          return cb();
+        }
+        setTimeout(function () {
+          ready(cb);
+        });
+      }
+      ready(function () {
+        ref.parentNode.insertBefore(ss, before ? ref : ref.nextSibling);
+      });
+      var onloadcssdefined = function (cb) {
+        var resolvedHref = ss.href;
+        var i = sheets.length;
+        while (i--) {
+          if (sheets[i].href === resolvedHref) {
+            return cb();
+          }
+        }
+        setTimeout(function () {
+          onloadcssdefined(cb);
+        });
+      };
+      function loadCB() {
+        if (ss.addEventListener) {
+          ss.removeEventListener("load", loadCB);
+        }
+        ss.media = media || "all";
+      }
+      if (ss.addEventListener) {
+        ss.addEventListener("load", loadCB);
+      }
+      ss.onloadcssdefined = onloadcssdefined;
+      onloadcssdefined(loadCB);
+      return ss;
+    },
+
+    // 从 butterfly 和 volantis 获得灵感
+    loadScript: (src, opt) => new Promise((resolve, reject) => {
+      var script = document.createElement('script');
+      script.src = src;
+      if (opt) {
+        for (let key of Object.keys(opt)) {
+          script[key] = opt[key]
+        }
+      } else {
+        // 默认异步，如果需要同步，第二个参数传入 {} 即可
+        script.async = true
+      }
+      script.onerror = reject
+      script.onload = script.onreadystatechange = function() {
+        const loadState = this.readyState
+        if (loadState && loadState !== 'loaded' && loadState !== 'complete') return
+        script.onload = script.onreadystatechange = null
+        resolve()
+      }
+      document.head.appendChild(script)
+    }),
+
+    // https://github.com/jerryc127/hexo-theme-butterfly
+    jQuery: (fn) => {
+      if (typeof jQuery === 'undefined') {
+        stellar.loadScript(stellar.plugins.jQuery).then(fn)
+      } else {
+        fn()
+      }
+    }
+  };
+  stellar.github = 'https://github.com/xaoxuu/hexo-theme-stellar/tree/1.6.1';
+  stellar.config = {
+    date_suffix: {
+      just: '刚刚',
+      min: '分钟前',
+      hour: '小时前',
+      day: '天前',
+      month: '个月前',
+    },
+  };
+
+  // required plugins (only load if needs)
+  stellar.plugins = {
+    jQuery: 'https://cdn.jsdelivr.net/npm/jquery@3.5.1/dist/jquery.min.js',
+    sitesjs: '/js/plugins/sites.js',
+    friendsjs: '/js/plugins/friends.js',
+  };
+
+  // optional plugins
+  if ('true' == 'true') {
+    stellar.plugins.lazyload = Object.assign({"enable":true,"js":"https://cdn.jsdelivr.net/npm/vanilla-lazyload@17.3.1/dist/lazyload.min.js","transition":"blur"});
+  }
+  if ('true' == 'true') {
+    stellar.plugins.swiper = Object.assign({"enable":true,"css":"https://unpkg.com/swiper@6/swiper-bundle.min.css","js":"https://unpkg.com/swiper@6/swiper-bundle.min.js"});
+  }
+  if ('' == 'true') {
+    stellar.plugins.scrollreveal = Object.assign({"enable":null,"js":"https://cdn.jsdelivr.net/npm/scrollreveal@4.0.9/dist/scrollreveal.min.js","distance":"8px","duration":500,"interval":100,"scale":1});
+  }
+  if ('true' == 'true') {
+    stellar.plugins.preload = Object.assign({"enable":true,"service":"flying_pages","instant_page":"https://cdn.jsdelivr.net/gh/volantis-x/cdn-volantis@4.1.2/js/instant_page.js","flying_pages":"https://cdn.jsdelivr.net/gh/gijo-varghese/flying-pages@2.1.2/flying-pages.min.js"});
+  }
+</script>
+
+<!-- required -->
+
+  
+<script src="/js/main.js" async></script>
+
+
+
+<!-- optional -->
+
+  <script>
+  function getEmojiMaps() {
+    function emoji(path, idx, ext) {
+      return path + "/" + path + "-" + idx + "." + ext;
+    }
+    var emojiMaps = {};
+    for (var i = 1; i <= 54; i++) {
+      emojiMaps['tieba-' + i] = emoji('tieba', i, 'png');
+    }
+    for (var i = 1; i <= 101; i++) {
+      emojiMaps['qq-' + i] = emoji('qq', i, 'gif');
+    }
+    for (var i = 1; i <= 116; i++) {
+      emojiMaps['aru-' + i] = emoji('aru', i, 'gif');
+    }
+    for (var i = 1; i <= 125; i++) {
+      emojiMaps['twemoji-' + i] = emoji('twemoji', i, 'png');
+    }
+    for (var i = 1; i <= 4; i++) {
+      emojiMaps['weibo-' + i] = emoji('weibo', i, 'png');
+    }
+    return emojiMaps;
+  }
+  function load_comment(){
+    if(!document.getElementById("valine_container"))return;
+    stellar.loadScript('https://cdn.jsdelivr.net/gh/XuxuGood/simple-blog-cdn@main/js/Valine.min.js', {defer:true}).then(function () {
+      const el = document.getElementById("valine_container");
+      var path = el.getAttribute('comment_id');
+      const placeholder = "欢迎您留言~";
+      if (!path) {
+        path = decodeURI(window.location.pathname);
+      }
+      var valine = new Valine();
+      valine.init(Object.assign({"js":"https://cdn.jsdelivr.net/gh/XuxuGood/simple-blog-cdn@main/js/Valine.min.js","appId":"FY2C9UCttYNaE1j8umenqdCE-gzGzoHsz","appKey":"4i7xMwkfSEGmEDhi6SceKFxz","placeholder":"欢迎您留言~","requiredFields":["nick","mail"],"enableQQ":true,"recordIP":false,"avatar":"robohash","pageSize":10,"lang":"zh-cn","highlight":true,"mathJax":false,"tagMeta":["博主","小伙伴","访客"],"metaPlaceholder":{"nick":"昵称/QQ号(必填)","mail":"邮箱（必填，完全保密）"},"master":["6783037F2DF30EAB99F9FC256157D875"],"friends":["6783037F2DF30EAB99F9FC256157D875"],"comment_count":true}, {
+        el: '#valine_container',
+        path: path,
+        placeholder: placeholder,
+        emojiCDN: 'https://cdn.jsdelivr.net/gh/volantis-x/cdn-emoji/valine/',
+        emojiMaps: getEmojiMaps(),
+      }));
+    });
+  }
+  window.addEventListener('DOMContentLoaded', (event) => {
+    console.log('DOM fully loaded and parsed');
+    load_comment();
+  });
+
+</script>
+
+
+
+
+<!-- inject -->
+
+
+  </div>
+</body>
+</html>

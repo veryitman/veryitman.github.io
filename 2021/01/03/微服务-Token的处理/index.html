@@ -1,0 +1,396 @@
+<!DOCTYPE html>
+<html lang='zh-CN'>
+
+<head>
+  <meta name="generator" content="Hexo 6.0.0">
+  <meta charset="utf-8">
+  
+
+  <meta http-equiv='x-dns-prefetch-control' content='on' />
+  <link rel='dns-prefetch' href='https://cdn.jsdelivr.net'>
+  <link rel="preconnect" href="https://cdn.jsdelivr.net" crossorigin>
+
+  <meta name="renderer" content="webkit">
+  <meta name="force-rendering" content="webkit">
+  <meta http-equiv="X-UA-Compatible" content="IE=Edge,chrome=1">
+  <meta name="HandheldFriendly" content="True" >
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1">
+  <meta name="theme-color" content="#f8f8f8">
+  <title>微服务: Token的处理 - Veryitman</title>
+
+  
+    <meta name="description" content="简介在 Win10-安装-Redis 和 微服务-SpringBoot-集成-Redis 分别介绍了如何安装和使用 Redis，今天继续结合 Redis，聊聊 token 授权登录的事情。 今天聊的主角是 JWT，聊完 JWT 之后再结合实例实现用户 token 登录。 JWT 介绍JWT，JSON Web Token 的缩写，基于 RFC 7519 标准。 下面内容来自 jwd.io，如下： 1">
+<meta property="og:type" content="article">
+<meta property="og:title" content="微服务: Token的处理">
+<meta property="og:url" content="http://example.com/2021/01/03/%E5%BE%AE%E6%9C%8D%E5%8A%A1-Token%E7%9A%84%E5%A4%84%E7%90%86/index.html">
+<meta property="og:site_name" content="Veryitman">
+<meta property="og:description" content="简介在 Win10-安装-Redis 和 微服务-SpringBoot-集成-Redis 分别介绍了如何安装和使用 Redis，今天继续结合 Redis，聊聊 token 授权登录的事情。 今天聊的主角是 JWT，聊完 JWT 之后再结合实例实现用户 token 登录。 JWT 介绍JWT，JSON Web Token 的缩写，基于 RFC 7519 标准。 下面内容来自 jwd.io，如下： 1">
+<meta property="og:locale" content="zh_CN">
+<meta property="og:image" content="http://example.com/upload/images/2021/01/03/1.png">
+<meta property="og:image" content="http://example.com/upload/images/2021/01/03/2.png">
+<meta property="og:image" content="http://example.com/upload/images/2021/01/03/3.png">
+<meta property="og:image" content="http://example.com/upload/me/qrcode_wx.jpg">
+<meta property="article:published_time" content="2021-01-03T05:38:45.000Z">
+<meta property="article:modified_time" content="2022-03-09T14:53:24.327Z">
+<meta property="article:author" content="veryitman">
+<meta property="article:tag" content="Redis JWT Token">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:image" content="http://example.com/upload/images/2021/01/03/1.png">
+  
+  
+
+  <!-- feed -->
+  
+
+  
+    
+<link rel="stylesheet" href="/css/main.css">
+
+  
+
+  
+
+  
+</head>
+
+<body>
+  
+
+
+  <div class='l_body' id='start'>
+    <aside class='l_left' layout='post'>
+    
+
+
+<header class="header">
+
+<div class="logo-wrap"><a class="title" href="/"><div class="main">Veryitman</div></a></div>
+<nav class="menu dis-select"></nav></header>
+
+<div class="widgets">
+
+<div class="widget-wrap single" id="toc"><div class="widget-header cap dis-select"><span class="name">本文目录</span></div><div class="widget-body fs14"><div class="doc-tree active"><ol class="toc"><li class="toc-item toc-level-2"><a class="toc-link" href="#%E7%AE%80%E4%BB%8B"><span class="toc-text">简介</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#JWT-%E4%BB%8B%E7%BB%8D"><span class="toc-text">JWT 介绍</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#%E4%BD%BF%E7%94%A8-JWT"><span class="toc-text">使用 JWT</span></a><ol class="toc-child"><li class="toc-item toc-level-3"><a class="toc-link" href="#Spring-Boot-%E9%9B%86%E6%88%90-jjwt"><span class="toc-text">Spring Boot 集成 jjwt</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#%E4%BF%AE%E6%94%B9%E4%BA%86%E5%93%AA%E4%BA%9B%E6%96%87%E4%BB%B6"><span class="toc-text">修改了哪些文件</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#%E5%AE%9E%E4%BE%8B%E6%BC%94%E7%BB%83"><span class="toc-text">实例演练</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#API-%E8%B0%83%E7%94%A8%E6%95%88%E6%9E%9C"><span class="toc-text">API 调用效果</span></a></li></ol></li><li class="toc-item toc-level-2"><a class="toc-link" href="#%E5%BE%85%E5%8A%9E%E4%BA%8B%E9%A1%B9"><span class="toc-text">待办事项</span></a></li></ol></div></div></div>
+
+
+</div>
+
+
+    </aside>
+    <div class='l_main'>
+      
+
+      
+
+
+<div class="bread-nav fs12"><div id="breadcrumb"><a class="cap breadcrumb" href="/">主页</a><span class="sep"></span><a class="cap breadcrumb" href="/">文章</a><span class="sep"></span><a class="cap breadcrumb-link" href="/categories/Server/">Server</a></div><div id="post-meta">发布于&nbsp;<time datetime="2021-01-03T05:38:45.000Z">2021-01-03</time></div></div>
+
+<article class='content md post'>
+<h1 class="article-title"><span>微服务: Token的处理</span></h1>
+<h2 id="简介"><a href="#简介" class="headerlink" title="简介"></a>简介</h2><p>在 <a target="_blank" rel="noopener" href="http://www.veryitman.com/2020/11/15/Win10-%E5%AE%89%E8%A3%85-Redis/">Win10-安装-Redis</a> 和 <a target="_blank" rel="noopener" href="http://www.veryitman.com/2020/12/05/%E5%BE%AE%E6%9C%8D%E5%8A%A1-SpringBoot-%E9%9B%86%E6%88%90-Redis/">微服务-SpringBoot-集成-Redis</a> 分别介绍了如何安装和使用 Redis，今天继续结合 Redis，聊聊 token 授权登录的事情。</p>
+<p>今天聊的主角是 JWT，聊完 JWT 之后再结合实例实现用户 token 登录。</p>
+<h2 id="JWT-介绍"><a href="#JWT-介绍" class="headerlink" title="JWT 介绍"></a>JWT 介绍</h2><p>JWT，JSON Web Token 的缩写，基于 <a target="_blank" rel="noopener" href="https://tools.ietf.org/html/rfc7519">RFC 7519</a> 标准。</p>
+<p>下面内容来自 <a target="_blank" rel="noopener" href="https://jwt.io/">jwd.io</a>，如下：</p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">JSON Web Tokens are an open, industry standard RFC 7519 method for representing claims securely between two parties.</span><br></pre></td></tr></table></figure>
+
+<p>JWT 定义了一种紧凑的、自包含的方式，用于作为 JSON 对象在各方之间安全地传输信息。该信息可以被验证和信任（因为它是数字签名的）。</p>
+<p>JWT 可应用于但不仅限于下面的几种场景：</p>
+<p><strong>1、跨域认证</strong></p>
+<p>JWT 是一种比较流行的跨域认证解决方案，JWT 的诞生并不是解决 CSRF 跨域攻击，而是解决跨域认证的难题。</p>
+<p>A 网站和 B 网站是同一家公司的关联服务，现在要求，用户只要在其中一个网站登录，再访问另一个网站就会自动登录，这应该如何实现呢？客户端保存 Token，每次请求都发回给服务器即可。</p>
+<p><strong>2、授权</strong>（Authorization）</p>
+<p>用户一旦登录成功后，后续用户的每个请求都将包含 JWT，允许用户访问该令牌允许的路由、服务和资源。单点登录是现在广泛使用的 JWT 的一个特性，因为它的开销很小，并且可以轻松地跨域使用。授权，是使用 JWT 的最常见的场景之一。</p>
+<p><strong>3、信息交换</strong>（Information Exchange） </p>
+<p>对于安全的在各方之间传输信息而言，JWT 是一种很好的方式。JWT 可以被签名，例如，用公钥&#x2F;私钥对，可以确定发送人就是它们所说的那个人。另外，由于签名是使用头和有效负载计算的，还可以验证内容没有被篡改。</p>
+<p>可以参考阮一峰老师的 <a target="_blank" rel="noopener" href="http://www.ruanyifeng.com/blog/2018/07/json_web_token-tutorial.html">JSON Web Token 入门教程</a>，更多详细的介绍可以参考 <a target="_blank" rel="noopener" href="https://jwt.io/">jwd.io</a> 的相关资料。</p>
+<h2 id="使用-JWT"><a href="#使用-JWT" class="headerlink" title="使用 JWT"></a>使用 JWT</h2><h3 id="Spring-Boot-集成-jjwt"><a href="#Spring-Boot-集成-jjwt" class="headerlink" title="Spring Boot 集成 jjwt"></a>Spring Boot 集成 jjwt</h3><p>本文以集成 <a target="_blank" rel="noopener" href="https://github.com/jwtk/jjwt">https://github.com/jwtk/jjwt</a> 为例。如果你有兴趣也可以试着去使用 <a target="_blank" rel="noopener" href="https://github.com/auth0/java-jwt%EF%BC%8C%E5%AE%83%E6%98%AF">https://github.com/auth0/java-jwt，它是</a> JWT 的另一个 Java 实现。</p>
+<p>截止到该文发布，在 maven repository 仓库中 <a target="_blank" rel="noopener" href="https://mvnrepository.com/artifact/io.jsonwebtoken/jjwt?__cf_chl_jschl_tk__=40ed76b98ea56a31b34ae41068be356abf8e7c14-1609035481-0-AXWqPSMWrV3GrvD-HnJUNECglQaslmvbqqmHDG7k-9M_29qE9GRZ7nwtHkgj20FyvUbV-IqHyAZKdY10ws0QZectFAnTTF6idWvIqF2O-g_hc4soVukN5OssNoHWgnIAyGNWw2Q28eih-vEnuqJVLpkcsI2TrmW6Iv7vTrhFqSCplqYa9vntXVPeRuAcH174hq_Ep4XROJH84lwN__3I9NOG41A64oXIsyPC5i6ZfBwLTt7T1VC0JISbVfnGAAsekbFItQYPA_gfd_jnUDVG9ygyaW0luOrMFoejVThPtzAPr04IX-A7CNQJKVwpZgAMbb1WsjCwGHgKLdoOmkEkzwC66AmNlIh4tz2zEca4TO1-0TzHk9sz8u78f2sMQfdL8WyiXwUVJ5F30CB3tiN8wHw">jjwt</a> 最新版本是 <code>0.9.1</code></p>
+<figure class="highlight xml"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br></pre></td><td class="code"><pre><span class="line"><span class="tag">&lt;<span class="name">dependency</span>&gt;</span></span><br><span class="line">    <span class="tag">&lt;<span class="name">groupId</span>&gt;</span>io.jsonwebtoken<span class="tag">&lt;/<span class="name">groupId</span>&gt;</span></span><br><span class="line">    <span class="tag">&lt;<span class="name">artifactId</span>&gt;</span>jjwt<span class="tag">&lt;/<span class="name">artifactId</span>&gt;</span></span><br><span class="line">    <span class="tag">&lt;<span class="name">version</span>&gt;</span>0.9.1<span class="tag">&lt;/<span class="name">version</span>&gt;</span></span><br><span class="line"><span class="tag">&lt;/<span class="name">dependency</span>&gt;</span></span><br></pre></td></tr></table></figure>
+
+<h3 id="修改了哪些文件"><a href="#修改了哪些文件" class="headerlink" title="修改了哪些文件"></a>修改了哪些文件</h3><p>本次涉及修改和新增的文件如下：</p>
+<ul>
+<li>【修改】<code>MSUserSigninService.java</code>：登录服务的接口；</li>
+<li>【修改】<code>MSUserSigninServiceImpl.java</code>：登录服务的接口实现；</li>
+<li>【修改】<code>MSSigninController.java</code>：登录的Controller；</li>
+<li>【新增】<code>MSAuthTokenUtil.java</code>：token工具类；</li>
+<li>【新增】<code>MSAuthConfigurer.java</code>：token配置管理；</li>
+<li>【新增】<code>MSAuthInterceptor.java</code>：自定义拦截器；</li>
+</ul>
+<p>具体的实现步骤为：</p>
+<ul>
+<li>写 token 工具类，实现 token 的生成，校验等工作即 <code>MSAuthTokenUtil.java</code>;</li>
+<li>写自定义拦截器，即 <code>MSAuthInterceptor.java</code>，该类实现了 <code>HandlerInterceptor</code> 接口；<ul>
+<li>拦截客户端相关的 API 请求，对相关的接口进行token的校验；</li>
+<li>有了统一的拦截器不需要在每个 Controller 或者对应的 Service 中去做 token 的判断；</li>
+</ul>
+</li>
+<li>写自定义拦截器的配置管理类即 <code>MSAuthConfigurer.java</code>，该类实现了 <code>WebMvcConfigurer</code> 接口；</li>
+<li>增加 token 登录的 API，并实现 Redis 缓存 token 的逻辑；</li>
+</ul>
+<h3 id="实例演练"><a href="#实例演练" class="headerlink" title="实例演练"></a>实例演练</h3><p>用户登录完成后，根据 userID 生成 token，将 token 保存到 Redis 中按照 userID 为 key 来进行存储的。</p>
+<p><code>MSAuthInterceptor.java</code> 是自定义的拦截器，在该拦截器中获取请求的 token 并进行相关的校验。核心代码如下：</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br><span class="line">39</span><br><span class="line">40</span><br><span class="line">41</span><br><span class="line">42</span><br><span class="line">43</span><br><span class="line">44</span><br><span class="line">45</span><br><span class="line">46</span><br><span class="line">47</span><br></pre></td><td class="code"><pre><span class="line"><span class="meta">@Component</span></span><br><span class="line"><span class="keyword">public</span> <span class="keyword">class</span> <span class="title class_">MSAuthInterceptor</span> <span class="keyword">implements</span> <span class="title class_">HandlerInterceptor</span> &#123;</span><br><span class="line">    <span class="keyword">private</span> <span class="keyword">static</span> <span class="keyword">final</span> <span class="type">String</span> <span class="variable">REQUEST_TOKEN_KEY</span> <span class="operator">=</span> <span class="string">&quot;token&quot;</span>;</span><br><span class="line"></span><br><span class="line">    <span class="meta">@Override</span></span><br><span class="line">    <span class="keyword">public</span> <span class="type">boolean</span> <span class="title function_">preHandle</span><span class="params">(HttpServletRequest request, HttpServletResponse response, Object handler)</span> <span class="keyword">throws</span> Exception &#123;</span><br><span class="line">        <span class="type">String</span> <span class="variable">requestMethod</span> <span class="operator">=</span> request.getMethod();</span><br><span class="line"></span><br><span class="line">        <span class="keyword">if</span> (<span class="string">&quot;OPTIONS&quot;</span>.equalsIgnoreCase(requestMethod)) &#123;</span><br><span class="line">            response.setStatus(HttpServletResponse.SC_OK);</span><br><span class="line">            <span class="keyword">return</span> <span class="literal">true</span>;</span><br><span class="line">        &#125;</span><br><span class="line">        <span class="comment">// 请求的Header中拿</span></span><br><span class="line">        <span class="type">String</span> <span class="variable">token</span> <span class="operator">=</span> request.getHeader(REQUEST_TOKEN_KEY);</span><br><span class="line">        <span class="comment">// Header中拿不到token</span></span><br><span class="line">        <span class="keyword">if</span> (<span class="literal">null</span> == token) &#123;</span><br><span class="line">            String[] tokens = request.getParameterValues(<span class="string">&quot;token&quot;</span>);</span><br><span class="line">            <span class="keyword">if</span> (<span class="literal">null</span> != tokens &amp;&amp; tokens.length &gt; <span class="number">0</span>) &#123;</span><br><span class="line">                token = tokens[<span class="number">0</span>];</span><br><span class="line">            &#125;</span><br><span class="line">        &#125;</span><br><span class="line"></span><br><span class="line">        <span class="keyword">if</span> (MSAuthTokenUtil.verifyToken(token)) &#123;</span><br><span class="line">            <span class="keyword">return</span> <span class="literal">true</span>;</span><br><span class="line">        &#125;</span><br><span class="line"></span><br><span class="line">        <span class="type">PrintWriter</span> <span class="variable">writer</span> <span class="operator">=</span> <span class="literal">null</span>;</span><br><span class="line">        response.setCharacterEncoding(<span class="string">&quot;UTF-8&quot;</span>);</span><br><span class="line">        response.setContentType(<span class="string">&quot;application/json; charset=utf-8&quot;</span>);</span><br><span class="line">        <span class="keyword">try</span> &#123;</span><br><span class="line">            writer = response.getWriter();</span><br><span class="line">            Map&lt;String, Object&gt; result = <span class="keyword">new</span> <span class="title class_">HashMap</span>&lt;&gt;(<span class="number">2</span>);</span><br><span class="line">            result.put(<span class="string">&quot;code&quot;</span>, <span class="number">400</span>);</span><br><span class="line">            result.put(<span class="string">&quot;msg&quot;</span>, <span class="string">&quot;用户令牌token无效&quot;</span>);</span><br><span class="line">            result.put(<span class="string">&quot;data&quot;</span>, <span class="literal">null</span>);</span><br><span class="line">            writer.print(result);</span><br><span class="line">        &#125; <span class="keyword">catch</span> (IOException e) &#123;</span><br><span class="line">			</span><br><span class="line">        &#125; <span class="keyword">finally</span> &#123;</span><br><span class="line">            <span class="keyword">if</span> (<span class="literal">null</span> != writer) &#123;</span><br><span class="line">                writer.close();</span><br><span class="line">            &#125;</span><br><span class="line">        &#125;</span><br><span class="line"></span><br><span class="line">        <span class="keyword">return</span> <span class="literal">false</span>;</span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<p>拦截器的配置在 <code>MSAuthConfigurer.java</code> 中进行管理，关键代码如下：</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br></pre></td><td class="code"><pre><span class="line"><span class="meta">@Configuration</span></span><br><span class="line"><span class="keyword">public</span> <span class="keyword">class</span> <span class="title class_">MSAuthConfigurer</span> <span class="keyword">implements</span> <span class="title class_">WebMvcConfigurer</span> &#123;</span><br><span class="line"></span><br><span class="line">    <span class="keyword">private</span> MSAuthInterceptor authInterceptor;</span><br><span class="line"></span><br><span class="line">    <span class="keyword">public</span> <span class="title function_">MSAuthConfigurer</span><span class="params">(MSAuthInterceptor authInterceptor)</span> &#123;</span><br><span class="line">        <span class="built_in">this</span>.authInterceptor = authInterceptor;</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    <span class="meta">@Override</span></span><br><span class="line">    <span class="keyword">public</span> <span class="keyword">void</span> <span class="title function_">addInterceptors</span><span class="params">(InterceptorRegistry registry)</span> &#123;</span><br><span class="line">        <span class="comment">// 如下路径不做拦截</span></span><br><span class="line">        List&lt;String&gt; excludePaths = <span class="keyword">new</span> <span class="title class_">ArrayList</span>&lt;&gt;();</span><br><span class="line">        excludePaths.add(<span class="string">&quot;/signup/**&quot;</span>); <span class="comment">//注册</span></span><br><span class="line">        excludePaths.add(<span class="string">&quot;/signin/name/**&quot;</span>); <span class="comment">//用户名登录</span></span><br><span class="line">        excludePaths.add(<span class="string">&quot;/signin/get/token/**&quot;</span>); <span class="comment">//获取token</span></span><br><span class="line">        excludePaths.add(<span class="string">&quot;/signout/**&quot;</span>); <span class="comment">//登出</span></span><br><span class="line">        excludePaths.add(<span class="string">&quot;/static/**&quot;</span>);  <span class="comment">//静态资源</span></span><br><span class="line">        excludePaths.add(<span class="string">&quot;/assets/**&quot;</span>);  <span class="comment">//静态资源</span></span><br><span class="line"></span><br><span class="line">        <span class="comment">// 除了 excludePaths 外的请求地址都做拦截</span></span><br><span class="line">        registry.addInterceptor(authInterceptor)</span><br><span class="line">                .addPathPatterns(<span class="string">&quot;/**&quot;</span>)</span><br><span class="line">                .excludePathPatterns(excludePaths);</span><br><span class="line"></span><br><span class="line">        WebMvcConfigurer.<span class="built_in">super</span>.addInterceptors(registry);</span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<p>接下来重点说一下 <code>MSAuthTokenUtil.java</code> 里面如何生成 token 的，<code>MSAuthTokenUtil.java</code> 主要是完成生成、检验、刷新 token 等工作。</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">public</span> <span class="keyword">static</span> String <span class="title function_">generateToken</span><span class="params">(String userID)</span> &#123;</span><br><span class="line">    <span class="type">String</span> <span class="variable">token</span> <span class="operator">=</span> <span class="string">&quot;&quot;</span>;</span><br><span class="line"></span><br><span class="line">    <span class="type">Date</span> <span class="variable">date</span> <span class="operator">=</span> <span class="keyword">new</span> <span class="title class_">Date</span>();</span><br><span class="line">    <span class="comment">// 过期时间</span></span><br><span class="line">    <span class="type">Date</span> <span class="variable">expireDate</span> <span class="operator">=</span> <span class="keyword">new</span> <span class="title class_">Date</span>(System.currentTimeMillis() + TOKEN_EXPIRE_TIME);</span><br><span class="line"></span><br><span class="line">    token = Jwts.builder().setId(JWTSID)</span><br><span class="line">        .setSubject(SUBJECT)</span><br><span class="line">        .setAudience(AUDIENCE)</span><br><span class="line">        .setIssuedAt(date)</span><br><span class="line">        .setExpiration(expireDate)</span><br><span class="line">        .claim(CLAIMS_USERID, userID)</span><br><span class="line">        .signWith(SignatureAlgorithm.HS256, TOKEN_SECRET)</span><br><span class="line">        .compact();</span><br><span class="line"></span><br><span class="line">    log.info(<span class="string">&quot;generateToken token: &quot;</span> + token);</span><br><span class="line"></span><br><span class="line">    <span class="keyword">return</span> token;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<p>根据用户ID 生成 token，其中 <code>claim(CLAIMS_USERID, userID)</code> 是用于自定义字段的，便于解析 token 时获取相关的信息。</p>
+<p>当我们调用用户名+密码登录的时候，会生成对应的 token，然后将该 token 保存到 Redis 中。下次调用 token 登录的接口时，会从 Redis 中取出对应的 token 信息进行校对，校对通过就返回成功，否则返回失败无法登录。</p>
+<p>在 <code>MSSigninController.java</code> 分别实现了获取 token、刷新 token，token 登录三个接口，如下：</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br></pre></td><td class="code"><pre><span class="line"><span class="meta">@RequestMapping(value = &quot;/get/token&quot;, method = RequestMethod.GET)</span></span><br><span class="line"><span class="meta">@ApiOperation(value = &quot;获取token&quot;, httpMethod = &quot;GET&quot;, notes = &quot;获取登录&quot;)</span></span><br><span class="line"><span class="meta">@ApiImplicitParams(&#123;</span></span><br><span class="line"><span class="meta">    @ApiImplicitParam(name = &quot;userID&quot;, value = &quot;userID&quot;, required = true)</span></span><br><span class="line"><span class="meta">&#125;)</span></span><br><span class="line"><span class="keyword">public</span> MSResponse <span class="title function_">getToken</span><span class="params">(<span class="meta">@RequestParam(value = &quot;userid&quot;)</span> String userID)</span> &#123;</span><br><span class="line">    <span class="type">MSResponse</span> <span class="variable">response</span> <span class="operator">=</span> userSigninService.fetchUserToken(userID);</span><br><span class="line"></span><br><span class="line">    <span class="keyword">return</span> response;</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line"><span class="meta">@RequestMapping(value = &quot;/token&quot;, method = RequestMethod.GET)</span></span><br><span class="line"><span class="meta">@ApiOperation(value = &quot;Token登录&quot;, httpMethod = &quot;GET&quot;, notes = &quot;Token登录&quot;)</span></span><br><span class="line"><span class="meta">@ApiImplicitParams(&#123;</span></span><br><span class="line"><span class="meta">    @ApiImplicitParam(name = &quot;userID&quot;, value = &quot;userID&quot;, required = true),</span></span><br><span class="line"><span class="meta">    @ApiImplicitParam(name = &quot;token&quot;, value = &quot;token&quot;, required = true)</span></span><br><span class="line"><span class="meta">&#125;)</span></span><br><span class="line"><span class="keyword">public</span> MSResponse <span class="title function_">siginWithToken</span><span class="params">(<span class="meta">@RequestParam(value = &quot;userid&quot;)</span> String userID, <span class="meta">@RequestParam(value = &quot;token&quot;)</span> String token)</span> &#123;</span><br><span class="line">    <span class="type">MSResponse</span> <span class="variable">response</span> <span class="operator">=</span> userSigninService.signinUsingToken(userID, token);</span><br><span class="line"></span><br><span class="line">    <span class="keyword">return</span> response;</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line"><span class="meta">@RequestMapping(value = &quot;/refresh/token&quot;, method = RequestMethod.GET)</span></span><br><span class="line"><span class="meta">@ApiOperation(value = &quot;刷新Token&quot;, httpMethod = &quot;GET&quot;, notes = &quot;Token刷新&quot;)</span></span><br><span class="line"><span class="meta">@ApiImplicitParams(&#123;</span></span><br><span class="line"><span class="meta">    @ApiImplicitParam(name = &quot;token&quot;, value = &quot;token&quot;, required = true)</span></span><br><span class="line"><span class="meta">&#125;)</span></span><br><span class="line"><span class="keyword">public</span> MSResponse <span class="title function_">refreshToken</span><span class="params">(<span class="meta">@RequestParam(value = &quot;token&quot;)</span> String token)</span> &#123;</span><br><span class="line">    <span class="type">MSResponse</span> <span class="variable">response</span> <span class="operator">=</span> userSigninService.refreshUserToken(token);</span><br><span class="line"></span><br><span class="line">    <span class="keyword">return</span> response;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<p>为了方便使用了 GET 方式进行网络请求。后续可以改为 POST 请求。</p>
+<p>登录逻辑都在 <code>MSUserSigninServiceImpl.java</code> 中，大家可以自行去看源码，这里不再赘述。</p>
+<h3 id="API-调用效果"><a href="#API-调用效果" class="headerlink" title="API 调用效果"></a>API 调用效果</h3><p>启动 MySQL，启动 Redis，再启动项目即可。</p>
+<p>用户登录成功后，调用 <code>/get/token</code> API，如下：</p>
+<p><img class="lazy" src="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAABGdBTUEAALGPC/xhBQAAADhlWElmTU0AKgAAAAgAAYdpAAQAAAABAAAAGgAAAAAAAqACAAQAAAABAAAAAaADAAQAAAABAAAAAQAAAADa6r/EAAAAC0lEQVQIHWNgAAIAAAUAAY27m/MAAAAASUVORK5CYII=" data-src="/upload/images/2021/01/03/1.png"></p>
+<p>调用 <code>/token</code> 进行登录的 API，如下：</p>
+<p><img class="lazy" src="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAABGdBTUEAALGPC/xhBQAAADhlWElmTU0AKgAAAAgAAYdpAAQAAAABAAAAGgAAAAAAAqACAAQAAAABAAAAAaADAAQAAAABAAAAAQAAAADa6r/EAAAAC0lEQVQIHWNgAAIAAAUAAY27m/MAAAAASUVORK5CYII=" data-src="/upload/images/2021/01/03/2.png"></p>
+<p>调用 <code>refresh/token</code> API 如下：</p>
+<p><img class="lazy" src="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAABGdBTUEAALGPC/xhBQAAADhlWElmTU0AKgAAAAgAAYdpAAQAAAABAAAAGgAAAAAAAqACAAQAAAABAAAAAaADAAQAAAABAAAAAQAAAADa6r/EAAAAC0lEQVQIHWNgAAIAAAUAAY27m/MAAAAASUVORK5CYII=" data-src="/upload/images/2021/01/03/3.png"></p>
+<h2 id="待办事项"><a href="#待办事项" class="headerlink" title="待办事项"></a>待办事项</h2><ul>
+<li><input checked="" disabled="" type="checkbox"> token 配置信息放置到配置文件中；2021.01.17 Done <a target="_blank" rel="noopener" href="http://www.veryitman.com/2021/01/17/%E5%BE%AE%E6%9C%8D%E5%8A%A1-Token-%E7%9B%B8%E5%85%B3%E7%9A%84%E9%87%8D%E6%9E%84/">微服务-Token-相关的重构</a>;</li>
+<li><input disabled="" type="checkbox"> Redis 中设置 token 的过期时间；</li>
+<li><input disabled="" type="checkbox"> 调用刷新 token 的 API 后更新 Redis 中 token 的有效时间；</li>
+<li><input disabled="" type="checkbox"> 刷新 token、使用 token 登录的 API 修改为 POST 方式；</li>
+<li><input disabled="" type="checkbox"> Token 的加密，减少 Token 登录的数据库查询次数；</li>
+</ul>
+<hr>
+<p><strong>只有弱者才去争取公平，这句话虽然残忍但很现实~</strong></p>
+<p><img class="lazy" src="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAABGdBTUEAALGPC/xhBQAAADhlWElmTU0AKgAAAAgAAYdpAAQAAAABAAAAGgAAAAAAAqACAAQAAAABAAAAAaADAAQAAAABAAAAAQAAAADa6r/EAAAAC0lEQVQIHWNgAAIAAAUAAY27m/MAAAAASUVORK5CYII=" data-src="/upload/me/qrcode_wx.jpg"></p>
+
+
+
+
+</article>
+
+<div class="related-wrap reveal" id="read-next"><section class="header cap theme"><span>接下来阅读</span></section><section class="body fs14"><a id="next" href="/2020/12/13/%E8%A7%A3%E5%86%B3bash-profile%E4%B8%8D%E7%94%9F%E6%95%88%E7%9A%84%E6%96%B9%E6%B3%95/">解决bash profile不生效的方法<span class="note">较早</span></a><div class="line"></div><a id="prev" href="/2021/01/17/%E5%BE%AE%E6%9C%8D%E5%8A%A1-Token-%E7%9B%B8%E5%85%B3%E7%9A%84%E9%87%8D%E6%9E%84/">微服务: Token 相关的重构<span class="note">较新</span></a></section></div>
+
+
+
+
+
+
+  <div class='related-wrap md reveal' id="comments">
+    <div class='cmt-title cap theme'>
+      快来参与讨论吧
+    </div>
+    <div class='cmt-body valine'>
+      
+
+<div id="valine_container" class="valine_thread"><svg class="loading" style="vertical-align: middle;fill: currentColor;overflow: hidden;" viewBox="0 0 1024 1024" version="1.1" xmlns="http://www.w3.org/2000/svg" p-id="2709"><path d="M832 512c0-176-144-320-320-320V128c211.2 0 384 172.8 384 384h-64zM192 512c0 176 144 320 320 320v64C300.8 896 128 723.2 128 512h64z" p-id="2710"></path></svg></div>
+
+    </div>
+  </div>
+
+
+
+      
+<footer class="page-footer reveal fs12"><hr><div class="text"><p>本博客所有文章除特别声明外，均采用 <a target="_blank" rel="noopener" href="https://creativecommons.org/licenses/by-nc-sa/4.0/">CC BY-NC-SA 4.0</a> 许可协议，转载请注明出处。</p>
+<p>veryitman</p>
+</div></footer>
+
+      <div class='float-panel mobile-only blur' style='display:none'>
+  <button type='button' class='sidebar-toggle mobile' onclick='sidebar.toggle()'>
+    <svg class="icon" style="width: 1em; height: 1em;vertical-align: middle;fill: currentColor;overflow: hidden;" viewBox="0 0 1024 1024" version="1.1" xmlns="http://www.w3.org/2000/svg" p-id="15301"><path d="M566.407 808.3c26.9-0.1 49.3-20.8 51.6-47.6-1.9-27.7-23.9-49.7-51.6-51.6h-412.6c-28.2-1.4-52.6 19.5-55.5 47.6 2.3 26.8 24.6 47.5 51.6 47.6h416.5v4z m309.3-249.9c26.9-0.1 49.3-20.8 51.6-47.6-2.2-26.8-24.6-47.5-51.6-47.6h-721.9c-27.7-2.8-52.5 17.4-55.3 45.1-0.1 0.8-0.1 1.7-0.2 2.5 0.9 27.2 23.6 48.5 50.7 47.6H875.707z m-103.1-245.9c26.9-0.1 49.3-20.8 51.6-47.6-0.4-28.3-23.2-51.1-51.5-51.6h-618.9c-29.5-1.1-54.3 21.9-55.5 51.4v0.2c1.4 27.8 25.2 49.2 53 47.8 0.8 0 1.7-0.1 2.5-0.2h618.8z" p-id="15302"></path><path d="M566.407 808.3c26.9-0.1 49.3-20.8 51.6-47.6-1.9-27.7-23.9-49.7-51.6-51.6h-412.6c-28.2-1.4-52.6 19.5-55.5 47.6 1.9 27.7 23.9 49.7 51.6 51.6h416.5z m309.3-249.9c26.9-0.1 49.3-20.8 51.6-47.6-2.2-26.8-24.6-47.5-51.6-47.6h-721.9c-27.7-2.8-52.5 17.4-55.3 45.1-0.1 0.8-0.1 1.7-0.2 2.5 0.9 27.2 23.6 48.5 50.7 47.6H875.707z m-103.1-245.9c26.9-0.1 49.3-20.8 51.6-47.6-0.4-28.3-23.2-51.1-51.5-51.6h-618.9c-29.5-1.1-54.3 21.9-55.5 51.4v0.2c1.4 27.8 25.2 49.2 53 47.8 0.8 0 1.7-0.1 2.5-0.2h618.8z" p-id="15303"></path></svg>
+  </button>
+</div>
+
+    </div>
+  </div>
+  <div class='scripts'>
+    <script type="text/javascript">
+  stellar = {
+    // 懒加载 css https://github.com/filamentgroup/loadCSS
+    loadCSS: (href, before, media, attributes) => {
+      var doc = window.document;
+      var ss = doc.createElement("link");
+      var ref;
+      if (before) {
+        ref = before;
+      } else {
+        var refs = (doc.body || doc.getElementsByTagName("head")[0]).childNodes;
+        ref = refs[refs.length - 1];
+      }
+      var sheets = doc.styleSheets;
+      if (attributes) {
+        for (var attributeName in attributes) {
+          if (attributes.hasOwnProperty(attributeName)) {
+            ss.setAttribute(attributeName, attributes[attributeName]);
+          }
+        }
+      }
+      ss.rel = "stylesheet";
+      ss.href = href;
+      ss.media = "only x";
+      function ready(cb) {
+        if (doc.body) {
+          return cb();
+        }
+        setTimeout(function () {
+          ready(cb);
+        });
+      }
+      ready(function () {
+        ref.parentNode.insertBefore(ss, before ? ref : ref.nextSibling);
+      });
+      var onloadcssdefined = function (cb) {
+        var resolvedHref = ss.href;
+        var i = sheets.length;
+        while (i--) {
+          if (sheets[i].href === resolvedHref) {
+            return cb();
+          }
+        }
+        setTimeout(function () {
+          onloadcssdefined(cb);
+        });
+      };
+      function loadCB() {
+        if (ss.addEventListener) {
+          ss.removeEventListener("load", loadCB);
+        }
+        ss.media = media || "all";
+      }
+      if (ss.addEventListener) {
+        ss.addEventListener("load", loadCB);
+      }
+      ss.onloadcssdefined = onloadcssdefined;
+      onloadcssdefined(loadCB);
+      return ss;
+    },
+
+    // 从 butterfly 和 volantis 获得灵感
+    loadScript: (src, opt) => new Promise((resolve, reject) => {
+      var script = document.createElement('script');
+      script.src = src;
+      if (opt) {
+        for (let key of Object.keys(opt)) {
+          script[key] = opt[key]
+        }
+      } else {
+        // 默认异步，如果需要同步，第二个参数传入 {} 即可
+        script.async = true
+      }
+      script.onerror = reject
+      script.onload = script.onreadystatechange = function() {
+        const loadState = this.readyState
+        if (loadState && loadState !== 'loaded' && loadState !== 'complete') return
+        script.onload = script.onreadystatechange = null
+        resolve()
+      }
+      document.head.appendChild(script)
+    }),
+
+    // https://github.com/jerryc127/hexo-theme-butterfly
+    jQuery: (fn) => {
+      if (typeof jQuery === 'undefined') {
+        stellar.loadScript(stellar.plugins.jQuery).then(fn)
+      } else {
+        fn()
+      }
+    }
+  };
+  stellar.github = 'https://github.com/xaoxuu/hexo-theme-stellar/tree/1.6.1';
+  stellar.config = {
+    date_suffix: {
+      just: '刚刚',
+      min: '分钟前',
+      hour: '小时前',
+      day: '天前',
+      month: '个月前',
+    },
+  };
+
+  // required plugins (only load if needs)
+  stellar.plugins = {
+    jQuery: 'https://cdn.jsdelivr.net/npm/jquery@3.5.1/dist/jquery.min.js',
+    sitesjs: '/js/plugins/sites.js',
+    friendsjs: '/js/plugins/friends.js',
+  };
+
+  // optional plugins
+  if ('true' == 'true') {
+    stellar.plugins.lazyload = Object.assign({"enable":true,"js":"https://cdn.jsdelivr.net/npm/vanilla-lazyload@17.3.1/dist/lazyload.min.js","transition":"blur"});
+  }
+  if ('true' == 'true') {
+    stellar.plugins.swiper = Object.assign({"enable":true,"css":"https://unpkg.com/swiper@6/swiper-bundle.min.css","js":"https://unpkg.com/swiper@6/swiper-bundle.min.js"});
+  }
+  if ('' == 'true') {
+    stellar.plugins.scrollreveal = Object.assign({"enable":null,"js":"https://cdn.jsdelivr.net/npm/scrollreveal@4.0.9/dist/scrollreveal.min.js","distance":"8px","duration":500,"interval":100,"scale":1});
+  }
+  if ('true' == 'true') {
+    stellar.plugins.preload = Object.assign({"enable":true,"service":"flying_pages","instant_page":"https://cdn.jsdelivr.net/gh/volantis-x/cdn-volantis@4.1.2/js/instant_page.js","flying_pages":"https://cdn.jsdelivr.net/gh/gijo-varghese/flying-pages@2.1.2/flying-pages.min.js"});
+  }
+</script>
+
+<!-- required -->
+
+  
+<script src="/js/main.js" async></script>
+
+
+
+<!-- optional -->
+
+  <script>
+  function getEmojiMaps() {
+    function emoji(path, idx, ext) {
+      return path + "/" + path + "-" + idx + "." + ext;
+    }
+    var emojiMaps = {};
+    for (var i = 1; i <= 54; i++) {
+      emojiMaps['tieba-' + i] = emoji('tieba', i, 'png');
+    }
+    for (var i = 1; i <= 101; i++) {
+      emojiMaps['qq-' + i] = emoji('qq', i, 'gif');
+    }
+    for (var i = 1; i <= 116; i++) {
+      emojiMaps['aru-' + i] = emoji('aru', i, 'gif');
+    }
+    for (var i = 1; i <= 125; i++) {
+      emojiMaps['twemoji-' + i] = emoji('twemoji', i, 'png');
+    }
+    for (var i = 1; i <= 4; i++) {
+      emojiMaps['weibo-' + i] = emoji('weibo', i, 'png');
+    }
+    return emojiMaps;
+  }
+  function load_comment(){
+    if(!document.getElementById("valine_container"))return;
+    stellar.loadScript('https://cdn.jsdelivr.net/gh/XuxuGood/simple-blog-cdn@main/js/Valine.min.js', {defer:true}).then(function () {
+      const el = document.getElementById("valine_container");
+      var path = el.getAttribute('comment_id');
+      const placeholder = "欢迎您留言~";
+      if (!path) {
+        path = decodeURI(window.location.pathname);
+      }
+      var valine = new Valine();
+      valine.init(Object.assign({"js":"https://cdn.jsdelivr.net/gh/XuxuGood/simple-blog-cdn@main/js/Valine.min.js","appId":"FY2C9UCttYNaE1j8umenqdCE-gzGzoHsz","appKey":"4i7xMwkfSEGmEDhi6SceKFxz","placeholder":"欢迎您留言~","requiredFields":["nick","mail"],"enableQQ":true,"recordIP":false,"avatar":"robohash","pageSize":10,"lang":"zh-cn","highlight":true,"mathJax":false,"tagMeta":["博主","小伙伴","访客"],"metaPlaceholder":{"nick":"昵称/QQ号(必填)","mail":"邮箱（必填，完全保密）"},"master":["6783037F2DF30EAB99F9FC256157D875"],"friends":["6783037F2DF30EAB99F9FC256157D875"],"comment_count":true}, {
+        el: '#valine_container',
+        path: path,
+        placeholder: placeholder,
+        emojiCDN: 'https://cdn.jsdelivr.net/gh/volantis-x/cdn-emoji/valine/',
+        emojiMaps: getEmojiMaps(),
+      }));
+    });
+  }
+  window.addEventListener('DOMContentLoaded', (event) => {
+    console.log('DOM fully loaded and parsed');
+    load_comment();
+  });
+
+</script>
+
+
+
+
+<!-- inject -->
+
+
+  </div>
+</body>
+</html>

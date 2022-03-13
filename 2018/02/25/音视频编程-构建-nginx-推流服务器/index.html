@@ -1,0 +1,401 @@
+<!DOCTYPE html>
+<html lang='zh-CN'>
+
+<head>
+  <meta name="generator" content="Hexo 6.0.0">
+  <meta charset="utf-8">
+  
+
+  <meta http-equiv='x-dns-prefetch-control' content='on' />
+  <link rel='dns-prefetch' href='https://cdn.jsdelivr.net'>
+  <link rel="preconnect" href="https://cdn.jsdelivr.net" crossorigin>
+
+  <meta name="renderer" content="webkit">
+  <meta name="force-rendering" content="webkit">
+  <meta http-equiv="X-UA-Compatible" content="IE=Edge,chrome=1">
+  <meta name="HandheldFriendly" content="True" >
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1">
+  <meta name="theme-color" content="#f8f8f8">
+  <title>音视频编程: 构建 nginx 推流服务器 - Veryitman</title>
+
+  
+    <meta name="description" content="本篇分享的主要内容  如何在 macos 中构建本地的推流服务器(nginx + rtmp-nginx-module), 并使用 ffmpeg 命令进行视频推流, 然后使用 VLC 播放器播放视频. 该系列博文:  音视频编程: 编译 faac&#x2F;faad2  音视频编程: iOS 使用 faac 编码  音视频编程: 简单分析 WAV 文件  音视频编程: iOS 使用 faad2">
+<meta property="og:type" content="article">
+<meta property="og:title" content="音视频编程: 构建 nginx 推流服务器">
+<meta property="og:url" content="http://example.com/2018/02/25/%E9%9F%B3%E8%A7%86%E9%A2%91%E7%BC%96%E7%A8%8B-%E6%9E%84%E5%BB%BA-nginx-%E6%8E%A8%E6%B5%81%E6%9C%8D%E5%8A%A1%E5%99%A8/index.html">
+<meta property="og:site_name" content="Veryitman">
+<meta property="og:description" content="本篇分享的主要内容  如何在 macos 中构建本地的推流服务器(nginx + rtmp-nginx-module), 并使用 ffmpeg 命令进行视频推流, 然后使用 VLC 播放器播放视频. 该系列博文:  音视频编程: 编译 faac&#x2F;faad2  音视频编程: iOS 使用 faac 编码  音视频编程: 简单分析 WAV 文件  音视频编程: iOS 使用 faad2">
+<meta property="og:locale" content="zh_CN">
+<meta property="og:image" content="http://example.com/upload/images/2018/02/25/1.jpg">
+<meta property="og:image" content="http://example.com/upload/images/2018/02/25/2.jpg">
+<meta property="article:published_time" content="2018-02-25T14:59:45.000Z">
+<meta property="article:modified_time" content="2022-03-09T14:53:24.343Z">
+<meta property="article:author" content="veryitman">
+<meta property="article:tag" content="音视频 rtmp nginx">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:image" content="http://example.com/upload/images/2018/02/25/1.jpg">
+  
+  
+
+  <!-- feed -->
+  
+
+  
+    
+<link rel="stylesheet" href="/css/main.css">
+
+  
+
+  
+
+  
+</head>
+
+<body>
+  
+
+
+  <div class='l_body' id='start'>
+    <aside class='l_left' layout='post'>
+    
+
+
+<header class="header">
+
+<div class="logo-wrap"><a class="title" href="/"><div class="main">Veryitman</div></a></div>
+<nav class="menu dis-select"></nav></header>
+
+<div class="widgets">
+
+<div class="widget-wrap single" id="toc"><div class="widget-header cap dis-select"><span class="name">本文目录</span></div><div class="widget-body fs14"><div class="doc-tree active"><ol class="toc"><li class="toc-item toc-level-2"><a class="toc-link" href="#%E5%AE%89%E8%A3%85-rtmp-nginx-module"><span class="toc-text">安装 rtmp-nginx-module</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#%E9%85%8D%E7%BD%AE-rtmp"><span class="toc-text">配置 rtmp</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#%E6%8E%A8%E6%B5%81"><span class="toc-text">推流</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#%E9%99%84%E5%BD%95"><span class="toc-text">附录</span></a><ol class="toc-child"><li class="toc-item toc-level-3"><a class="toc-link" href="#nginx-%E9%85%8D%E7%BD%AE%E6%96%87%E4%BB%B6"><span class="toc-text">nginx 配置文件</span></a></li></ol></li><li class="toc-item toc-level-2"><a class="toc-link" href="#%E8%A7%86%E9%A2%91%E6%96%87%E4%BB%B6"><span class="toc-text">视频文件</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#brew-install-x2F-uninstall-%E6%8A%A5%E9%94%99"><span class="toc-text">brew install&#x2F;uninstall 报错</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#%E6%A3%80%E6%9F%A5%E6%9C%AC%E6%9C%BA%E7%9A%84-ip"><span class="toc-text">检查本机的 ip</span></a></li></ol></div></div></div>
+
+
+</div>
+
+
+    </aside>
+    <div class='l_main'>
+      
+
+      
+
+
+<div class="bread-nav fs12"><div id="breadcrumb"><a class="cap breadcrumb" href="/">主页</a><span class="sep"></span><a class="cap breadcrumb" href="/">文章</a><span class="sep"></span><a class="cap breadcrumb-link" href="/categories/iOS/">iOS</a></div><div id="post-meta">发布于&nbsp;<time datetime="2018-02-25T14:59:45.000Z">2018-02-25</time></div></div>
+
+<article class='content md post'>
+<h1 class="article-title"><span>音视频编程: 构建 nginx 推流服务器</span></h1>
+<blockquote>
+<p>本篇分享的主要内容</p>
+</blockquote>
+<p>如何在 macos 中构建本地的推流服务器(nginx + rtmp-nginx-module), 并使用 ffmpeg 命令进行视频推流, 然后使用 VLC 播放器播放视频.</p>
+<p><strong>该系列博文:</strong></p>
+<ul>
+<li><p><a target="_blank" rel="noopener" href="http://www.veryitman.com/2018/02/14/%E9%9F%B3%E8%A7%86%E9%A2%91%E7%BC%96%E7%A8%8B-%E7%BC%96%E8%AF%91-faac-faad2/">音视频编程: 编译 faac&#x2F;faad2</a></p>
+</li>
+<li><p><a target="_blank" rel="noopener" href="http://www.veryitman.com/2018/02/16/%E9%9F%B3%E8%A7%86%E9%A2%91%E7%BC%96%E7%A8%8B-iOS-%E4%BD%BF%E7%94%A8-faac-%E7%BC%96%E7%A0%81/">音视频编程: iOS 使用 faac 编码</a></p>
+</li>
+<li><p><a target="_blank" rel="noopener" href="http://www.veryitman.com/2018/02/20/%E9%9F%B3%E8%A7%86%E9%A2%91%E7%BC%96%E7%A8%8B-%E7%AE%80%E5%8D%95%E5%88%86%E6%9E%90-WAV-%E6%96%87%E4%BB%B6/">音视频编程: 简单分析 WAV 文件</a></p>
+</li>
+<li><p><a target="_blank" rel="noopener" href="http://www.veryitman.com/2018/02/20/%E9%9F%B3%E8%A7%86%E9%A2%91%E7%BC%96%E7%A8%8B-iOS-%E4%BD%BF%E7%94%A8-faad2/">音视频编程: iOS 使用 faad2</a> </p>
+</li>
+<li><p><a target="_blank" rel="noopener" href="http://www.veryitman.com/2018/02/25/%E9%9F%B3%E8%A7%86%E9%A2%91%E7%BC%96%E7%A8%8B-%E6%9E%84%E5%BB%BA-nginx-%E6%8E%A8%E6%B5%81%E6%9C%8D%E5%8A%A1%E5%99%A8/">音视频编程: 构建 nginx 推流服务器</a> (本篇)</p>
+</li>
+</ul>
+<h2 id="安装-rtmp-nginx-module"><a href="#安装-rtmp-nginx-module" class="headerlink" title="安装 rtmp-nginx-module"></a>安装 rtmp-nginx-module</h2><p>之前在测试 php 程序的时候, 我已经安装过 nginx, 但是发现这样在配置 rtmp-nginx-module 的时候, 无法成功.</p>
+<p>配置文件修改完成之后, nginx 总是无法识别 <code>rtmp</code>, 报错如下:</p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">[emerg] 30766#0: unknown directive &quot;rtmp&quot; in /usr/local/etc/nginx/nginx.conf:40</span><br></pre></td></tr></table></figure>
+
+<p>现在需要卸载原来已经安装的 nginx, 命令如下:</p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">brew uninstall nginx</span><br></pre></td></tr></table></figure>
+
+<p>再次安装:</p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">brew install nginx-full --with-rtmp-module </span><br></pre></td></tr></table></figure>
+
+<p>耐心等待一会 ~~</p>
+<p>nginx 的版本(nginx -v):</p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">nginx/1.12.2</span><br></pre></td></tr></table></figure>
+
+<p>rtmp-nginx-module 版本:</p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">1.1.7.11-dev_2</span><br></pre></td></tr></table></figure>
+
+<h2 id="配置-rtmp"><a href="#配置-rtmp" class="headerlink" title="配置 rtmp"></a>配置 rtmp</h2><p>编辑 nginx 的配置文件, 文件位置位于:</p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">/usr/local/etc/nginx/nginx.conf</span><br></pre></td></tr></table></figure>
+
+<p>在 <code>http &#123;&#125;</code> 后面写入如下内容:</p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br></pre></td><td class="code"><pre><span class="line">rtmp &#123;</span><br><span class="line">   server &#123;</span><br><span class="line">        #rtmp协议的默认端口号是 1935</span><br><span class="line">        listen 1935;</span><br><span class="line">        #直播流配置, 访问 path 是 rtmplive</span><br><span class="line">        application rtmplive &#123;</span><br><span class="line">              #开启实时</span><br><span class="line">              live on;</span><br><span class="line">              #设置 rtmp 引擎的最大连接数. 默认为off</span><br><span class="line">              max_connections 1024;</span><br><span class="line">              #不记录数据</span><br><span class="line">             record off;</span><br><span class="line">        &#125;</span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<p>注意: <code>rtmplive</code> 是固定的.</p>
+<p>具体的 nginx 配置详见后面的附录内容.</p>
+<h2 id="推流"><a href="#推流" class="headerlink" title="推流"></a>推流</h2><p>**1.安装 ffmpeg 即可. **</p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">brew install ffmpeg</span><br></pre></td></tr></table></figure>
+
+<p>这个过程有点久, 如果你没有梯子基本安装不了 [大哭]~</p>
+<p><strong>2.安装 VLC</strong></p>
+<p>直接去官网下载 dmg 包, 安装即可.</p>
+<p>打开 VLC 然后选择从 File&#x2F;Open Network 打开文件, 如下图所示:</p>
+<p><img class="lazy" src="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAABGdBTUEAALGPC/xhBQAAADhlWElmTU0AKgAAAAgAAYdpAAQAAAABAAAAGgAAAAAAAqACAAQAAAABAAAAAaADAAQAAAABAAAAAQAAAADa6r/EAAAAC0lEQVQIHWNgAAIAAAUAAY27m/MAAAAASUVORK5CYII=" data-src="/upload/images/2018/02/25/1.jpg" alt="1"></p>
+<p>在弹出的框中, 写入推流地址 <code>rtmp://localhost:1935/rtmplive/channel</code>, 如图所示:</p>
+<p><img class="lazy" src="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAABGdBTUEAALGPC/xhBQAAADhlWElmTU0AKgAAAAgAAYdpAAQAAAABAAAAGgAAAAAAAqACAAQAAAABAAAAAaADAAQAAAABAAAAAQAAAADa6r/EAAAAC0lEQVQIHWNgAAIAAAUAAY27m/MAAAAASUVORK5CYII=" data-src="/upload/images/2018/02/25/2.jpg" alt="1"></p>
+<p>直接点击 Open.</p>
+<blockquote>
+<p>注意: 如果 localhost 无法播放, 请更换为你的本机 ip, 如我的本机 ip 是 <code>192.168.1.122</code>, 对应的播放地址为 <code>rtmp://192.168.1.122:1935/rtmplive/channel</code>.<br>如果还是无法成功, 请关闭 macos 的防火墙.</p>
+</blockquote>
+<p><strong>3.启动 nginx</strong></p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">sudo nginx</span><br></pre></td></tr></table></figure>
+
+<p>可以在浏览器访问如下地址, 看看 nginx 是否启动成功.</p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">http://localhost:8080/index.html</span><br></pre></td></tr></table></figure>
+
+<p><strong>4.ffmpeg 推流</strong></p>
+<p>推流的命令如下:</p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">ffmpeg -re -i ~/Desktop/launcher.mp4 -vcodec libx264 -acodec aac -strict -2 -f flv rtmp://localhost:1935/rtmplive/channel</span><br></pre></td></tr></table></figure>
+
+<p>其中 <code>launcher.mp4</code> 是我自己从网络上面下载的一个视频文件, 时长大约是 5 分钟.</p>
+<p>在 VLC 中, 就可以看到推流播放的视频了. [开心]~~</p>
+<h2 id="附录"><a href="#附录" class="headerlink" title="附录"></a>附录</h2><h3 id="nginx-配置文件"><a href="#nginx-配置文件" class="headerlink" title="nginx 配置文件"></a>nginx 配置文件</h3><figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br><span class="line">39</span><br><span class="line">40</span><br><span class="line">41</span><br><span class="line">42</span><br><span class="line">43</span><br><span class="line">44</span><br><span class="line">45</span><br><span class="line">46</span><br><span class="line">47</span><br><span class="line">48</span><br><span class="line">49</span><br><span class="line">50</span><br><span class="line">51</span><br><span class="line">52</span><br><span class="line">53</span><br><span class="line">54</span><br><span class="line">55</span><br><span class="line">56</span><br><span class="line">57</span><br><span class="line">58</span><br><span class="line">59</span><br></pre></td><td class="code"><pre><span class="line">worker_processes  1;</span><br><span class="line"> </span><br><span class="line">error_log  /usr/local/etc/nginx/logs/error.log debug;</span><br><span class="line"></span><br><span class="line">pid        /usr/local/var/run/nginx.pid;</span><br><span class="line"> </span><br><span class="line">events &#123;</span><br><span class="line">    worker_connections  256;</span><br><span class="line">&#125;</span><br><span class="line"> </span><br><span class="line">http &#123;</span><br><span class="line">    include             mime.types;</span><br><span class="line">    default_type        application/octet-stream;</span><br><span class="line"> </span><br><span class="line">    log_format  main  &#x27;$remote_addr - $remote_user [$time_local] &quot;$request&quot; &#x27;</span><br><span class="line">                      &#x27;$status $body_bytes_sent &quot;$http_referer&quot; &#x27;</span><br><span class="line">                      &#x27;&quot;$http_user_agent&quot; &quot;$http_x_forwarded_for&quot;&#x27;;</span><br><span class="line"> </span><br><span class="line">    access_log  /usr/local/etc/nginx/logs/access.log  main;</span><br><span class="line"> </span><br><span class="line">    sendfile            on;</span><br><span class="line"> </span><br><span class="line">    keepalive_timeout   65;</span><br><span class="line"> </span><br><span class="line">    index index.html index.php;</span><br><span class="line"> </span><br><span class="line">    include /usr/local/etc/nginx/sites-enabled/*; </span><br><span class="line">    include /usr/local/etc/nginx/conf.d/*;</span><br><span class="line"></span><br><span class="line">     server &#123;</span><br><span class="line">        listen       8080;</span><br><span class="line">        server_name  localhost;</span><br><span class="line"></span><br><span class="line">        #charset koi8-r;</span><br><span class="line"></span><br><span class="line">        #access_log  logs/host.access.log  main;</span><br><span class="line"></span><br><span class="line">        location / &#123;</span><br><span class="line">            root   /Users/me/workspace/projs/phpwork/; #web的根目录</span><br><span class="line">            index  index.php index.html index.htm; </span><br><span class="line">        &#125;</span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line">rtmp &#123;</span><br><span class="line">   server &#123;</span><br><span class="line">        #rtmp协议的默认端口号是1935</span><br><span class="line">        listen 1935;</span><br><span class="line">        #直播流配置,访问路径是rtmplive</span><br><span class="line">        application rtmplive &#123;</span><br><span class="line">              #开启实时</span><br><span class="line">              live on;</span><br><span class="line">              #为rtmp引擎设置最大连接数.默认为off</span><br><span class="line">              max_connections 1024;</span><br><span class="line">              #不记录数据</span><br><span class="line">             record off;</span><br><span class="line">        &#125;</span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<h2 id="视频文件"><a href="#视频文件" class="headerlink" title="视频文件"></a>视频文件</h2><p>使用下载的 mp4 文件, 有些无法播放, 暂时估计应该是码率的问题, 大家在测试过程中, 发现视频无法播放, 最后试试其他视频文件.</p>
+<p>另外, 视频文件不要太小, 尽量能让其播放时长在 3-5 分钟.</p>
+<h2 id="brew-install-x2F-uninstall-报错"><a href="#brew-install-x2F-uninstall-报错" class="headerlink" title="brew install&#x2F;uninstall 报错"></a>brew install&#x2F;uninstall 报错</h2><p>报错信息如下:</p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br></pre></td><td class="code"><pre><span class="line">Error: undefined method `patch&#x27; for #&lt;Resource:0x000001040877a8&gt;</span><br><span class="line">/usr/local/Homebrew/Library/Taps/homebrew/homebrew-core/Formula/gcc@4.9.rb:55:in `block in &lt;class:GccAT49&gt;&#x27;</span><br><span class="line">/usr/local/Homebrew/Library/Homebrew/resource.rb:49:in `instance_eval&#x27;</span><br><span class="line">/usr/local/Homebrew/Library/Homebrew/resource.rb:49:in `initialize&#x27;</span><br><span class="line">/usr/local/Homebrew/Library/Homebrew/software_spec.rb:111:in `new&#x27;</span><br><span class="line">/usr/local/Homebrew/Library/Homebrew/software_spec.rb:111:in `resource&#x27;</span><br></pre></td></tr></table></figure>
+
+<p>最终的解决方案是重新安装 Homebrew, 命令如下:</p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">ruby -e &quot;$(curl -fsSL https://raw.githubusercontent.com/Homebrew/install/master/install)&quot;</span><br></pre></td></tr></table></figure>
+
+<h2 id="检查本机的-ip"><a href="#检查本机的-ip" class="headerlink" title="检查本机的 ip"></a>检查本机的 ip</h2><figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">ifconfig | grep &quot;inet &quot; | grep -v 127.0.0.1</span><br></pre></td></tr></table></figure>
+
+
+
+
+
+
+</article>
+
+<div class="related-wrap reveal" id="read-next"><section class="header cap theme"><span>接下来阅读</span></section><section class="body fs14"><a id="next" href="/2018/02/22/NSLog-%E6%A0%BC%E5%BC%8F%E5%8C%96%E8%BE%93%E5%87%BA-NSInteger-NSUInteger/">NSLog 格式化输出 NSInteger/NSUInteger<span class="note">较早</span></a><div class="line"></div><a id="prev" href="/2018/02/26/%E9%9F%B3%E8%A7%86%E9%A2%91%E7%BC%96%E7%A8%8B-iOS-%E6%8E%A8%E6%B5%81/">音视频编程: iOS 推流<span class="note">较新</span></a></section></div>
+
+
+
+
+
+
+  <div class='related-wrap md reveal' id="comments">
+    <div class='cmt-title cap theme'>
+      快来参与讨论吧
+    </div>
+    <div class='cmt-body valine'>
+      
+
+<div id="valine_container" class="valine_thread"><svg class="loading" style="vertical-align: middle;fill: currentColor;overflow: hidden;" viewBox="0 0 1024 1024" version="1.1" xmlns="http://www.w3.org/2000/svg" p-id="2709"><path d="M832 512c0-176-144-320-320-320V128c211.2 0 384 172.8 384 384h-64zM192 512c0 176 144 320 320 320v64C300.8 896 128 723.2 128 512h64z" p-id="2710"></path></svg></div>
+
+    </div>
+  </div>
+
+
+
+      
+<footer class="page-footer reveal fs12"><hr><div class="text"><p>本博客所有文章除特别声明外，均采用 <a target="_blank" rel="noopener" href="https://creativecommons.org/licenses/by-nc-sa/4.0/">CC BY-NC-SA 4.0</a> 许可协议，转载请注明出处。</p>
+<p>veryitman</p>
+</div></footer>
+
+      <div class='float-panel mobile-only blur' style='display:none'>
+  <button type='button' class='sidebar-toggle mobile' onclick='sidebar.toggle()'>
+    <svg class="icon" style="width: 1em; height: 1em;vertical-align: middle;fill: currentColor;overflow: hidden;" viewBox="0 0 1024 1024" version="1.1" xmlns="http://www.w3.org/2000/svg" p-id="15301"><path d="M566.407 808.3c26.9-0.1 49.3-20.8 51.6-47.6-1.9-27.7-23.9-49.7-51.6-51.6h-412.6c-28.2-1.4-52.6 19.5-55.5 47.6 2.3 26.8 24.6 47.5 51.6 47.6h416.5v4z m309.3-249.9c26.9-0.1 49.3-20.8 51.6-47.6-2.2-26.8-24.6-47.5-51.6-47.6h-721.9c-27.7-2.8-52.5 17.4-55.3 45.1-0.1 0.8-0.1 1.7-0.2 2.5 0.9 27.2 23.6 48.5 50.7 47.6H875.707z m-103.1-245.9c26.9-0.1 49.3-20.8 51.6-47.6-0.4-28.3-23.2-51.1-51.5-51.6h-618.9c-29.5-1.1-54.3 21.9-55.5 51.4v0.2c1.4 27.8 25.2 49.2 53 47.8 0.8 0 1.7-0.1 2.5-0.2h618.8z" p-id="15302"></path><path d="M566.407 808.3c26.9-0.1 49.3-20.8 51.6-47.6-1.9-27.7-23.9-49.7-51.6-51.6h-412.6c-28.2-1.4-52.6 19.5-55.5 47.6 1.9 27.7 23.9 49.7 51.6 51.6h416.5z m309.3-249.9c26.9-0.1 49.3-20.8 51.6-47.6-2.2-26.8-24.6-47.5-51.6-47.6h-721.9c-27.7-2.8-52.5 17.4-55.3 45.1-0.1 0.8-0.1 1.7-0.2 2.5 0.9 27.2 23.6 48.5 50.7 47.6H875.707z m-103.1-245.9c26.9-0.1 49.3-20.8 51.6-47.6-0.4-28.3-23.2-51.1-51.5-51.6h-618.9c-29.5-1.1-54.3 21.9-55.5 51.4v0.2c1.4 27.8 25.2 49.2 53 47.8 0.8 0 1.7-0.1 2.5-0.2h618.8z" p-id="15303"></path></svg>
+  </button>
+</div>
+
+    </div>
+  </div>
+  <div class='scripts'>
+    <script type="text/javascript">
+  stellar = {
+    // 懒加载 css https://github.com/filamentgroup/loadCSS
+    loadCSS: (href, before, media, attributes) => {
+      var doc = window.document;
+      var ss = doc.createElement("link");
+      var ref;
+      if (before) {
+        ref = before;
+      } else {
+        var refs = (doc.body || doc.getElementsByTagName("head")[0]).childNodes;
+        ref = refs[refs.length - 1];
+      }
+      var sheets = doc.styleSheets;
+      if (attributes) {
+        for (var attributeName in attributes) {
+          if (attributes.hasOwnProperty(attributeName)) {
+            ss.setAttribute(attributeName, attributes[attributeName]);
+          }
+        }
+      }
+      ss.rel = "stylesheet";
+      ss.href = href;
+      ss.media = "only x";
+      function ready(cb) {
+        if (doc.body) {
+          return cb();
+        }
+        setTimeout(function () {
+          ready(cb);
+        });
+      }
+      ready(function () {
+        ref.parentNode.insertBefore(ss, before ? ref : ref.nextSibling);
+      });
+      var onloadcssdefined = function (cb) {
+        var resolvedHref = ss.href;
+        var i = sheets.length;
+        while (i--) {
+          if (sheets[i].href === resolvedHref) {
+            return cb();
+          }
+        }
+        setTimeout(function () {
+          onloadcssdefined(cb);
+        });
+      };
+      function loadCB() {
+        if (ss.addEventListener) {
+          ss.removeEventListener("load", loadCB);
+        }
+        ss.media = media || "all";
+      }
+      if (ss.addEventListener) {
+        ss.addEventListener("load", loadCB);
+      }
+      ss.onloadcssdefined = onloadcssdefined;
+      onloadcssdefined(loadCB);
+      return ss;
+    },
+
+    // 从 butterfly 和 volantis 获得灵感
+    loadScript: (src, opt) => new Promise((resolve, reject) => {
+      var script = document.createElement('script');
+      script.src = src;
+      if (opt) {
+        for (let key of Object.keys(opt)) {
+          script[key] = opt[key]
+        }
+      } else {
+        // 默认异步，如果需要同步，第二个参数传入 {} 即可
+        script.async = true
+      }
+      script.onerror = reject
+      script.onload = script.onreadystatechange = function() {
+        const loadState = this.readyState
+        if (loadState && loadState !== 'loaded' && loadState !== 'complete') return
+        script.onload = script.onreadystatechange = null
+        resolve()
+      }
+      document.head.appendChild(script)
+    }),
+
+    // https://github.com/jerryc127/hexo-theme-butterfly
+    jQuery: (fn) => {
+      if (typeof jQuery === 'undefined') {
+        stellar.loadScript(stellar.plugins.jQuery).then(fn)
+      } else {
+        fn()
+      }
+    }
+  };
+  stellar.github = 'https://github.com/xaoxuu/hexo-theme-stellar/tree/1.6.1';
+  stellar.config = {
+    date_suffix: {
+      just: '刚刚',
+      min: '分钟前',
+      hour: '小时前',
+      day: '天前',
+      month: '个月前',
+    },
+  };
+
+  // required plugins (only load if needs)
+  stellar.plugins = {
+    jQuery: 'https://cdn.jsdelivr.net/npm/jquery@3.5.1/dist/jquery.min.js',
+    sitesjs: '/js/plugins/sites.js',
+    friendsjs: '/js/plugins/friends.js',
+  };
+
+  // optional plugins
+  if ('true' == 'true') {
+    stellar.plugins.lazyload = Object.assign({"enable":true,"js":"https://cdn.jsdelivr.net/npm/vanilla-lazyload@17.3.1/dist/lazyload.min.js","transition":"blur"});
+  }
+  if ('true' == 'true') {
+    stellar.plugins.swiper = Object.assign({"enable":true,"css":"https://unpkg.com/swiper@6/swiper-bundle.min.css","js":"https://unpkg.com/swiper@6/swiper-bundle.min.js"});
+  }
+  if ('' == 'true') {
+    stellar.plugins.scrollreveal = Object.assign({"enable":null,"js":"https://cdn.jsdelivr.net/npm/scrollreveal@4.0.9/dist/scrollreveal.min.js","distance":"8px","duration":500,"interval":100,"scale":1});
+  }
+  if ('true' == 'true') {
+    stellar.plugins.preload = Object.assign({"enable":true,"service":"flying_pages","instant_page":"https://cdn.jsdelivr.net/gh/volantis-x/cdn-volantis@4.1.2/js/instant_page.js","flying_pages":"https://cdn.jsdelivr.net/gh/gijo-varghese/flying-pages@2.1.2/flying-pages.min.js"});
+  }
+</script>
+
+<!-- required -->
+
+  
+<script src="/js/main.js" async></script>
+
+
+
+<!-- optional -->
+
+  <script>
+  function getEmojiMaps() {
+    function emoji(path, idx, ext) {
+      return path + "/" + path + "-" + idx + "." + ext;
+    }
+    var emojiMaps = {};
+    for (var i = 1; i <= 54; i++) {
+      emojiMaps['tieba-' + i] = emoji('tieba', i, 'png');
+    }
+    for (var i = 1; i <= 101; i++) {
+      emojiMaps['qq-' + i] = emoji('qq', i, 'gif');
+    }
+    for (var i = 1; i <= 116; i++) {
+      emojiMaps['aru-' + i] = emoji('aru', i, 'gif');
+    }
+    for (var i = 1; i <= 125; i++) {
+      emojiMaps['twemoji-' + i] = emoji('twemoji', i, 'png');
+    }
+    for (var i = 1; i <= 4; i++) {
+      emojiMaps['weibo-' + i] = emoji('weibo', i, 'png');
+    }
+    return emojiMaps;
+  }
+  function load_comment(){
+    if(!document.getElementById("valine_container"))return;
+    stellar.loadScript('https://cdn.jsdelivr.net/gh/XuxuGood/simple-blog-cdn@main/js/Valine.min.js', {defer:true}).then(function () {
+      const el = document.getElementById("valine_container");
+      var path = el.getAttribute('comment_id');
+      const placeholder = "欢迎您留言~";
+      if (!path) {
+        path = decodeURI(window.location.pathname);
+      }
+      var valine = new Valine();
+      valine.init(Object.assign({"js":"https://cdn.jsdelivr.net/gh/XuxuGood/simple-blog-cdn@main/js/Valine.min.js","appId":"FY2C9UCttYNaE1j8umenqdCE-gzGzoHsz","appKey":"4i7xMwkfSEGmEDhi6SceKFxz","placeholder":"欢迎您留言~","requiredFields":["nick","mail"],"enableQQ":true,"recordIP":false,"avatar":"robohash","pageSize":10,"lang":"zh-cn","highlight":true,"mathJax":false,"tagMeta":["博主","小伙伴","访客"],"metaPlaceholder":{"nick":"昵称/QQ号(必填)","mail":"邮箱（必填，完全保密）"},"master":["6783037F2DF30EAB99F9FC256157D875"],"friends":["6783037F2DF30EAB99F9FC256157D875"],"comment_count":true}, {
+        el: '#valine_container',
+        path: path,
+        placeholder: placeholder,
+        emojiCDN: 'https://cdn.jsdelivr.net/gh/volantis-x/cdn-emoji/valine/',
+        emojiMaps: getEmojiMaps(),
+      }));
+    });
+  }
+  window.addEventListener('DOMContentLoaded', (event) => {
+    console.log('DOM fully loaded and parsed');
+    load_comment();
+  });
+
+</script>
+
+
+
+
+<!-- inject -->
+
+
+  </div>
+</body>
+</html>

@@ -1,0 +1,432 @@
+<!DOCTYPE html>
+<html lang='zh-CN'>
+
+<head>
+  <meta name="generator" content="Hexo 6.0.0">
+  <meta charset="utf-8">
+  
+
+  <meta http-equiv='x-dns-prefetch-control' content='on' />
+  <link rel='dns-prefetch' href='https://cdn.jsdelivr.net'>
+  <link rel="preconnect" href="https://cdn.jsdelivr.net" crossorigin>
+
+  <meta name="renderer" content="webkit">
+  <meta name="force-rendering" content="webkit">
+  <meta http-equiv="X-UA-Compatible" content="IE=Edge,chrome=1">
+  <meta name="HandheldFriendly" content="True" >
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1">
+  <meta name="theme-color" content="#f8f8f8">
+  <title>减少跨域中的OPTIONS请求 - Veryitman</title>
+
+  
+    <meta name="description" content="简介这篇是继 跨域和OPTIONS这对欢喜冤家 后的一篇文章，在本篇中我们继续探索跨域中的 OPTIONS 请求，主要分享一下：  SpringBoot 中除了 CrossOrigin 注解外还有哪些方式可以解决跨域问题？  如何使用 SpringBoot 结合 CORS 减少 OPTIONS 请求？   阅读下面内容之前，强烈建议先阅读之前的 跨域和OPTIONS这对欢喜冤家 这篇文章。 文中使">
+<meta property="og:type" content="article">
+<meta property="og:title" content="减少跨域中的OPTIONS请求">
+<meta property="og:url" content="http://example.com/2019/09/08/%E5%87%8F%E5%B0%91%E8%B7%A8%E5%9F%9F%E4%B8%AD%E7%9A%84OPTIONS%E8%AF%B7%E6%B1%82/index.html">
+<meta property="og:site_name" content="Veryitman">
+<meta property="og:description" content="简介这篇是继 跨域和OPTIONS这对欢喜冤家 后的一篇文章，在本篇中我们继续探索跨域中的 OPTIONS 请求，主要分享一下：  SpringBoot 中除了 CrossOrigin 注解外还有哪些方式可以解决跨域问题？  如何使用 SpringBoot 结合 CORS 减少 OPTIONS 请求？   阅读下面内容之前，强烈建议先阅读之前的 跨域和OPTIONS这对欢喜冤家 这篇文章。 文中使">
+<meta property="og:locale" content="zh_CN">
+<meta property="og:image" content="http://example.com/upload/images/2019/09/08/1.png">
+<meta property="og:image" content="http://example.com/upload/images/2019/09/08/2.png">
+<meta property="og:image" content="http://example.com/upload/images/2019/09/08/3.png">
+<meta property="og:image" content="http://example.com/upload/me/qrcode_wx.jpg">
+<meta property="article:published_time" content="2019-09-08T06:14:31.000Z">
+<meta property="article:modified_time" content="2022-03-09T14:53:24.317Z">
+<meta property="article:author" content="veryitman">
+<meta property="article:tag" content="HTTP OPTIONS CORS SpringBoot">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:image" content="http://example.com/upload/images/2019/09/08/1.png">
+  
+  
+
+  <!-- feed -->
+  
+
+  
+    
+<link rel="stylesheet" href="/css/main.css">
+
+  
+
+  
+
+  
+</head>
+
+<body>
+  
+
+
+  <div class='l_body' id='start'>
+    <aside class='l_left' layout='post'>
+    
+
+
+<header class="header">
+
+<div class="logo-wrap"><a class="title" href="/"><div class="main">Veryitman</div></a></div>
+<nav class="menu dis-select"></nav></header>
+
+<div class="widgets">
+
+<div class="widget-wrap single" id="toc"><div class="widget-header cap dis-select"><span class="name">本文目录</span></div><div class="widget-body fs14"><div class="doc-tree active"><ol class="toc"><li class="toc-item toc-level-2"><a class="toc-link" href="#%E7%AE%80%E4%BB%8B"><span class="toc-text">简介</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#%E7%94%A8%E4%B8%8A-Nginx"><span class="toc-text">用上 Nginx</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#%E6%8C%87%E5%AE%9A%E5%9F%9F%E5%90%8D%E5%88%97%E8%A1%A8"><span class="toc-text">指定域名列表</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#%E8%A7%A3%E5%86%B3%E8%B7%A8%E5%9F%9F%E7%9A%84%E5%85%B6%E4%BB%96%E8%AE%A1%E7%AD%96"><span class="toc-text">解决跨域的其他计策</span></a><ol class="toc-child"><li class="toc-item toc-level-3"><a class="toc-link" href="#1%E3%80%81%E8%87%AA%E5%AE%9A%E4%B9%89Filter"><span class="toc-text">1、自定义Filter</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#2%E3%80%81WebMvcConfigurationSupport"><span class="toc-text">2、WebMvcConfigurationSupport</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#3%E3%80%81CorsFilter"><span class="toc-text">3、CorsFilter</span></a></li></ol></li><li class="toc-item toc-level-2"><a class="toc-link" href="#%E5%87%8F%E5%B0%91OPTIONS%E8%AF%B7%E6%B1%82"><span class="toc-text">减少OPTIONS请求</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#%E5%B8%B8%E7%94%A8Nginx%E5%91%BD%E4%BB%A4"><span class="toc-text">常用Nginx命令</span></a></li></ol></div></div></div>
+
+
+</div>
+
+
+    </aside>
+    <div class='l_main'>
+      
+
+      
+
+
+<div class="bread-nav fs12"><div id="breadcrumb"><a class="cap breadcrumb" href="/">主页</a><span class="sep"></span><a class="cap breadcrumb" href="/">文章</a><span class="sep"></span><a class="cap breadcrumb-link" href="/categories/Server/">Server</a> <span class="sep"></span> <a class="cap breadcrumb-link" href="/categories/%E7%BD%91%E7%BB%9C%E5%8D%8F%E8%AE%AE/">网络协议</a></div><div id="post-meta">发布于&nbsp;<time datetime="2019-09-08T06:14:31.000Z">2019-09-08</time></div></div>
+
+<article class='content md post'>
+<h1 class="article-title"><span>减少跨域中的OPTIONS请求</span></h1>
+<h2 id="简介"><a href="#简介" class="headerlink" title="简介"></a>简介</h2><p>这篇是继 <a target="_blank" rel="noopener" href="http://www.veryitman.com/2019/08/31/%E8%B7%A8%E5%9F%9F%E5%92%8COPTIONS%E8%BF%99%E5%AF%B9%E6%AC%A2%E5%96%9C%E5%86%A4%E5%AE%B6/">跨域和OPTIONS这对欢喜冤家</a> 后的一篇文章，在本篇中我们继续探索跨域中的 OPTIONS 请求，主要分享一下：</p>
+<ul>
+<li><p>SpringBoot 中除了 <code>CrossOrigin</code> 注解外还有哪些方式可以解决跨域问题？</p>
+</li>
+<li><p>如何使用 SpringBoot 结合 CORS 减少 OPTIONS 请求？</p>
+</li>
+</ul>
+<p>阅读下面内容之前，强烈建议先阅读之前的 <a target="_blank" rel="noopener" href="http://www.veryitman.com/2019/08/31/%E8%B7%A8%E5%9F%9F%E5%92%8COPTIONS%E8%BF%99%E5%AF%B9%E6%AC%A2%E5%96%9C%E5%86%A4%E5%AE%B6/">跨域和OPTIONS这对欢喜冤家</a> 这篇文章。</p>
+<p>文中使用的代码都可以在 <a target="_blank" rel="noopener" href="https://github.com/veryitman/MSTutorial">Github</a> 找到，大家根据需要自行采纳。</p>
+<h2 id="用上-Nginx"><a href="#用上-Nginx" class="headerlink" title="用上 Nginx"></a>用上 Nginx</h2><p>这次使用 Nginx 作为 Web 容器，在本地将HTML跑起来，上次是在 Chrome 中直接打开 HTML 文件的方式来验证跨域问题的。我们知道只要端口不同也会造成跨域问题，那么只需要在 Nginx 中配置一个端口不同于服务端口的虚拟主机就可以达到目的了。</p>
+<p>由于我是在 Win10 上面做的例子，包括 Nginx 也是 Windows 版本的，如果没有安装的小伙伴请去 <a target="_blank" rel="noopener" href="http://nginx.org/">下载Nginx</a> 直接解压即可。</p>
+<p>我把 Nginx 解压放到：<code>D:\portable\nginx-1.15.12</code> 这个目录，你可以解压到你认为比较合适的地方。</p>
+<p>打开 Nginx 的配置文件 <code>nginx.conf</code> 即在 <code>安装目录\conf</code> 下面，增加一个虚拟主机配置项，修改完成后保存配置文件即可。</p>
+<figure class="highlight nginx"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment"># 自定义虚拟主机，可以同时配置多个虚拟主机</span></span><br><span class="line"><span class="section">server</span> &#123;</span><br><span class="line">    <span class="attribute">listen</span>       <span class="number">8082</span>; <span class="comment"># 不同于服务端口</span></span><br><span class="line">    <span class="attribute">server_name</span>  localhost;</span><br><span class="line">        <span class="section">location</span> / &#123;</span><br><span class="line">            <span class="comment"># 文件路径，注意路径分隔符是 `/` 不是 `\`</span></span><br><span class="line">            <span class="attribute">root</span>   E:/examples/cors-options;</span><br><span class="line">            <span class="comment"># 默认页面</span></span><br><span class="line">            <span class="attribute">index</span>  index.html index.htm;</span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<p><strong>注意：</strong><code>E:/examples/cors-options;</code> 是我的 HTML 文件(<code>options.html</code> )路径，你要根据自己实际HTML路径来配置这个选项，否则后面无法打开该文件。</p>
+<p>这里我把这个文件命名为 <code>options.html</code>，HTML文件内容大致如下：</p>
+<figure class="highlight html"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br></pre></td><td class="code"><pre><span class="line"><span class="tag">&lt;<span class="name">html</span>&gt;</span></span><br><span class="line"><span class="tag">&lt;<span class="name">head</span>&gt;</span></span><br><span class="line">    <span class="tag">&lt;<span class="name">meta</span> <span class="attr">charset</span>=<span class="string">&quot;utf-8&quot;</span>&gt;</span></span><br><span class="line">    <span class="tag">&lt;<span class="name">title</span>&gt;</span>options-demo<span class="tag">&lt;/<span class="name">title</span>&gt;</span></span><br><span class="line">    <span class="tag">&lt;<span class="name">script</span> <span class="attr">type</span>=<span class="string">&quot;text/javascript&quot;</span> <span class="attr">src</span>=<span class="string">&quot;./jquery-3.4.1.min.js&quot;</span>&gt;</span><span class="tag">&lt;/<span class="name">script</span>&gt;</span></span><br><span class="line">    <span class="tag">&lt;<span class="name">script</span> <span class="attr">type</span>=<span class="string">&quot;text/javascript&quot;</span> <span class="attr">src</span>=<span class="string">&quot;./jquery.json.js&quot;</span>&gt;</span><span class="tag">&lt;/<span class="name">script</span>&gt;</span></span><br><span class="line">    <span class="tag">&lt;<span class="name">script</span>&gt;</span><span class="language-javascript"></span></span><br><span class="line"><span class="language-javascript">        <span class="keyword">function</span> <span class="title function_">getReq</span>(<span class="params"></span>) &#123;</span></span><br><span class="line"><span class="language-javascript">            <span class="keyword">var</span> url = <span class="string">&quot;http://localhost:8080/signin/name?username=jack&amp;userpwd=123&quot;</span>;</span></span><br><span class="line"><span class="language-javascript">            $.<span class="title function_">ajax</span>(&#123;</span></span><br><span class="line"><span class="language-javascript">                <span class="attr">url</span>: url,</span></span><br><span class="line"><span class="language-javascript">                <span class="attr">type</span>: <span class="string">&#x27;GET&#x27;</span>,</span></span><br><span class="line"><span class="language-javascript">                <span class="attr">dataType</span>: <span class="string">&#x27;json&#x27;</span>,</span></span><br><span class="line"><span class="language-javascript">                <span class="attr">contentType</span>: <span class="string">&#x27;application/json&#x27;</span>,</span></span><br><span class="line"><span class="language-javascript">                <span class="attr">headers</span>: &#123;</span></span><br><span class="line"><span class="language-javascript">                    <span class="attr">token</span>: <span class="string">&quot;yu7rX98xxxx_iii^ddd&quot;</span>,</span></span><br><span class="line"><span class="language-javascript">                    <span class="attr">userId</span>: <span class="number">123</span>,</span></span><br><span class="line"><span class="language-javascript">                    <span class="attr">openid</span>: <span class="number">231232</span></span></span><br><span class="line"><span class="language-javascript">                &#125;</span></span><br><span class="line"><span class="language-javascript">            &#125;).<span class="title function_">done</span>(<span class="keyword">function</span> (<span class="params">result</span>) &#123;</span></span><br><span class="line"><span class="language-javascript">                <span class="variable language_">console</span>.<span class="title function_">log</span>(<span class="string">&quot;success&quot;</span>);</span></span><br><span class="line"><span class="language-javascript">                <span class="variable language_">console</span>.<span class="title function_">log</span>(result);</span></span><br><span class="line"><span class="language-javascript">            &#125;).<span class="title function_">fail</span>(<span class="keyword">function</span> (<span class="params"></span>) &#123;</span></span><br><span class="line"><span class="language-javascript">                <span class="variable language_">console</span>.<span class="title function_">log</span>(<span class="string">&quot;error&quot;</span>);</span></span><br><span class="line"><span class="language-javascript">            &#125;)</span></span><br><span class="line"><span class="language-javascript">        &#125;</span></span><br><span class="line"><span class="language-javascript">    </span><span class="tag">&lt;/<span class="name">script</span>&gt;</span></span><br><span class="line"><span class="tag">&lt;/<span class="name">head</span>&gt;</span></span><br><span class="line"><span class="tag">&lt;<span class="name">body</span>&gt;</span></span><br><span class="line">    <span class="tag">&lt;<span class="name">button</span> <span class="attr">onclick</span>=<span class="string">&quot;getReq()&quot;</span>&gt;</span>用户名登录-GET<span class="tag">&lt;/<span class="name">button</span>&gt;</span></span><br><span class="line"><span class="tag">&lt;/<span class="name">html</span>&gt;</span></span><br></pre></td></tr></table></figure>
+
+<p>现在启动 Nginx，启动 Nginx 很简单，打开 Windows 终端或者 Git 的终端(如果你安装了 Git 的话，即使没有安装我也强烈建议你安装，因为太好用了)，然后 cd到 Nginx 的安装目录。</p>
+<figure class="highlight powershell"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line"><span class="built_in">start</span> nginx.exe</span><br></pre></td></tr></table></figure>
+
+<p>打开 Chrome 浏览器，输入下面的网址进行访问：</p>
+<figure class="highlight http"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">http://localhost:8082/options.html</span><br></pre></td></tr></table></figure>
+
+<p>不出意外的话，可以看到显示一个按钮的视图，顺便把 Chrome 的审查视图(Ctrl+Shift+i)打开，大概是下面截图的样子。</p>
+<p><img class="lazy" src="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAABGdBTUEAALGPC/xhBQAAADhlWElmTU0AKgAAAAgAAYdpAAQAAAABAAAAGgAAAAAAAqACAAQAAAABAAAAAaADAAQAAAABAAAAAQAAAADa6r/EAAAAC0lEQVQIHWNgAAIAAAUAAY27m/MAAAAASUVORK5CYII=" data-src="/upload/images/2019/09/08/1.png"></p>
+<h2 id="指定域名列表"><a href="#指定域名列表" class="headerlink" title="指定域名列表"></a>指定域名列表</h2><p>Nginx 配置完成，文件也可以正常的打开，那我们就来试试是否跟预想的一致？</p>
+<p>SpringBoot 关键示例代码如下：</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br></pre></td><td class="code"><pre><span class="line"><span class="meta">@RestController</span></span><br><span class="line"><span class="meta">@RequestMapping(value = &quot;signin&quot;)</span> <span class="comment">// 注意这里不要在signin前后加&quot;/&quot;</span></span><br><span class="line"><span class="keyword">public</span> <span class="keyword">class</span> <span class="title class_">MSSigninController</span> &#123;</span><br><span class="line">    <span class="meta">@RequestMapping(value = &quot;/name&quot;, method = RequestMethod.GET)</span></span><br><span class="line">    <span class="keyword">public</span> MSResponse <span class="title function_">sigin</span><span class="params">(<span class="meta">@RequestParam(value = &quot;username&quot;)</span> String userName, <span class="meta">@RequestParam(value = &quot;userpwd&quot;)</span> String userPwd)</span> &#123;</span><br><span class="line">        <span class="comment">// 省略</span></span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<p>启动 SpringBoot 服务（默认运行在8080端口不同于网页运行端口8082）完成后，点击 Chrome 视图中的按钮进行请求，截图如下：</p>
+<p><img class="lazy" src="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAABGdBTUEAALGPC/xhBQAAADhlWElmTU0AKgAAAAgAAYdpAAQAAAABAAAAGgAAAAAAAqACAAQAAAABAAAAAaADAAQAAAABAAAAAQAAAADa6r/EAAAAC0lEQVQIHWNgAAIAAAUAAY27m/MAAAAASUVORK5CYII=" data-src="/upload/images/2019/09/08/2.png"></p>
+<p>可以看到跟我们预期一致，的确造成了跨域请求，并且进行了 OPTIONS 请求。</p>
+<p>在 SpringBoot 的某个方法上面添加 <code>CrossOrigin</code> 注解可以解决跨域问题，并且可以指定域名列表，示例代码如下：</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">public</span> <span class="keyword">class</span> <span class="title class_">MSSigninController</span> &#123;</span><br><span class="line">	<span class="comment">// 指定域名列表</span></span><br><span class="line">	<span class="meta">@CrossOrigin(origins = &#123;&quot;http://localhost:8082&quot;&#125;)</span></span><br><span class="line">    <span class="meta">@RequestMapping(value = &quot;/name&quot;, method = RequestMethod.GET)</span></span><br><span class="line">    <span class="keyword">public</span> MSResponse <span class="title function_">sigin</span><span class="params">(<span class="meta">@RequestParam(value = &quot;username&quot;)</span> String userName, <span class="meta">@RequestParam(value = &quot;userpwd&quot;)</span> String userPwd)</span> &#123;</span><br><span class="line">        <span class="comment">// 省略</span></span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<p>重启服务后，再去验证一下发现请求就可以通过了。</p>
+<p><img class="lazy" src="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAABGdBTUEAALGPC/xhBQAAADhlWElmTU0AKgAAAAgAAYdpAAQAAAABAAAAGgAAAAAAAqACAAQAAAABAAAAAaADAAQAAAABAAAAAQAAAADa6r/EAAAAC0lEQVQIHWNgAAIAAAUAAY27m/MAAAAASUVORK5CYII=" data-src="/upload/images/2019/09/08/3.png"></p>
+<p>如果你感兴趣，可以修改一下 <code>CrossOrigin</code> 注解中的域名列表端口号，再去请求就会失败。</p>
+<p>使用  <code>CrossOrigin</code> 注解指定域名列表，可以从更小的粒度上面控制跨域请求。</p>
+<p>那么除了使用  <code>CrossOrigin</code> 注解意外，在 SpringBoot 中还可以怎样解决跨域问题呢？</p>
+<h2 id="解决跨域的其他计策"><a href="#解决跨域的其他计策" class="headerlink" title="解决跨域的其他计策"></a>解决跨域的其他计策</h2><p>目前除了使用  <code>CrossOrigin</code> 注解，还可以使用下面几种方法来解决跨域问题。</p>
+<h3 id="1、自定义Filter"><a href="#1、自定义Filter" class="headerlink" title="1、自定义Filter"></a>1、自定义Filter</h3><p>自定义 <code>Filter</code> 可以解决跨域问题，示例代码如下：</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br><span class="line">39</span><br><span class="line">40</span><br><span class="line">41</span><br><span class="line">42</span><br><span class="line">43</span><br><span class="line">44</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">import</span> org.springframework.stereotype.Component;</span><br><span class="line"></span><br><span class="line"><span class="keyword">import</span> javax.servlet.*;</span><br><span class="line"><span class="keyword">import</span> javax.servlet.http.HttpServletRequest;</span><br><span class="line"><span class="keyword">import</span> javax.servlet.http.HttpServletResponse;</span><br><span class="line"><span class="keyword">import</span> java.io.IOException;</span><br><span class="line"><span class="keyword">import</span> java.util.Arrays;</span><br><span class="line"><span class="keyword">import</span> java.util.HashSet;</span><br><span class="line"><span class="keyword">import</span> java.util.Set;</span><br><span class="line"></span><br><span class="line"><span class="meta">@Component</span></span><br><span class="line"><span class="keyword">public</span> <span class="keyword">class</span> <span class="title class_">MSCorsFilter</span> <span class="keyword">implements</span> <span class="title class_">Filter</span> &#123;</span><br><span class="line"></span><br><span class="line">    <span class="keyword">public</span> <span class="keyword">void</span> <span class="title function_">doFilter</span><span class="params">(ServletRequest req, ServletResponse res, FilterChain chain)</span> <span class="keyword">throws</span> IOException, ServletException &#123;</span><br><span class="line">        <span class="type">HttpServletRequest</span> <span class="variable">request</span> <span class="operator">=</span> (HttpServletRequest) req;</span><br><span class="line">        <span class="keyword">if</span> (<span class="string">&quot;OPTIONS&quot;</span>.equals(request.getMethod())) &#123;</span><br><span class="line">            System.out.println(<span class="string">&quot;HTTP&#x27;s OPTIONS Coming&quot;</span>);</span><br><span class="line">        &#125;</span><br><span class="line"></span><br><span class="line">        <span class="type">HttpServletResponse</span> <span class="variable">response</span> <span class="operator">=</span> (HttpServletResponse) res;</span><br><span class="line">        </span><br><span class="line">        <span class="comment">// 设置所有的请求域名都可以</span></span><br><span class="line">        response.setHeader(<span class="string">&quot;Access-Control-Allow-Origin&quot;</span>, <span class="string">&quot;*&quot;</span>);</span><br><span class="line">        </span><br><span class="line">        <span class="comment">// 设置允许的请求方法</span></span><br><span class="line">        response.setHeader(<span class="string">&quot;Access-Control-Allow-Methods&quot;</span>, <span class="string">&quot;POST, GET, OPTIONS, DELETE&quot;</span>);</span><br><span class="line">        <span class="comment">// 设置缓存时间单位为秒，在改时间内不需要再发送预检验请求，即缓存该结果</span></span><br><span class="line">        <span class="comment">// 设置为0就相当于不设置缓存，即每次都会有OPTIONS请求</span></span><br><span class="line">        response.setHeader(<span class="string">&quot;Access-Control-Max-Age&quot;</span>, <span class="string">&quot;0&quot;</span>);</span><br><span class="line">        </span><br><span class="line">        <span class="comment">// 设置允许跨域请求包含content-type头</span></span><br><span class="line">        response.setHeader(<span class="string">&quot;Access-Control-Allow-Headers&quot;</span>, <span class="string">&quot;*&quot;</span>);</span><br><span class="line"></span><br><span class="line">        System.out.println(<span class="string">&quot;Filter has been used.&quot;</span>);</span><br><span class="line"></span><br><span class="line">        chain.doFilter(req, res);</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    <span class="keyword">public</span> <span class="keyword">void</span> <span class="title function_">init</span><span class="params">(FilterConfig filterConfig)</span> &#123;</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    <span class="keyword">public</span> <span class="keyword">void</span> <span class="title function_">destroy</span><span class="params">()</span> &#123;</span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<p>这里我们是通过设置 <code>Access-Control-Allow-Origin</code> 允许所有的域名(通配符*)都可以访问，如下：</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">response.setHeader(<span class="string">&quot;Access-Control-Allow-Origin&quot;</span>, <span class="string">&quot;*&quot;</span>);</span><br></pre></td></tr></table></figure>
+
+<p>也可以设置指定域名才可以，示例如下：</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">response.setHeader(<span class="string">&quot;Access-Control-Allow-Origin&quot;</span>, <span class="string">&quot;http://localhost:8082&quot;</span>);</span><br></pre></td></tr></table></figure>
+
+<p>那我们需要思考一下了，<code>setHeader</code> 方法只能设置一个指定的域名，如果我想设置多个域名怎么办？</p>
+<p>首先告诉你通过下面的方式肯定不行，如下：</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line">response.addHeader(<span class="string">&quot;Access-Control-Allow-Origin&quot;</span>, <span class="string">&quot;http://localhost:8082&quot;</span>);</span><br><span class="line">response.addHeader(<span class="string">&quot;Access-Control-Allow-Origin&quot;</span>, <span class="string">&quot;http://localhost:8083&quot;</span>);</span><br></pre></td></tr></table></figure>
+
+<p>具体原因大家可以看一下源码就秒懂了。</p>
+<p>有一个解决方案，把可以通过跨域访问的域名做成数组也是大家在业务上面经常说的白名单，示例如下：</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment">// 设置多个域名支持，类似白名单</span></span><br><span class="line">String[] allowDomain = &#123;<span class="string">&quot;http://localhost:8082&quot;</span>, <span class="string">&quot;http://localhost:8083&quot;</span>, <span class="string">&quot;http://localhost:8085&quot;</span>, <span class="string">&quot;http://localhost:8087&quot;</span>&#125;;</span><br><span class="line"><span class="type">Set</span> <span class="variable">allowedOrigins</span> <span class="operator">=</span> <span class="keyword">new</span> <span class="title class_">HashSet</span>(Arrays.asList(allowDomain));</span><br><span class="line"><span class="type">String</span> <span class="variable">originHeader</span> <span class="operator">=</span> ((HttpServletRequest) req).getHeader(<span class="string">&quot;Origin&quot;</span>);</span><br><span class="line">System.out.println(<span class="string">&quot;originHeader: &quot;</span> + originHeader);</span><br><span class="line"><span class="keyword">if</span> (allowedOrigins.contains(originHeader)) &#123;</span><br><span class="line">	response.setHeader(<span class="string">&quot;Access-Control-Allow-Origin&quot;</span>, originHeader);</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<p>再来思考一个问题，上面那种方式自定义Filter会对所有URL即全局的请求都起作用了，能否对指定URL进行过滤呢？</p>
+<p>做过Spring的同学肯定知道，我们可以设置 <code>WebFilter</code>，示例如下：</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line"><span class="meta">@WebFilter(urlPatterns = &#123; &quot;/signin/name&quot; &#125;)</span></span><br></pre></td></tr></table></figure>
+
+<p>这样修改后，需要修改一下SpringBoot相关的代码，首先去掉 <code>Component</code> 注解，示例如下：</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment">//@Component</span></span><br><span class="line"><span class="meta">@WebFilter(urlPatterns = &#123; &quot;/signin/name&quot; &#125;)</span></span><br><span class="line"><span class="keyword">public</span> <span class="keyword">class</span> <span class="title class_">MSCorsFilter</span> <span class="keyword">implements</span> <span class="title class_">Filter</span> &#123;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<p>然后需要在 Application 中添加 <code>ServletComponentScan</code> 注解，示例如下：</p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><span class="line">@ServletComponentScan</span><br><span class="line">@SpringBootApplication</span><br><span class="line">public class SpringbootApplication &#123;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<p> 结合 Filter 我们可以做出更细粒度更多功能来解决和控制跨域问题。Filter 这种方式对跨域的 GET 和 POST 请求都是支持的。</p>
+<h3 id="2、WebMvcConfigurationSupport"><a href="#2、WebMvcConfigurationSupport" class="headerlink" title="2、WebMvcConfigurationSupport"></a>2、WebMvcConfigurationSupport</h3><p>在 SpringBoot 中还可以自定义配置来解决跨域问题，通过继承 <code>WebMvcConfigurationSupport</code> 配置 CROS，示例代码如下：</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br></pre></td><td class="code"><pre><span class="line"><span class="meta">@Configuration</span></span><br><span class="line"><span class="keyword">public</span> <span class="keyword">class</span> <span class="title class_">MSCorsConfig</span> <span class="keyword">extends</span> <span class="title class_">WebMvcConfigurationSupport</span> &#123;</span><br><span class="line"></span><br><span class="line">    <span class="meta">@Override</span></span><br><span class="line">    <span class="keyword">protected</span> <span class="keyword">void</span> <span class="title function_">addCorsMappings</span><span class="params">(CorsRegistry registry)</span> &#123;</span><br><span class="line">        <span class="built_in">super</span>.addCorsMappings(registry);</span><br><span class="line">        registry.addMapping(<span class="string">&quot;/**&quot;</span>)</span><br><span class="line">                .allowedOrigins(<span class="string">&quot;*&quot;</span>)</span><br><span class="line">                .allowCredentials(<span class="literal">true</span>)</span><br><span class="line">                .allowedMethods(<span class="string">&quot;GET&quot;</span>, <span class="string">&quot;POST&quot;</span>, <span class="string">&quot;DELETE&quot;</span>, <span class="string">&quot;PUT&quot;</span>)</span><br><span class="line">                .maxAge(<span class="number">3600</span>);</span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<p>还可以指定 URL 和域名，修改如下：</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br></pre></td><td class="code"><pre><span class="line"><span class="meta">@Configuration</span></span><br><span class="line"><span class="keyword">public</span> <span class="keyword">class</span> <span class="title class_">MSCorsConfig</span> <span class="keyword">extends</span> <span class="title class_">WebMvcConfigurationSupport</span> &#123;</span><br><span class="line"></span><br><span class="line">    <span class="meta">@Override</span></span><br><span class="line">    <span class="keyword">protected</span> <span class="keyword">void</span> <span class="title function_">addCorsMappings</span><span class="params">(CorsRegistry registry)</span> &#123;</span><br><span class="line">        <span class="built_in">super</span>.addCorsMappings(registry);</span><br><span class="line">        registry.addMapping(<span class="string">&quot;/signin/name&quot;</span>)</span><br><span class="line">                .allowedOrigins(<span class="string">&quot;http://localhost:8082&quot;</span>, <span class="string">&quot;http://localhost:8083&quot;</span>)</span><br><span class="line">                .allowCredentials(<span class="literal">true</span>)</span><br><span class="line">                .allowedMethods(<span class="string">&quot;GET&quot;</span>, <span class="string">&quot;POST&quot;</span>, <span class="string">&quot;DELETE&quot;</span>, <span class="string">&quot;PUT&quot;</span>)</span><br><span class="line">                .maxAge(<span class="number">3600</span>);</span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<p>这样配置后，只允许请求域名是 <code>http://localhost:8082</code> 和 <code>http://localhost:8082</code> 并且请求服务端URL是 <code>/signin/name</code> 的请求才可以使用 CORS 机制。</p>
+<h3 id="3、CorsFilter"><a href="#3、CorsFilter" class="headerlink" title="3、CorsFilter"></a>3、CorsFilter</h3><p>这种方法早在 <code>SpringBoot1.x</code> 版本中使用，使用方法如下：</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">import</span> org.springframework.context.annotation.Bean;</span><br><span class="line"><span class="keyword">import</span> org.springframework.context.annotation.Configuration;</span><br><span class="line"><span class="keyword">import</span> org.springframework.web.cors.CorsConfiguration;</span><br><span class="line"><span class="keyword">import</span> org.springframework.web.cors.UrlBasedCorsConfigurationSource;</span><br><span class="line"><span class="keyword">import</span> org.springframework.web.filter.CorsFilter;</span><br><span class="line"></span><br><span class="line"><span class="meta">@Configuration</span></span><br><span class="line"><span class="keyword">public</span> <span class="keyword">class</span> <span class="title class_">MSCorsFilterConfig</span> &#123;</span><br><span class="line"></span><br><span class="line">    <span class="keyword">private</span> CorsConfiguration <span class="title function_">getConfig</span><span class="params">()</span> &#123;</span><br><span class="line">        <span class="type">CorsConfiguration</span> <span class="variable">corsConfiguration</span> <span class="operator">=</span> <span class="keyword">new</span> <span class="title class_">CorsConfiguration</span>();</span><br><span class="line">        <span class="comment">// 允许任何域名使用</span></span><br><span class="line">        corsConfiguration.addAllowedOrigin(<span class="string">&quot;*&quot;</span>);</span><br><span class="line">        <span class="comment">// 允许任何头</span></span><br><span class="line">        corsConfiguration.addAllowedHeader(<span class="string">&quot;*&quot;</span>);</span><br><span class="line">        <span class="comment">// 允许任何HTTP方法</span></span><br><span class="line">        corsConfiguration.addAllowedMethod(<span class="string">&quot;*&quot;</span>);</span><br><span class="line">        corsConfiguration.setAllowCredentials(<span class="literal">true</span>);</span><br><span class="line">        corsConfiguration.setMaxAge(<span class="number">60L</span>);</span><br><span class="line"></span><br><span class="line">        <span class="keyword">return</span> corsConfiguration;</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    <span class="meta">@Bean</span></span><br><span class="line">    <span class="keyword">public</span> CorsFilter <span class="title function_">corsFilter</span><span class="params">()</span> &#123;</span><br><span class="line">        UrlBasedCorsConfigurationSource source;</span><br><span class="line">        source = <span class="keyword">new</span> <span class="title class_">UrlBasedCorsConfigurationSource</span>();</span><br><span class="line">        source.registerCorsConfiguration(<span class="string">&quot;/**&quot;</span>, getConfig());</span><br><span class="line">        <span class="keyword">return</span> <span class="keyword">new</span> <span class="title class_">CorsFilter</span>(source);</span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br><span class="line"></span><br></pre></td></tr></table></figure>
+
+<p>这种方式跟上面的解决方法基本都是大同小异，大家根据实际情况选择使用，对提供的方法举一反三即可。</p>
+<h2 id="减少OPTIONS请求"><a href="#减少OPTIONS请求" class="headerlink" title="减少OPTIONS请求"></a>减少OPTIONS请求</h2><p>虽然我们支持网页对服务端进行 OPTIONS 请求，但是请求如果多了势必会影响服务器性能。</p>
+<p>如果在没有必要的情况下尽量减少由于跨域请求带来的 OPTIONS 请求，我们可以通过设置缓存时间来解决这个问题。</p>
+<p>比如使用自定义 Filter 的方式设置600秒的缓存时间，示例代码如下：</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">response.setHeader(<span class="string">&quot;Access-Control-Max-Age&quot;</span>, <span class="string">&quot;600&quot;</span>);</span><br></pre></td></tr></table></figure>
+
+<p>在大家进行测试的时候，记得不要勾选 Chrome 审查视图中 Network 选项中 <code>Disable cache</code> 这一项，否则每次都会进行 OPTIONS 请求，给你造成设置服务端缓存时间没有效果的假象。</p>
+<h2 id="常用Nginx命令"><a href="#常用Nginx命令" class="headerlink" title="常用Nginx命令"></a>常用Nginx命令</h2><p>下面给出Windows版本的Nginx常用命令。</p>
+<p>1、启动 Nginx</p>
+<figure class="highlight nginx"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line"><span class="attribute">start</span> nginx.exe</span><br></pre></td></tr></table></figure>
+
+<p>2、验证配置是否正确</p>
+<figure class="highlight nginx"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">nginx.<span class="attribute">exe</span> -t</span><br></pre></td></tr></table></figure>
+
+<p>3、修改配置文件后，重新加载</p>
+<figure class="highlight nginx"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">nginx.<span class="attribute">exe</span> -s reload</span><br></pre></td></tr></table></figure>
+
+<p>4、快速关闭</p>
+<figure class="highlight nginx"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">nginx.<span class="attribute">exe</span> -s stop</span><br></pre></td></tr></table></figure>
+
+<p>5、正常关闭退出</p>
+<figure class="highlight nginx"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">nginx.<span class="attribute">exe</span> -quit</span><br></pre></td></tr></table></figure>
+
+<p>6、查看Nginx版本</p>
+<figure class="highlight nginx"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">nginx.<span class="attribute">exe</span> -V</span><br></pre></td></tr></table></figure>
+
+<hr>
+<p><strong>坚持做好一件事，需要付出比常人更多的努力~</strong></p>
+<p><img class="lazy" src="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAABGdBTUEAALGPC/xhBQAAADhlWElmTU0AKgAAAAgAAYdpAAQAAAABAAAAGgAAAAAAAqACAAQAAAABAAAAAaADAAQAAAABAAAAAQAAAADa6r/EAAAAC0lEQVQIHWNgAAIAAAUAAY27m/MAAAAASUVORK5CYII=" data-src="/upload/me/qrcode_wx.jpg"></p>
+
+
+
+
+</article>
+
+<div class="related-wrap reveal" id="read-next"><section class="header cap theme"><span>接下来阅读</span></section><section class="body fs14"><a id="next" href="/2019/08/31/%E8%B7%A8%E5%9F%9F%E5%92%8COPTIONS%E8%BF%99%E5%AF%B9%E6%AC%A2%E5%96%9C%E5%86%A4%E5%AE%B6/">跨域和OPTIONS这对欢喜冤家<span class="note">较早</span></a><div class="line"></div><a id="prev" href="/2019/09/15/%E5%BE%AE%E6%9C%8D%E5%8A%A1-%E7%AE%80%E5%8D%95%E7%9A%84%E7%94%A8%E6%88%B7%E5%90%8D%E6%B3%A8%E5%86%8C%E5%92%8C%E7%99%BB%E5%BD%95/">微服务: 简单的用户名注册和登录<span class="note">较新</span></a></section></div>
+
+
+
+
+
+
+  <div class='related-wrap md reveal' id="comments">
+    <div class='cmt-title cap theme'>
+      快来参与讨论吧
+    </div>
+    <div class='cmt-body valine'>
+      
+
+<div id="valine_container" class="valine_thread"><svg class="loading" style="vertical-align: middle;fill: currentColor;overflow: hidden;" viewBox="0 0 1024 1024" version="1.1" xmlns="http://www.w3.org/2000/svg" p-id="2709"><path d="M832 512c0-176-144-320-320-320V128c211.2 0 384 172.8 384 384h-64zM192 512c0 176 144 320 320 320v64C300.8 896 128 723.2 128 512h64z" p-id="2710"></path></svg></div>
+
+    </div>
+  </div>
+
+
+
+      
+<footer class="page-footer reveal fs12"><hr><div class="text"><p>本博客所有文章除特别声明外，均采用 <a target="_blank" rel="noopener" href="https://creativecommons.org/licenses/by-nc-sa/4.0/">CC BY-NC-SA 4.0</a> 许可协议，转载请注明出处。</p>
+<p>veryitman</p>
+</div></footer>
+
+      <div class='float-panel mobile-only blur' style='display:none'>
+  <button type='button' class='sidebar-toggle mobile' onclick='sidebar.toggle()'>
+    <svg class="icon" style="width: 1em; height: 1em;vertical-align: middle;fill: currentColor;overflow: hidden;" viewBox="0 0 1024 1024" version="1.1" xmlns="http://www.w3.org/2000/svg" p-id="15301"><path d="M566.407 808.3c26.9-0.1 49.3-20.8 51.6-47.6-1.9-27.7-23.9-49.7-51.6-51.6h-412.6c-28.2-1.4-52.6 19.5-55.5 47.6 2.3 26.8 24.6 47.5 51.6 47.6h416.5v4z m309.3-249.9c26.9-0.1 49.3-20.8 51.6-47.6-2.2-26.8-24.6-47.5-51.6-47.6h-721.9c-27.7-2.8-52.5 17.4-55.3 45.1-0.1 0.8-0.1 1.7-0.2 2.5 0.9 27.2 23.6 48.5 50.7 47.6H875.707z m-103.1-245.9c26.9-0.1 49.3-20.8 51.6-47.6-0.4-28.3-23.2-51.1-51.5-51.6h-618.9c-29.5-1.1-54.3 21.9-55.5 51.4v0.2c1.4 27.8 25.2 49.2 53 47.8 0.8 0 1.7-0.1 2.5-0.2h618.8z" p-id="15302"></path><path d="M566.407 808.3c26.9-0.1 49.3-20.8 51.6-47.6-1.9-27.7-23.9-49.7-51.6-51.6h-412.6c-28.2-1.4-52.6 19.5-55.5 47.6 1.9 27.7 23.9 49.7 51.6 51.6h416.5z m309.3-249.9c26.9-0.1 49.3-20.8 51.6-47.6-2.2-26.8-24.6-47.5-51.6-47.6h-721.9c-27.7-2.8-52.5 17.4-55.3 45.1-0.1 0.8-0.1 1.7-0.2 2.5 0.9 27.2 23.6 48.5 50.7 47.6H875.707z m-103.1-245.9c26.9-0.1 49.3-20.8 51.6-47.6-0.4-28.3-23.2-51.1-51.5-51.6h-618.9c-29.5-1.1-54.3 21.9-55.5 51.4v0.2c1.4 27.8 25.2 49.2 53 47.8 0.8 0 1.7-0.1 2.5-0.2h618.8z" p-id="15303"></path></svg>
+  </button>
+</div>
+
+    </div>
+  </div>
+  <div class='scripts'>
+    <script type="text/javascript">
+  stellar = {
+    // 懒加载 css https://github.com/filamentgroup/loadCSS
+    loadCSS: (href, before, media, attributes) => {
+      var doc = window.document;
+      var ss = doc.createElement("link");
+      var ref;
+      if (before) {
+        ref = before;
+      } else {
+        var refs = (doc.body || doc.getElementsByTagName("head")[0]).childNodes;
+        ref = refs[refs.length - 1];
+      }
+      var sheets = doc.styleSheets;
+      if (attributes) {
+        for (var attributeName in attributes) {
+          if (attributes.hasOwnProperty(attributeName)) {
+            ss.setAttribute(attributeName, attributes[attributeName]);
+          }
+        }
+      }
+      ss.rel = "stylesheet";
+      ss.href = href;
+      ss.media = "only x";
+      function ready(cb) {
+        if (doc.body) {
+          return cb();
+        }
+        setTimeout(function () {
+          ready(cb);
+        });
+      }
+      ready(function () {
+        ref.parentNode.insertBefore(ss, before ? ref : ref.nextSibling);
+      });
+      var onloadcssdefined = function (cb) {
+        var resolvedHref = ss.href;
+        var i = sheets.length;
+        while (i--) {
+          if (sheets[i].href === resolvedHref) {
+            return cb();
+          }
+        }
+        setTimeout(function () {
+          onloadcssdefined(cb);
+        });
+      };
+      function loadCB() {
+        if (ss.addEventListener) {
+          ss.removeEventListener("load", loadCB);
+        }
+        ss.media = media || "all";
+      }
+      if (ss.addEventListener) {
+        ss.addEventListener("load", loadCB);
+      }
+      ss.onloadcssdefined = onloadcssdefined;
+      onloadcssdefined(loadCB);
+      return ss;
+    },
+
+    // 从 butterfly 和 volantis 获得灵感
+    loadScript: (src, opt) => new Promise((resolve, reject) => {
+      var script = document.createElement('script');
+      script.src = src;
+      if (opt) {
+        for (let key of Object.keys(opt)) {
+          script[key] = opt[key]
+        }
+      } else {
+        // 默认异步，如果需要同步，第二个参数传入 {} 即可
+        script.async = true
+      }
+      script.onerror = reject
+      script.onload = script.onreadystatechange = function() {
+        const loadState = this.readyState
+        if (loadState && loadState !== 'loaded' && loadState !== 'complete') return
+        script.onload = script.onreadystatechange = null
+        resolve()
+      }
+      document.head.appendChild(script)
+    }),
+
+    // https://github.com/jerryc127/hexo-theme-butterfly
+    jQuery: (fn) => {
+      if (typeof jQuery === 'undefined') {
+        stellar.loadScript(stellar.plugins.jQuery).then(fn)
+      } else {
+        fn()
+      }
+    }
+  };
+  stellar.github = 'https://github.com/xaoxuu/hexo-theme-stellar/tree/1.6.1';
+  stellar.config = {
+    date_suffix: {
+      just: '刚刚',
+      min: '分钟前',
+      hour: '小时前',
+      day: '天前',
+      month: '个月前',
+    },
+  };
+
+  // required plugins (only load if needs)
+  stellar.plugins = {
+    jQuery: 'https://cdn.jsdelivr.net/npm/jquery@3.5.1/dist/jquery.min.js',
+    sitesjs: '/js/plugins/sites.js',
+    friendsjs: '/js/plugins/friends.js',
+  };
+
+  // optional plugins
+  if ('true' == 'true') {
+    stellar.plugins.lazyload = Object.assign({"enable":true,"js":"https://cdn.jsdelivr.net/npm/vanilla-lazyload@17.3.1/dist/lazyload.min.js","transition":"blur"});
+  }
+  if ('true' == 'true') {
+    stellar.plugins.swiper = Object.assign({"enable":true,"css":"https://unpkg.com/swiper@6/swiper-bundle.min.css","js":"https://unpkg.com/swiper@6/swiper-bundle.min.js"});
+  }
+  if ('' == 'true') {
+    stellar.plugins.scrollreveal = Object.assign({"enable":null,"js":"https://cdn.jsdelivr.net/npm/scrollreveal@4.0.9/dist/scrollreveal.min.js","distance":"8px","duration":500,"interval":100,"scale":1});
+  }
+  if ('true' == 'true') {
+    stellar.plugins.preload = Object.assign({"enable":true,"service":"flying_pages","instant_page":"https://cdn.jsdelivr.net/gh/volantis-x/cdn-volantis@4.1.2/js/instant_page.js","flying_pages":"https://cdn.jsdelivr.net/gh/gijo-varghese/flying-pages@2.1.2/flying-pages.min.js"});
+  }
+</script>
+
+<!-- required -->
+
+  
+<script src="/js/main.js" async></script>
+
+
+
+<!-- optional -->
+
+  <script>
+  function getEmojiMaps() {
+    function emoji(path, idx, ext) {
+      return path + "/" + path + "-" + idx + "." + ext;
+    }
+    var emojiMaps = {};
+    for (var i = 1; i <= 54; i++) {
+      emojiMaps['tieba-' + i] = emoji('tieba', i, 'png');
+    }
+    for (var i = 1; i <= 101; i++) {
+      emojiMaps['qq-' + i] = emoji('qq', i, 'gif');
+    }
+    for (var i = 1; i <= 116; i++) {
+      emojiMaps['aru-' + i] = emoji('aru', i, 'gif');
+    }
+    for (var i = 1; i <= 125; i++) {
+      emojiMaps['twemoji-' + i] = emoji('twemoji', i, 'png');
+    }
+    for (var i = 1; i <= 4; i++) {
+      emojiMaps['weibo-' + i] = emoji('weibo', i, 'png');
+    }
+    return emojiMaps;
+  }
+  function load_comment(){
+    if(!document.getElementById("valine_container"))return;
+    stellar.loadScript('https://cdn.jsdelivr.net/gh/XuxuGood/simple-blog-cdn@main/js/Valine.min.js', {defer:true}).then(function () {
+      const el = document.getElementById("valine_container");
+      var path = el.getAttribute('comment_id');
+      const placeholder = "欢迎您留言~";
+      if (!path) {
+        path = decodeURI(window.location.pathname);
+      }
+      var valine = new Valine();
+      valine.init(Object.assign({"js":"https://cdn.jsdelivr.net/gh/XuxuGood/simple-blog-cdn@main/js/Valine.min.js","appId":"FY2C9UCttYNaE1j8umenqdCE-gzGzoHsz","appKey":"4i7xMwkfSEGmEDhi6SceKFxz","placeholder":"欢迎您留言~","requiredFields":["nick","mail"],"enableQQ":true,"recordIP":false,"avatar":"robohash","pageSize":10,"lang":"zh-cn","highlight":true,"mathJax":false,"tagMeta":["博主","小伙伴","访客"],"metaPlaceholder":{"nick":"昵称/QQ号(必填)","mail":"邮箱（必填，完全保密）"},"master":["6783037F2DF30EAB99F9FC256157D875"],"friends":["6783037F2DF30EAB99F9FC256157D875"],"comment_count":true}, {
+        el: '#valine_container',
+        path: path,
+        placeholder: placeholder,
+        emojiCDN: 'https://cdn.jsdelivr.net/gh/volantis-x/cdn-emoji/valine/',
+        emojiMaps: getEmojiMaps(),
+      }));
+    });
+  }
+  window.addEventListener('DOMContentLoaded', (event) => {
+    console.log('DOM fully loaded and parsed');
+    load_comment();
+  });
+
+</script>
+
+
+
+
+<!-- inject -->
+
+
+  </div>
+</body>
+</html>

@@ -1,0 +1,433 @@
+<!DOCTYPE html>
+<html lang='zh-CN'>
+
+<head>
+  <meta name="generator" content="Hexo 6.0.0">
+  <meta charset="utf-8">
+  
+
+  <meta http-equiv='x-dns-prefetch-control' content='on' />
+  <link rel='dns-prefetch' href='https://cdn.jsdelivr.net'>
+  <link rel="preconnect" href="https://cdn.jsdelivr.net" crossorigin>
+
+  <meta name="renderer" content="webkit">
+  <meta name="force-rendering" content="webkit">
+  <meta http-equiv="X-UA-Compatible" content="IE=Edge,chrome=1">
+  <meta name="HandheldFriendly" content="True" >
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1">
+  <meta name="theme-color" content="#f8f8f8">
+  <title>Mac install Cocoapods - Veryitman</title>
+
+  
+    <meta name="description" content="声明这篇博客原本被我发表在 CSDN . 那里不再更新, 现在在这里做持续更新. 导引如果你的 Mac OSX 升级到 10.11.x+, 并且需要安装 Cocoapods, 可以参考本博客. 安装 rubyMac 系统自带了 ruby, 但是建议大家使用 Homebrew 安装 ruby. 因为 Cocoapods 升级需要对应的 ruby 版本也要升级, 使用 Homebrew 比较方便. 安">
+<meta property="og:type" content="article">
+<meta property="og:title" content="Mac install Cocoapods">
+<meta property="og:url" content="http://example.com/2016/11/08/Mac-install-Cocoapods/index.html">
+<meta property="og:site_name" content="Veryitman">
+<meta property="og:description" content="声明这篇博客原本被我发表在 CSDN . 那里不再更新, 现在在这里做持续更新. 导引如果你的 Mac OSX 升级到 10.11.x+, 并且需要安装 Cocoapods, 可以参考本博客. 安装 rubyMac 系统自带了 ruby, 但是建议大家使用 Homebrew 安装 ruby. 因为 Cocoapods 升级需要对应的 ruby 版本也要升级, 使用 Homebrew 比较方便. 安">
+<meta property="og:locale" content="zh_CN">
+<meta property="og:image" content="http://example.com/upload/me/qrcode_wx.jpg">
+<meta property="article:published_time" content="2016-11-08T14:47:00.000Z">
+<meta property="article:modified_time" content="2022-03-09T14:53:24.350Z">
+<meta property="article:author" content="veryitman">
+<meta property="article:tag" content="CocoaPods, iOS">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:image" content="http://example.com/upload/me/qrcode_wx.jpg">
+  
+  
+
+  <!-- feed -->
+  
+
+  
+    
+<link rel="stylesheet" href="/css/main.css">
+
+  
+
+  
+
+  
+</head>
+
+<body>
+  
+
+
+  <div class='l_body' id='start'>
+    <aside class='l_left' layout='post'>
+    
+
+
+<header class="header">
+
+<div class="logo-wrap"><a class="title" href="/"><div class="main">Veryitman</div></a></div>
+<nav class="menu dis-select"></nav></header>
+
+<div class="widgets">
+
+<div class="widget-wrap single" id="toc"><div class="widget-header cap dis-select"><span class="name">本文目录</span></div><div class="widget-body fs14"><div class="doc-tree active"><ol class="toc"><li class="toc-item toc-level-2"><a class="toc-link" href="#%E5%A3%B0%E6%98%8E"><span class="toc-text">声明</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#%E5%AF%BC%E5%BC%95"><span class="toc-text">导引</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#%E5%AE%89%E8%A3%85-ruby"><span class="toc-text">安装 ruby</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#%E5%AE%89%E8%A3%85-Cocoapods"><span class="toc-text">安装 Cocoapods</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#%E5%8D%B8%E8%BD%BD-Cocoapods"><span class="toc-text">卸载 Cocoapods</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#%E5%BB%BA%E7%AB%8B%E6%9C%AC%E5%9C%B0-repo"><span class="toc-text">建立本地 repo</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#%E5%AE%89%E8%A3%85%E4%BD%BF%E7%94%A8%E4%B8%AD%E9%81%87%E5%88%B0%E7%9A%84%E9%97%AE%E9%A2%98"><span class="toc-text">安装使用中遇到的问题</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#%E5%B8%B8%E7%94%A8%E6%93%8D%E4%BD%9C"><span class="toc-text">常用操作</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#%E6%9B%B4%E6%96%B0%E8%AE%B0%E5%BD%95"><span class="toc-text">更新记录</span></a></li></ol></div></div></div>
+
+
+</div>
+
+
+    </aside>
+    <div class='l_main'>
+      
+
+      
+
+
+<div class="bread-nav fs12"><div id="breadcrumb"><a class="cap breadcrumb" href="/">主页</a><span class="sep"></span><a class="cap breadcrumb" href="/">文章</a><span class="sep"></span><a class="cap breadcrumb-link" href="/categories/MacOS/">MacOS</a></div><div id="post-meta">发布于&nbsp;<time datetime="2016-11-08T14:47:00.000Z">2016-11-08</time></div></div>
+
+<article class='content md post'>
+<h1 class="article-title"><span>Mac install Cocoapods</span></h1>
+<h2 id="声明"><a href="#声明" class="headerlink" title="声明"></a>声明</h2><p>这篇博客原本被我发表在 <a target="_blank" rel="noopener" href="http://blog.csdn.net/veryitman/article/details/50769069">CSDN</a> .</p>
+<p>那里不再更新, 现在在这里做持续更新.</p>
+<h2 id="导引"><a href="#导引" class="headerlink" title="导引"></a>导引</h2><p>如果你的 Mac OSX 升级到 10.11.x+, 并且需要安装 Cocoapods, 可以参考本博客.</p>
+<h2 id="安装-ruby"><a href="#安装-ruby" class="headerlink" title="安装 ruby"></a>安装 ruby</h2><p>Mac 系统自带了 ruby, 但是建议大家使用 Homebrew 安装 ruby.</p>
+<p>因为 Cocoapods 升级需要对应的 ruby 版本也要升级, 使用 Homebrew 比较方便.</p>
+<p>安装 ruby:</p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">brew install ruby</span><br></pre></td></tr></table></figure>
+
+<p>查看当前安装的 ruby 版本:</p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">ruby -v</span><br></pre></td></tr></table></figure>
+
+<p>会得到类似下面的信息:</p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">ruby 2.3.1p112 (2016-04-26 revision 54768) [x86_64-darwin15]</span><br></pre></td></tr></table></figure>
+
+<p>gem 是管理 Ruby 库和程序的标准包.<br>安装了 ruby, 自带了 gem 工具.</p>
+<p>可以使用 <code>gem -v</code> 查看 gem 版本.</p>
+<h2 id="安装-Cocoapods"><a href="#安装-Cocoapods" class="headerlink" title="安装 Cocoapods"></a>安装 Cocoapods</h2><p>1.移除原来的源, 不管以前是否安装过 Cocoapods.</p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">gem sources --remove http://ruby.taobao.org/</span><br></pre></td></tr></table></figure>
+
+<p>2.重新添加源, 注意是 https.</p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">gem sources -a https://gems.ruby-china.org/</span><br></pre></td></tr></table></figure>
+
+<p>之前 <a target="_blank" rel="noopener" href="https://ruby.taobao.org/">taobao 的源</a> 好像已经不行了.</p>
+<p><strong>注意：</strong>添加源之前在浏览器打开 <code>https://gems.ruby-china.org/</code> 这个地址看一看是否能访问，如果不能访问就修改一下为 <code>https://gems.ruby-china.com</code> 这个地址。</p>
+<p>3.查看是否添加成功, 该步骤可选.</p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">gem sources -l</span><br></pre></td></tr></table></figure>
+
+<p>安装, 使用 root 权限安装.</p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">sudo gem install -n /usr/local/bin cocoapods</span><br></pre></td></tr></table></figure>
+
+<p>这种安装方式, 会安装最新的 release 版本.</p>
+<p>你也可以使用下面两种方式来安装.</p>
+<p>指定版本安装:</p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">sudo gem install -n /usr/local/bin cocoapods -v 1.0.0</span><br></pre></td></tr></table></figure>
+
+<p>安装最新的 release beta 版本:</p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">sudo gem install -n /usr/local/bin cocoapods --pre</span><br></pre></td></tr></table></figure>
+
+<h2 id="卸载-Cocoapods"><a href="#卸载-Cocoapods" class="headerlink" title="卸载 Cocoapods"></a>卸载 Cocoapods</h2><p>卸载 Cocoapods 只需执行:</p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">sudo gem uninstall cocoapods</span><br></pre></td></tr></table></figure>
+
+<p>如果想删除本地的 pod repo, 可以这样:</p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">rm -fr ~/.cocoapods/</span><br></pre></td></tr></table></figure>
+
+<h2 id="建立本地-repo"><a href="#建立本地-repo" class="headerlink" title="建立本地 repo"></a>建立本地 repo</h2><p>安装完 Cocoapods 后, 需要建立本地的 repo.</p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">pod setup</span><br></pre></td></tr></table></figure>
+
+<p>即使你现在不执行 pod setup, 后面进行 pod install 或者 pod update 的时候, 也会自动的进行 pod setup.</p>
+<p>执行 pod setup 的目的是将所有第三方的 podspec 索引文件更新到本地的 <code>~/.cocoapods/repos</code> 目录中.</p>
+<h2 id="安装使用中遇到的问题"><a href="#安装使用中遇到的问题" class="headerlink" title="安装使用中遇到的问题"></a>安装使用中遇到的问题</h2><p>问题1: 命令行执行 pod 发生: pod command not found, 但是 sudo pod 却可以执行.</p>
+<p>解决方案即如下步骤:</p>
+<p>[1].卸载原有的 Cocoapods</p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">sudo gem uninstall cocoapods</span><br></pre></td></tr></table></figure>
+
+<p>[2].重新安装 Cocoapods</p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">sudo gem install -n /usr/local/bin cocoapods</span><br></pre></td></tr></table></figure>
+
+<p>[3].赋予&#x2F;usr&#x2F;local&#x2F;bin给予执行与读取权限:</p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">sudo chmod -R +rx /usr/local/bin/</span><br></pre></td></tr></table></figure>
+
+<blockquote>
+<p>建议最好使用代(fanq)理(qiang).</p>
+</blockquote>
+<p>问题2: 更新 gem 过程中, 遇到</p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">Operation not permitted - /usr/bin/update_rubygems</span><br></pre></td></tr></table></figure>
+
+<p>可以通过通过 brew 安装 ruby 解决.</p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">brew install ruby</span><br></pre></td></tr></table></figure>
+
+<p>问题3: pod setup 失败</p>
+<p>失败提示信息类似:</p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br></pre></td><td class="code"><pre><span class="line">Cloning into &#x27;master&#x27;...</span><br><span class="line">error: RPC failed; curl 56 SSLRead() return error -36</span><br><span class="line">fatal: The remote end hung up unexpectedly</span><br><span class="line">fatal: early EOF</span><br><span class="line">fatal: index-pack failed</span><br></pre></td></tr></table></figure>
+
+<p>解决方案: 更新 gem</p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">sudo gem update --system</span><br></pre></td></tr></table></figure>
+
+<p>问题4: 添加源, 提示如下问题</p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">source https://gems.ruby-china.org/ already present in the cache</span><br></pre></td></tr></table></figure>
+
+<p>这个说明你已经添加过该源, 可以使用</p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">gem sources -l</span><br></pre></td></tr></table></figure>
+
+<p>来查看已经添加的源.</p>
+<h2 id="常用操作"><a href="#常用操作" class="headerlink" title="常用操作"></a>常用操作</h2><p>1.更新 gem</p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">sudo gem update --system</span><br></pre></td></tr></table></figure>
+
+<p>2.pod repo update</p>
+<p>更新本地仓库.</p>
+<p>3.pod search xxx</p>
+<p>搜索 cocoapods 项目.</p>
+<p>4.pod list</p>
+<p>列出所有可用的库.</p>
+<p>5.pod install</p>
+<p>根据 podfile 和 podfile.lock来安装库.</p>
+<p>默认会执行 pod repo update.</p>
+<p>可以加入参数 <code>–no-repo-update</code> 不执行 pod repo update.</p>
+<p>6.pod update</p>
+<p>更新已安装的库到最新版本, 并且创建新的 Podfile.lock 文件.</p>
+<p>该命令也会默认会执行 pod repo update.</p>
+<p>可以加入参数 –no-repo-update 不执行 pod repo update.</p>
+<h2 id="更新记录"><a href="#更新记录" class="headerlink" title="更新记录"></a>更新记录</h2><p>2017-01-04 更新</p>
+<blockquote>
+<p>升级 ruby 到 2.4 版本后, cocoapods 无法使用了.</p>
+</blockquote>
+<p>升级的 ruby 版本信息:</p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">ruby 2.4.0p0 (2016-12-24 revision 57164) [x86_64-darwin15]</span><br></pre></td></tr></table></figure>
+
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br></pre></td><td class="code"><pre><span class="line">使用任何 pod 命令都报错:</span><br><span class="line"></span><br><span class="line">/usr/local/Cellar/ruby/2.4.0/lib/ruby/2.4.0/rubygems.rb:270:in `find_spec_for_exe&#x27;: can&#x27;t find gem cocoapods (&gt;= 0.a) (Gem::GemNotFoundException)</span><br><span class="line">from /usr/local/Cellar/ruby/2.4.0/lib/ruby/2.4.0/rubygems.rb:298:in `activate_bin_path&#x27;</span><br><span class="line">from /usr/local/bin/pod:22:in `&lt;main&gt;&#x27;</span><br></pre></td></tr></table></figure>
+
+<p>查找各种解决方案, 最终还是没有解决.</p>
+<p>你可以在 <a target="_blank" rel="noopener" href="https://cocoapods.org/app">这里</a> 下载 Cocoapods 的 Mac 版本 App 使用.</p>
+<hr>
+<p><strong>扫码关注，你我就各多一个朋友~</strong></p>
+<p><img class="lazy" src="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAABGdBTUEAALGPC/xhBQAAADhlWElmTU0AKgAAAAgAAYdpAAQAAAABAAAAGgAAAAAAAqACAAQAAAABAAAAAaADAAQAAAABAAAAAQAAAADa6r/EAAAAC0lEQVQIHWNgAAIAAAUAAY27m/MAAAAASUVORK5CYII=" data-src="/upload/me/qrcode_wx.jpg"></p>
+
+
+
+
+</article>
+
+<div class="related-wrap reveal" id="read-next"><section class="header cap theme"><span>接下来阅读</span></section><section class="body fs14"><a id="next" href="/2016/11/08/Cocoapods-%E9%97%AE%E9%A2%98%E9%9B%86%E9%94%A6/">Cocoapods 问题集锦<span class="note">较早</span></a><div class="line"></div><a id="prev" href="/2016/11/12/GameDevelopment-%E4%B8%8E-Cocos2d-%E7%9A%84%E5%86%8D%E7%9B%B8%E9%80%A2/">GameDevelopment: 与 Cocos2d 的再相逢<span class="note">较新</span></a></section></div>
+
+
+
+
+
+
+  <div class='related-wrap md reveal' id="comments">
+    <div class='cmt-title cap theme'>
+      快来参与讨论吧
+    </div>
+    <div class='cmt-body valine'>
+      
+
+<div id="valine_container" class="valine_thread"><svg class="loading" style="vertical-align: middle;fill: currentColor;overflow: hidden;" viewBox="0 0 1024 1024" version="1.1" xmlns="http://www.w3.org/2000/svg" p-id="2709"><path d="M832 512c0-176-144-320-320-320V128c211.2 0 384 172.8 384 384h-64zM192 512c0 176 144 320 320 320v64C300.8 896 128 723.2 128 512h64z" p-id="2710"></path></svg></div>
+
+    </div>
+  </div>
+
+
+
+      
+<footer class="page-footer reveal fs12"><hr><div class="text"><p>本博客所有文章除特别声明外，均采用 <a target="_blank" rel="noopener" href="https://creativecommons.org/licenses/by-nc-sa/4.0/">CC BY-NC-SA 4.0</a> 许可协议，转载请注明出处。</p>
+<p>veryitman</p>
+</div></footer>
+
+      <div class='float-panel mobile-only blur' style='display:none'>
+  <button type='button' class='sidebar-toggle mobile' onclick='sidebar.toggle()'>
+    <svg class="icon" style="width: 1em; height: 1em;vertical-align: middle;fill: currentColor;overflow: hidden;" viewBox="0 0 1024 1024" version="1.1" xmlns="http://www.w3.org/2000/svg" p-id="15301"><path d="M566.407 808.3c26.9-0.1 49.3-20.8 51.6-47.6-1.9-27.7-23.9-49.7-51.6-51.6h-412.6c-28.2-1.4-52.6 19.5-55.5 47.6 2.3 26.8 24.6 47.5 51.6 47.6h416.5v4z m309.3-249.9c26.9-0.1 49.3-20.8 51.6-47.6-2.2-26.8-24.6-47.5-51.6-47.6h-721.9c-27.7-2.8-52.5 17.4-55.3 45.1-0.1 0.8-0.1 1.7-0.2 2.5 0.9 27.2 23.6 48.5 50.7 47.6H875.707z m-103.1-245.9c26.9-0.1 49.3-20.8 51.6-47.6-0.4-28.3-23.2-51.1-51.5-51.6h-618.9c-29.5-1.1-54.3 21.9-55.5 51.4v0.2c1.4 27.8 25.2 49.2 53 47.8 0.8 0 1.7-0.1 2.5-0.2h618.8z" p-id="15302"></path><path d="M566.407 808.3c26.9-0.1 49.3-20.8 51.6-47.6-1.9-27.7-23.9-49.7-51.6-51.6h-412.6c-28.2-1.4-52.6 19.5-55.5 47.6 1.9 27.7 23.9 49.7 51.6 51.6h416.5z m309.3-249.9c26.9-0.1 49.3-20.8 51.6-47.6-2.2-26.8-24.6-47.5-51.6-47.6h-721.9c-27.7-2.8-52.5 17.4-55.3 45.1-0.1 0.8-0.1 1.7-0.2 2.5 0.9 27.2 23.6 48.5 50.7 47.6H875.707z m-103.1-245.9c26.9-0.1 49.3-20.8 51.6-47.6-0.4-28.3-23.2-51.1-51.5-51.6h-618.9c-29.5-1.1-54.3 21.9-55.5 51.4v0.2c1.4 27.8 25.2 49.2 53 47.8 0.8 0 1.7-0.1 2.5-0.2h618.8z" p-id="15303"></path></svg>
+  </button>
+</div>
+
+    </div>
+  </div>
+  <div class='scripts'>
+    <script type="text/javascript">
+  stellar = {
+    // 懒加载 css https://github.com/filamentgroup/loadCSS
+    loadCSS: (href, before, media, attributes) => {
+      var doc = window.document;
+      var ss = doc.createElement("link");
+      var ref;
+      if (before) {
+        ref = before;
+      } else {
+        var refs = (doc.body || doc.getElementsByTagName("head")[0]).childNodes;
+        ref = refs[refs.length - 1];
+      }
+      var sheets = doc.styleSheets;
+      if (attributes) {
+        for (var attributeName in attributes) {
+          if (attributes.hasOwnProperty(attributeName)) {
+            ss.setAttribute(attributeName, attributes[attributeName]);
+          }
+        }
+      }
+      ss.rel = "stylesheet";
+      ss.href = href;
+      ss.media = "only x";
+      function ready(cb) {
+        if (doc.body) {
+          return cb();
+        }
+        setTimeout(function () {
+          ready(cb);
+        });
+      }
+      ready(function () {
+        ref.parentNode.insertBefore(ss, before ? ref : ref.nextSibling);
+      });
+      var onloadcssdefined = function (cb) {
+        var resolvedHref = ss.href;
+        var i = sheets.length;
+        while (i--) {
+          if (sheets[i].href === resolvedHref) {
+            return cb();
+          }
+        }
+        setTimeout(function () {
+          onloadcssdefined(cb);
+        });
+      };
+      function loadCB() {
+        if (ss.addEventListener) {
+          ss.removeEventListener("load", loadCB);
+        }
+        ss.media = media || "all";
+      }
+      if (ss.addEventListener) {
+        ss.addEventListener("load", loadCB);
+      }
+      ss.onloadcssdefined = onloadcssdefined;
+      onloadcssdefined(loadCB);
+      return ss;
+    },
+
+    // 从 butterfly 和 volantis 获得灵感
+    loadScript: (src, opt) => new Promise((resolve, reject) => {
+      var script = document.createElement('script');
+      script.src = src;
+      if (opt) {
+        for (let key of Object.keys(opt)) {
+          script[key] = opt[key]
+        }
+      } else {
+        // 默认异步，如果需要同步，第二个参数传入 {} 即可
+        script.async = true
+      }
+      script.onerror = reject
+      script.onload = script.onreadystatechange = function() {
+        const loadState = this.readyState
+        if (loadState && loadState !== 'loaded' && loadState !== 'complete') return
+        script.onload = script.onreadystatechange = null
+        resolve()
+      }
+      document.head.appendChild(script)
+    }),
+
+    // https://github.com/jerryc127/hexo-theme-butterfly
+    jQuery: (fn) => {
+      if (typeof jQuery === 'undefined') {
+        stellar.loadScript(stellar.plugins.jQuery).then(fn)
+      } else {
+        fn()
+      }
+    }
+  };
+  stellar.github = 'https://github.com/xaoxuu/hexo-theme-stellar/tree/1.6.1';
+  stellar.config = {
+    date_suffix: {
+      just: '刚刚',
+      min: '分钟前',
+      hour: '小时前',
+      day: '天前',
+      month: '个月前',
+    },
+  };
+
+  // required plugins (only load if needs)
+  stellar.plugins = {
+    jQuery: 'https://cdn.jsdelivr.net/npm/jquery@3.5.1/dist/jquery.min.js',
+    sitesjs: '/js/plugins/sites.js',
+    friendsjs: '/js/plugins/friends.js',
+  };
+
+  // optional plugins
+  if ('true' == 'true') {
+    stellar.plugins.lazyload = Object.assign({"enable":true,"js":"https://cdn.jsdelivr.net/npm/vanilla-lazyload@17.3.1/dist/lazyload.min.js","transition":"blur"});
+  }
+  if ('true' == 'true') {
+    stellar.plugins.swiper = Object.assign({"enable":true,"css":"https://unpkg.com/swiper@6/swiper-bundle.min.css","js":"https://unpkg.com/swiper@6/swiper-bundle.min.js"});
+  }
+  if ('' == 'true') {
+    stellar.plugins.scrollreveal = Object.assign({"enable":null,"js":"https://cdn.jsdelivr.net/npm/scrollreveal@4.0.9/dist/scrollreveal.min.js","distance":"8px","duration":500,"interval":100,"scale":1});
+  }
+  if ('true' == 'true') {
+    stellar.plugins.preload = Object.assign({"enable":true,"service":"flying_pages","instant_page":"https://cdn.jsdelivr.net/gh/volantis-x/cdn-volantis@4.1.2/js/instant_page.js","flying_pages":"https://cdn.jsdelivr.net/gh/gijo-varghese/flying-pages@2.1.2/flying-pages.min.js"});
+  }
+</script>
+
+<!-- required -->
+
+  
+<script src="/js/main.js" async></script>
+
+
+
+<!-- optional -->
+
+  <script>
+  function getEmojiMaps() {
+    function emoji(path, idx, ext) {
+      return path + "/" + path + "-" + idx + "." + ext;
+    }
+    var emojiMaps = {};
+    for (var i = 1; i <= 54; i++) {
+      emojiMaps['tieba-' + i] = emoji('tieba', i, 'png');
+    }
+    for (var i = 1; i <= 101; i++) {
+      emojiMaps['qq-' + i] = emoji('qq', i, 'gif');
+    }
+    for (var i = 1; i <= 116; i++) {
+      emojiMaps['aru-' + i] = emoji('aru', i, 'gif');
+    }
+    for (var i = 1; i <= 125; i++) {
+      emojiMaps['twemoji-' + i] = emoji('twemoji', i, 'png');
+    }
+    for (var i = 1; i <= 4; i++) {
+      emojiMaps['weibo-' + i] = emoji('weibo', i, 'png');
+    }
+    return emojiMaps;
+  }
+  function load_comment(){
+    if(!document.getElementById("valine_container"))return;
+    stellar.loadScript('https://cdn.jsdelivr.net/gh/XuxuGood/simple-blog-cdn@main/js/Valine.min.js', {defer:true}).then(function () {
+      const el = document.getElementById("valine_container");
+      var path = el.getAttribute('comment_id');
+      const placeholder = "欢迎您留言~";
+      if (!path) {
+        path = decodeURI(window.location.pathname);
+      }
+      var valine = new Valine();
+      valine.init(Object.assign({"js":"https://cdn.jsdelivr.net/gh/XuxuGood/simple-blog-cdn@main/js/Valine.min.js","appId":"FY2C9UCttYNaE1j8umenqdCE-gzGzoHsz","appKey":"4i7xMwkfSEGmEDhi6SceKFxz","placeholder":"欢迎您留言~","requiredFields":["nick","mail"],"enableQQ":true,"recordIP":false,"avatar":"robohash","pageSize":10,"lang":"zh-cn","highlight":true,"mathJax":false,"tagMeta":["博主","小伙伴","访客"],"metaPlaceholder":{"nick":"昵称/QQ号(必填)","mail":"邮箱（必填，完全保密）"},"master":["6783037F2DF30EAB99F9FC256157D875"],"friends":["6783037F2DF30EAB99F9FC256157D875"],"comment_count":true}, {
+        el: '#valine_container',
+        path: path,
+        placeholder: placeholder,
+        emojiCDN: 'https://cdn.jsdelivr.net/gh/volantis-x/cdn-emoji/valine/',
+        emojiMaps: getEmojiMaps(),
+      }));
+    });
+  }
+  window.addEventListener('DOMContentLoaded', (event) => {
+    console.log('DOM fully loaded and parsed');
+    load_comment();
+  });
+
+</script>
+
+
+
+
+<!-- inject -->
+
+
+  </div>
+</body>
+</html>

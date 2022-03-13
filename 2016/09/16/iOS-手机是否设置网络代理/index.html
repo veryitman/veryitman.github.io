@@ -1,0 +1,343 @@
+<!DOCTYPE html>
+<html lang='zh-CN'>
+
+<head>
+  <meta name="generator" content="Hexo 6.0.0">
+  <meta charset="utf-8">
+  
+
+  <meta http-equiv='x-dns-prefetch-control' content='on' />
+  <link rel='dns-prefetch' href='https://cdn.jsdelivr.net'>
+  <link rel="preconnect" href="https://cdn.jsdelivr.net" crossorigin>
+
+  <meta name="renderer" content="webkit">
+  <meta name="force-rendering" content="webkit">
+  <meta http-equiv="X-UA-Compatible" content="IE=Edge,chrome=1">
+  <meta name="HandheldFriendly" content="True" >
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1">
+  <meta name="theme-color" content="#f8f8f8">
+  <title>iOS: 手机是否设置网络代理 - Veryitman</title>
+
+  
+    <meta name="description" content="情景项目开发过程中, 会遇到下面这样一种情景:  产品或者设计同事需要体验目前产品开发的进度, 然后要求开发人员, 将现在的版本给他们体验.做过程序开发的人都知道, 开发版本会有不少问题.这时, 产品和设计同事就会抱怨, 怎么登录不了, 这里没有数据了!有个小伙伴被折腾的实在受不了, 连网页都打不开了.最后找到原因:他手机被之前的程序猿设置了网络代理, 代理到程序猿哥哥的电脑上来抓包调试问题, 忘">
+<meta property="og:type" content="article">
+<meta property="og:title" content="iOS: 手机是否设置网络代理">
+<meta property="og:url" content="http://example.com/2016/09/16/iOS-%E6%89%8B%E6%9C%BA%E6%98%AF%E5%90%A6%E8%AE%BE%E7%BD%AE%E7%BD%91%E7%BB%9C%E4%BB%A3%E7%90%86/index.html">
+<meta property="og:site_name" content="Veryitman">
+<meta property="og:description" content="情景项目开发过程中, 会遇到下面这样一种情景:  产品或者设计同事需要体验目前产品开发的进度, 然后要求开发人员, 将现在的版本给他们体验.做过程序开发的人都知道, 开发版本会有不少问题.这时, 产品和设计同事就会抱怨, 怎么登录不了, 这里没有数据了!有个小伙伴被折腾的实在受不了, 连网页都打不开了.最后找到原因:他手机被之前的程序猿设置了网络代理, 代理到程序猿哥哥的电脑上来抓包调试问题, 忘">
+<meta property="og:locale" content="zh_CN">
+<meta property="og:image" content="http://example.com/upload/images/2016/9/16/1.jpeg">
+<meta property="article:published_time" content="2016-09-16T14:37:48.000Z">
+<meta property="article:modified_time" content="2022-03-09T14:53:24.353Z">
+<meta property="article:author" content="veryitman">
+<meta property="article:tag" content="iOS proxy">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:image" content="http://example.com/upload/images/2016/9/16/1.jpeg">
+  
+  
+
+  <!-- feed -->
+  
+
+  
+    
+<link rel="stylesheet" href="/css/main.css">
+
+  
+
+  
+
+  
+</head>
+
+<body>
+  
+
+
+  <div class='l_body' id='start'>
+    <aside class='l_left' layout='post'>
+    
+
+
+<header class="header">
+
+<div class="logo-wrap"><a class="title" href="/"><div class="main">Veryitman</div></a></div>
+<nav class="menu dis-select"></nav></header>
+
+<div class="widgets">
+
+<div class="widget-wrap single" id="toc"><div class="widget-header cap dis-select"><span class="name">本文目录</span></div><div class="widget-body fs14"><div class="doc-tree active"><ol class="toc"><li class="toc-item toc-level-2"><a class="toc-link" href="#%E6%83%85%E6%99%AF"><span class="toc-text">情景</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#%E6%89%BE%E5%88%B0%E7%BA%BF%E7%B4%A2"><span class="toc-text">找到线索</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#%E7%94%A8%E6%88%B7%E4%BD%93%E9%AA%8C"><span class="toc-text">用户体验</span></a></li></ol></div></div></div>
+
+
+</div>
+
+
+    </aside>
+    <div class='l_main'>
+      
+
+      
+
+
+<div class="bread-nav fs12"><div id="breadcrumb"><a class="cap breadcrumb" href="/">主页</a><span class="sep"></span><a class="cap breadcrumb" href="/">文章</a><span class="sep"></span><a class="cap breadcrumb-link" href="/categories/iOS/">iOS</a></div><div id="post-meta">发布于&nbsp;<time datetime="2016-09-16T14:37:48.000Z">2016-09-16</time></div></div>
+
+<article class='content md post'>
+<h1 class="article-title"><span>iOS: 手机是否设置网络代理</span></h1>
+<h2 id="情景"><a href="#情景" class="headerlink" title="情景"></a>情景</h2><p>项目开发过程中, 会遇到下面这样一种情景:</p>
+<blockquote>
+<p>产品或者设计同事需要体验目前产品开发的进度, 然后要求开发人员, 将现在的版本给他们体验.<br>做过程序开发的人都知道, 开发版本会有不少问题.<br>这时, 产品和设计同事就会抱怨, 怎么登录不了, 这里没有数据了!<br>有个小伙伴被折腾的实在受不了, 连网页都打不开了.<br>最后找到原因:<br>他手机被之前的程序猿设置了网络代理, 代理到程序猿哥哥的电脑上来抓包调试问题, 忘记取消设置了.</p>
+</blockquote>
+<p>假如可以判断当前手机是否设置了网络代理, 就可以很好地解决上面情景中提到的问题了.</p>
+<h2 id="找到线索"><a href="#找到线索" class="headerlink" title="找到线索"></a>找到线索</h2><p>在 ASIHttpRequest 中找到如下方法:</p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br><span class="line">39</span><br><span class="line">40</span><br><span class="line">41</span><br><span class="line">42</span><br><span class="line">43</span><br></pre></td><td class="code"><pre><span class="line">- (BOOL)configureProxies</span><br><span class="line">&#123;</span><br><span class="line">	// Have details of the proxy been set on this request</span><br><span class="line">	if (![self isPACFileRequest] &amp;&amp; (![self proxyHost] &amp;&amp; ![self proxyPort])) &#123;</span><br><span class="line">		// If not, we need to figure out what they&#x27;ll be</span><br><span class="line">		NSArray *proxies = nil;</span><br><span class="line">		// Have we been given a proxy auto config file?</span><br><span class="line">		if ([self PACurl]) &#123;</span><br><span class="line">			// If yes, we&#x27;ll need to fetch the PAC file asynchronously, so we stop this request to wait until we have the proxy details.</span><br><span class="line">			[self fetchPACFile];</span><br><span class="line">			return NO;</span><br><span class="line">			// Detect proxy settings and apply them</span><br><span class="line">		&#125; else &#123;</span><br><span class="line">#if TARGET_OS_IPHONE</span><br><span class="line">			NSDictionary *proxySettings = [NSMakeCollectable(CFNetworkCopySystemProxySettings()) autorelease];</span><br><span class="line">#else</span><br><span class="line">			NSDictionary *proxySettings = [NSMakeCollectable(SCDynamicStoreCopyProxies(NULL)) autorelease];</span><br><span class="line">#endif</span><br><span class="line">			proxies = [NSMakeCollectable(CFNetworkCopyProxiesForURL((CFURLRef)[self url], (CFDictionaryRef)proxySettings)) autorelease];</span><br><span class="line">			// Now check to see if the proxy settings contained a PAC url, we need to run the script to get the real list of proxies if so</span><br><span class="line">			NSDictionary *settings = [proxies objectAtIndex:0];</span><br><span class="line">			if ([settings objectForKey:(NSString *)kCFProxyAutoConfigurationURLKey]) &#123;</span><br><span class="line">				[self setPACurl:[settings objectForKey:(NSString *)kCFProxyAutoConfigurationURLKey]];</span><br><span class="line">				[self fetchPACFile];</span><br><span class="line">				return NO;</span><br><span class="line">			&#125;</span><br><span class="line">		&#125;</span><br><span class="line">		if (!proxies) &#123;</span><br><span class="line">			[self setReadStream:nil];</span><br><span class="line">			[self failWithError:[NSError errorWithDomain:NetworkRequestErrorDomain code:ASIInternalErrorWhileBuildingRequestType userInfo:[NSDictionary dictionaryWithObjectsAndKeys:@&quot;Unable to obtain information on proxy servers needed for request&quot;,NSLocalizedDescriptionKey,nil]]];</span><br><span class="line">			return NO;</span><br><span class="line">		&#125;</span><br><span class="line">		// I don&#x27;t really understand why the dictionary returned by CFNetworkCopyProxiesForURL uses different key names from CFNetworkCopySystemProxySettings/SCDynamicStoreCopyProxies</span><br><span class="line">		// and why its key names are documented while those we actually need to use don&#x27;t seem to be (passing the kCF* keys doesn&#x27;t seem to work)</span><br><span class="line">		if ([proxies count] &gt; 0) &#123;</span><br><span class="line">			NSDictionary *settings = [proxies objectAtIndex:0];</span><br><span class="line">			[self setProxyHost:[settings objectForKey:(NSString *)kCFProxyHostNameKey]];</span><br><span class="line">			[self setProxyPort:[[settings objectForKey:(NSString *)kCFProxyPortNumberKey] intValue]];</span><br><span class="line">			[self setProxyType:[settings objectForKey:(NSString *)kCFProxyTypeKey]];</span><br><span class="line">		&#125;</span><br><span class="line">	&#125;</span><br><span class="line">	return YES;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<p>踏破铁鞋无觅处…</p>
+<p>判断 iphone 是否设置网络代理的示例代码如下:</p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br></pre></td><td class="code"><pre><span class="line">+ (BOOL)hasSetProxy</span><br><span class="line">&#123;</span><br><span class="line">    BOOL proxy = NO;</span><br><span class="line">    </span><br><span class="line">    NSDictionary *proxySettings = (__bridge NSDictionary *)(CFNetworkCopySystemProxySettings());</span><br><span class="line">    NSURL *url = [NSURL URLWithString:@&quot;http://www.baidu.com&quot;];</span><br><span class="line">    NSArray *proxies = (__bridge NSArray *)(CFNetworkCopyProxiesForURL((__bridge CFURLRef)(url),</span><br><span class="line">                                                                       (__bridge CFDictionaryRef)(proxySettings)));</span><br><span class="line">    MZLOG(@&quot;proxies:%@&quot;, proxies);</span><br><span class="line">    NSDictionary *settings = proxies[0];</span><br><span class="line">    MZLOG(@&quot;kCFProxyHostNameKey: %@&quot;, [settings objectForKey:(NSString *)kCFProxyHostNameKey]);</span><br><span class="line">    MZLOG(@&quot;kCFProxyPortNumberKey: %@&quot;, [settings objectForKey:(NSString *)kCFProxyPortNumberKey]);</span><br><span class="line">    MZLOG(@&quot;kCFProxyTypeKey: %@&quot;, [settings objectForKey:(NSString *)kCFProxyTypeKey]);</span><br><span class="line">    if ([[settings objectForKey:(NSString *)kCFProxyTypeKey] isEqualToString:@&quot;kCFProxyTypeNone&quot;]) &#123;</span><br><span class="line">        proxy = NO;</span><br><span class="line">    &#125;</span><br><span class="line">    else &#123;</span><br><span class="line">        proxy = YES;</span><br><span class="line">    &#125;</span><br><span class="line">    </span><br><span class="line">    return proxy;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<h2 id="用户体验"><a href="#用户体验" class="headerlink" title="用户体验"></a>用户体验</h2><p>判断如果设置了代理, 提示用户, 帮他直接跳到 wifi 设置界面.</p>
+<p>下面说说如何跳到系统的 wifi 设置界面.</p>
+<p>1.配置 URL TYPES</p>
+<p><img class="lazy" src="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAABGdBTUEAALGPC/xhBQAAADhlWElmTU0AKgAAAAgAAYdpAAQAAAABAAAAGgAAAAAAAqACAAQAAAABAAAAAaADAAQAAAABAAAAAQAAAADa6r/EAAAAC0lEQVQIHWNgAAIAAAUAAY27m/MAAAAASUVORK5CYII=" data-src="/upload/images/2016/9/16/1.jpeg" alt="1"></p>
+<p>注意这里的配置是 <code>prefs</code>.</p>
+<p>2.openURL</p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br></pre></td><td class="code"><pre><span class="line">NSString * urlString = @&quot;prefs:root=WIFI&quot;;</span><br><span class="line">NSURL *url = [NSURL URLWithString:urlString];</span><br><span class="line">UIApplication *app = [UIApplication sharedApplication];</span><br><span class="line">if ([app canOpenURL:[NSURL URLWithString:urlString]]) &#123;</span><br><span class="line"> </span><br><span class="line">    if ([[UIDevice currentDevice].systemVersion doubleValue] &gt;= 10.0) &#123;</span><br><span class="line">    </span><br><span class="line">    	[app openURL:url options:@&#123;&#125; completionHandler:nil];</span><br><span class="line">    &#125; </span><br><span class="line">    else &#123;</span><br><span class="line">    </span><br><span class="line">    	[app openURL:url];</span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<p>另外, 跳转到系统其他界面的 URL 如下:</p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br></pre></td><td class="code"><pre><span class="line">1.系统设置</span><br><span class="line">prefs:root=INTERNET_TETHERING</span><br><span class="line">2.WIFI设置</span><br><span class="line">prefs:root=WIFI</span><br><span class="line">3.蓝牙设置</span><br><span class="line">prefs:root=Bluetooth</span><br><span class="line">4.系统通知</span><br><span class="line">prefs:root=NOTIFICATIONS_ID</span><br><span class="line">5.通用设置</span><br><span class="line">prefs:root=General</span><br><span class="line">6.显示设置</span><br><span class="line">prefs:root=DISPLAY&amp;BRIGHTNESS</span><br><span class="line">7.壁纸设置</span><br><span class="line">prefs:root=Wallpaper</span><br><span class="line">8.声音设置</span><br><span class="line">prefs:root=Sounds</span><br><span class="line">9.隐私设置</span><br><span class="line">prefs:root=privacy</span><br><span class="line">10.打开 APP Store</span><br><span class="line">prefs:root=STORE</span><br><span class="line">11.打开 Notes</span><br><span class="line">prefs:root=NOTES</span><br><span class="line">12.打开 Safari</span><br><span class="line">prefs:root=Safari</span><br><span class="line">13.打开 Music</span><br><span class="line">prefs:root=MUSIC</span><br><span class="line">14.打开 photo</span><br><span class="line">prefs:root=Photos</span><br></pre></td></tr></table></figure>
+
+
+
+
+
+
+</article>
+
+<div class="related-wrap reveal" id="read-next"><section class="header cap theme"><span>接下来阅读</span></section><section class="body fs14"><a id="next" href="/2016/09/10/%E4%B8%8E-CSDN-%E7%9A%84%E8%AF%80%E5%88%AB/">与 CSDN 的诀别<span class="note">较早</span></a><div class="line"></div><a id="prev" href="/2016/09/16/RN-Mac-%E9%85%8D%E7%BD%AE-ES6-%E7%AE%80%E6%98%93%E5%BC%80%E5%8F%91%E7%8E%AF%E5%A2%83/">RN: Mac 配置 ES6 简易开发环境<span class="note">较新</span></a></section></div>
+
+
+
+
+
+
+  <div class='related-wrap md reveal' id="comments">
+    <div class='cmt-title cap theme'>
+      快来参与讨论吧
+    </div>
+    <div class='cmt-body valine'>
+      
+
+<div id="valine_container" class="valine_thread"><svg class="loading" style="vertical-align: middle;fill: currentColor;overflow: hidden;" viewBox="0 0 1024 1024" version="1.1" xmlns="http://www.w3.org/2000/svg" p-id="2709"><path d="M832 512c0-176-144-320-320-320V128c211.2 0 384 172.8 384 384h-64zM192 512c0 176 144 320 320 320v64C300.8 896 128 723.2 128 512h64z" p-id="2710"></path></svg></div>
+
+    </div>
+  </div>
+
+
+
+      
+<footer class="page-footer reveal fs12"><hr><div class="text"><p>本博客所有文章除特别声明外，均采用 <a target="_blank" rel="noopener" href="https://creativecommons.org/licenses/by-nc-sa/4.0/">CC BY-NC-SA 4.0</a> 许可协议，转载请注明出处。</p>
+<p>veryitman</p>
+</div></footer>
+
+      <div class='float-panel mobile-only blur' style='display:none'>
+  <button type='button' class='sidebar-toggle mobile' onclick='sidebar.toggle()'>
+    <svg class="icon" style="width: 1em; height: 1em;vertical-align: middle;fill: currentColor;overflow: hidden;" viewBox="0 0 1024 1024" version="1.1" xmlns="http://www.w3.org/2000/svg" p-id="15301"><path d="M566.407 808.3c26.9-0.1 49.3-20.8 51.6-47.6-1.9-27.7-23.9-49.7-51.6-51.6h-412.6c-28.2-1.4-52.6 19.5-55.5 47.6 2.3 26.8 24.6 47.5 51.6 47.6h416.5v4z m309.3-249.9c26.9-0.1 49.3-20.8 51.6-47.6-2.2-26.8-24.6-47.5-51.6-47.6h-721.9c-27.7-2.8-52.5 17.4-55.3 45.1-0.1 0.8-0.1 1.7-0.2 2.5 0.9 27.2 23.6 48.5 50.7 47.6H875.707z m-103.1-245.9c26.9-0.1 49.3-20.8 51.6-47.6-0.4-28.3-23.2-51.1-51.5-51.6h-618.9c-29.5-1.1-54.3 21.9-55.5 51.4v0.2c1.4 27.8 25.2 49.2 53 47.8 0.8 0 1.7-0.1 2.5-0.2h618.8z" p-id="15302"></path><path d="M566.407 808.3c26.9-0.1 49.3-20.8 51.6-47.6-1.9-27.7-23.9-49.7-51.6-51.6h-412.6c-28.2-1.4-52.6 19.5-55.5 47.6 1.9 27.7 23.9 49.7 51.6 51.6h416.5z m309.3-249.9c26.9-0.1 49.3-20.8 51.6-47.6-2.2-26.8-24.6-47.5-51.6-47.6h-721.9c-27.7-2.8-52.5 17.4-55.3 45.1-0.1 0.8-0.1 1.7-0.2 2.5 0.9 27.2 23.6 48.5 50.7 47.6H875.707z m-103.1-245.9c26.9-0.1 49.3-20.8 51.6-47.6-0.4-28.3-23.2-51.1-51.5-51.6h-618.9c-29.5-1.1-54.3 21.9-55.5 51.4v0.2c1.4 27.8 25.2 49.2 53 47.8 0.8 0 1.7-0.1 2.5-0.2h618.8z" p-id="15303"></path></svg>
+  </button>
+</div>
+
+    </div>
+  </div>
+  <div class='scripts'>
+    <script type="text/javascript">
+  stellar = {
+    // 懒加载 css https://github.com/filamentgroup/loadCSS
+    loadCSS: (href, before, media, attributes) => {
+      var doc = window.document;
+      var ss = doc.createElement("link");
+      var ref;
+      if (before) {
+        ref = before;
+      } else {
+        var refs = (doc.body || doc.getElementsByTagName("head")[0]).childNodes;
+        ref = refs[refs.length - 1];
+      }
+      var sheets = doc.styleSheets;
+      if (attributes) {
+        for (var attributeName in attributes) {
+          if (attributes.hasOwnProperty(attributeName)) {
+            ss.setAttribute(attributeName, attributes[attributeName]);
+          }
+        }
+      }
+      ss.rel = "stylesheet";
+      ss.href = href;
+      ss.media = "only x";
+      function ready(cb) {
+        if (doc.body) {
+          return cb();
+        }
+        setTimeout(function () {
+          ready(cb);
+        });
+      }
+      ready(function () {
+        ref.parentNode.insertBefore(ss, before ? ref : ref.nextSibling);
+      });
+      var onloadcssdefined = function (cb) {
+        var resolvedHref = ss.href;
+        var i = sheets.length;
+        while (i--) {
+          if (sheets[i].href === resolvedHref) {
+            return cb();
+          }
+        }
+        setTimeout(function () {
+          onloadcssdefined(cb);
+        });
+      };
+      function loadCB() {
+        if (ss.addEventListener) {
+          ss.removeEventListener("load", loadCB);
+        }
+        ss.media = media || "all";
+      }
+      if (ss.addEventListener) {
+        ss.addEventListener("load", loadCB);
+      }
+      ss.onloadcssdefined = onloadcssdefined;
+      onloadcssdefined(loadCB);
+      return ss;
+    },
+
+    // 从 butterfly 和 volantis 获得灵感
+    loadScript: (src, opt) => new Promise((resolve, reject) => {
+      var script = document.createElement('script');
+      script.src = src;
+      if (opt) {
+        for (let key of Object.keys(opt)) {
+          script[key] = opt[key]
+        }
+      } else {
+        // 默认异步，如果需要同步，第二个参数传入 {} 即可
+        script.async = true
+      }
+      script.onerror = reject
+      script.onload = script.onreadystatechange = function() {
+        const loadState = this.readyState
+        if (loadState && loadState !== 'loaded' && loadState !== 'complete') return
+        script.onload = script.onreadystatechange = null
+        resolve()
+      }
+      document.head.appendChild(script)
+    }),
+
+    // https://github.com/jerryc127/hexo-theme-butterfly
+    jQuery: (fn) => {
+      if (typeof jQuery === 'undefined') {
+        stellar.loadScript(stellar.plugins.jQuery).then(fn)
+      } else {
+        fn()
+      }
+    }
+  };
+  stellar.github = 'https://github.com/xaoxuu/hexo-theme-stellar/tree/1.6.1';
+  stellar.config = {
+    date_suffix: {
+      just: '刚刚',
+      min: '分钟前',
+      hour: '小时前',
+      day: '天前',
+      month: '个月前',
+    },
+  };
+
+  // required plugins (only load if needs)
+  stellar.plugins = {
+    jQuery: 'https://cdn.jsdelivr.net/npm/jquery@3.5.1/dist/jquery.min.js',
+    sitesjs: '/js/plugins/sites.js',
+    friendsjs: '/js/plugins/friends.js',
+  };
+
+  // optional plugins
+  if ('true' == 'true') {
+    stellar.plugins.lazyload = Object.assign({"enable":true,"js":"https://cdn.jsdelivr.net/npm/vanilla-lazyload@17.3.1/dist/lazyload.min.js","transition":"blur"});
+  }
+  if ('true' == 'true') {
+    stellar.plugins.swiper = Object.assign({"enable":true,"css":"https://unpkg.com/swiper@6/swiper-bundle.min.css","js":"https://unpkg.com/swiper@6/swiper-bundle.min.js"});
+  }
+  if ('' == 'true') {
+    stellar.plugins.scrollreveal = Object.assign({"enable":null,"js":"https://cdn.jsdelivr.net/npm/scrollreveal@4.0.9/dist/scrollreveal.min.js","distance":"8px","duration":500,"interval":100,"scale":1});
+  }
+  if ('true' == 'true') {
+    stellar.plugins.preload = Object.assign({"enable":true,"service":"flying_pages","instant_page":"https://cdn.jsdelivr.net/gh/volantis-x/cdn-volantis@4.1.2/js/instant_page.js","flying_pages":"https://cdn.jsdelivr.net/gh/gijo-varghese/flying-pages@2.1.2/flying-pages.min.js"});
+  }
+</script>
+
+<!-- required -->
+
+  
+<script src="/js/main.js" async></script>
+
+
+
+<!-- optional -->
+
+  <script>
+  function getEmojiMaps() {
+    function emoji(path, idx, ext) {
+      return path + "/" + path + "-" + idx + "." + ext;
+    }
+    var emojiMaps = {};
+    for (var i = 1; i <= 54; i++) {
+      emojiMaps['tieba-' + i] = emoji('tieba', i, 'png');
+    }
+    for (var i = 1; i <= 101; i++) {
+      emojiMaps['qq-' + i] = emoji('qq', i, 'gif');
+    }
+    for (var i = 1; i <= 116; i++) {
+      emojiMaps['aru-' + i] = emoji('aru', i, 'gif');
+    }
+    for (var i = 1; i <= 125; i++) {
+      emojiMaps['twemoji-' + i] = emoji('twemoji', i, 'png');
+    }
+    for (var i = 1; i <= 4; i++) {
+      emojiMaps['weibo-' + i] = emoji('weibo', i, 'png');
+    }
+    return emojiMaps;
+  }
+  function load_comment(){
+    if(!document.getElementById("valine_container"))return;
+    stellar.loadScript('https://cdn.jsdelivr.net/gh/XuxuGood/simple-blog-cdn@main/js/Valine.min.js', {defer:true}).then(function () {
+      const el = document.getElementById("valine_container");
+      var path = el.getAttribute('comment_id');
+      const placeholder = "欢迎您留言~";
+      if (!path) {
+        path = decodeURI(window.location.pathname);
+      }
+      var valine = new Valine();
+      valine.init(Object.assign({"js":"https://cdn.jsdelivr.net/gh/XuxuGood/simple-blog-cdn@main/js/Valine.min.js","appId":"FY2C9UCttYNaE1j8umenqdCE-gzGzoHsz","appKey":"4i7xMwkfSEGmEDhi6SceKFxz","placeholder":"欢迎您留言~","requiredFields":["nick","mail"],"enableQQ":true,"recordIP":false,"avatar":"robohash","pageSize":10,"lang":"zh-cn","highlight":true,"mathJax":false,"tagMeta":["博主","小伙伴","访客"],"metaPlaceholder":{"nick":"昵称/QQ号(必填)","mail":"邮箱（必填，完全保密）"},"master":["6783037F2DF30EAB99F9FC256157D875"],"friends":["6783037F2DF30EAB99F9FC256157D875"],"comment_count":true}, {
+        el: '#valine_container',
+        path: path,
+        placeholder: placeholder,
+        emojiCDN: 'https://cdn.jsdelivr.net/gh/volantis-x/cdn-emoji/valine/',
+        emojiMaps: getEmojiMaps(),
+      }));
+    });
+  }
+  window.addEventListener('DOMContentLoaded', (event) => {
+    console.log('DOM fully loaded and parsed');
+    load_comment();
+  });
+
+</script>
+
+
+
+
+<!-- inject -->
+
+
+  </div>
+</body>
+</html>

@@ -1,0 +1,386 @@
+<!DOCTYPE html>
+<html lang='zh-CN'>
+
+<head>
+  <meta name="generator" content="Hexo 6.0.0">
+  <meta charset="utf-8">
+  
+
+  <meta http-equiv='x-dns-prefetch-control' content='on' />
+  <link rel='dns-prefetch' href='https://cdn.jsdelivr.net'>
+  <link rel="preconnect" href="https://cdn.jsdelivr.net" crossorigin>
+
+  <meta name="renderer" content="webkit">
+  <meta name="force-rendering" content="webkit">
+  <meta http-equiv="X-UA-Compatible" content="IE=Edge,chrome=1">
+  <meta name="HandheldFriendly" content="True" >
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1">
+  <meta name="theme-color" content="#f8f8f8">
+  <title>Android中值得说的Handler之更新UI - Veryitman</title>
+
+  
+    <meta name="description" content="最近在看电视剧《庆余年》，被调皮的编剧逗得爱不释手，范闲同志从“潜龙勿用”直到大殿醉酒背诵唐诗300首，让众官瞠目结舌，也算是“飞龙在天”了，这一集(第27集)看的那叫一个过瘾。尤其范闲那句“我醉欲眠君且去，去你妈的…”，差点让我喷饭。 推荐大家周末可以看看，算是休闲一下吧！ 简介个人总是感觉 Android中更新 UI 很让人纠结！特此小结一下，算是抛砖引玉。 读这篇文章之前，假设你已经明白多线">
+<meta property="og:type" content="article">
+<meta property="og:title" content="Android中值得说的Handler之更新UI">
+<meta property="og:url" content="http://example.com/2019/12/21/Android%E4%B8%AD%E5%80%BC%E5%BE%97%E8%AF%B4%E7%9A%84Handler%E4%B9%8B%E6%9B%B4%E6%96%B0UI/index.html">
+<meta property="og:site_name" content="Veryitman">
+<meta property="og:description" content="最近在看电视剧《庆余年》，被调皮的编剧逗得爱不释手，范闲同志从“潜龙勿用”直到大殿醉酒背诵唐诗300首，让众官瞠目结舌，也算是“飞龙在天”了，这一集(第27集)看的那叫一个过瘾。尤其范闲那句“我醉欲眠君且去，去你妈的…”，差点让我喷饭。 推荐大家周末可以看看，算是休闲一下吧！ 简介个人总是感觉 Android中更新 UI 很让人纠结！特此小结一下，算是抛砖引玉。 读这篇文章之前，假设你已经明白多线">
+<meta property="og:locale" content="zh_CN">
+<meta property="og:image" content="http://example.com/upload/images/2019/12/21/1.jpg">
+<meta property="og:image" content="http://example.com/upload/images/2019/12/21/2.jpg">
+<meta property="og:image" content="http://example.com/upload/me/qrcode_wx.jpg">
+<meta property="article:published_time" content="2019-12-21T02:45:54.000Z">
+<meta property="article:modified_time" content="2022-03-09T14:53:24.323Z">
+<meta property="article:author" content="veryitman">
+<meta property="article:tag" content="UI Handler">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:image" content="http://example.com/upload/images/2019/12/21/1.jpg">
+  
+  
+
+  <!-- feed -->
+  
+
+  
+    
+<link rel="stylesheet" href="/css/main.css">
+
+  
+
+  
+
+  
+</head>
+
+<body>
+  
+
+
+  <div class='l_body' id='start'>
+    <aside class='l_left' layout='post'>
+    
+
+
+<header class="header">
+
+<div class="logo-wrap"><a class="title" href="/"><div class="main">Veryitman</div></a></div>
+<nav class="menu dis-select"></nav></header>
+
+<div class="widgets">
+
+<div class="widget-wrap single" id="toc"><div class="widget-header cap dis-select"><span class="name">本文目录</span></div><div class="widget-body fs14"><div class="doc-tree active"><ol class="toc"><li class="toc-item toc-level-2"><a class="toc-link" href="#%E7%AE%80%E4%BB%8B"><span class="toc-text">简介</span></a><ol class="toc-child"><li class="toc-item toc-level-3"><a class="toc-link" href="#%E6%9B%B4%E6%96%B0UI%E7%9A%84%E9%AA%9A%E6%93%8D%E4%BD%9C"><span class="toc-text">更新UI的骚操作</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#1%E3%80%81%E5%9C%A8-onCreate-%E6%96%B9%E6%B3%95%E4%B8%AD%E5%BC%80%E5%90%AF%E7%BA%BF%E7%A8%8B%E6%9B%B4%E6%96%B0-UI"><span class="toc-text">1、在 onCreate() 方法中开启线程更新 UI</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#2%E3%80%81%E5%9C%A8-Activity-%E7%94%9F%E5%91%BD%E5%91%A8%E6%9C%9F%E6%96%B9%E6%B3%95%E4%B8%AD%E6%9B%B4%E6%96%B0-UI"><span class="toc-text">2、在 Activity 生命周期方法中更新 UI</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#3%E3%80%81%E5%9C%A8-Button-%E7%9A%84%E4%BA%8B%E4%BB%B6%E4%B8%AD%E5%BC%80%E5%90%AF%E7%BA%BF%E7%A8%8B%EF%BC%8C%E6%9B%B4%E6%96%B0-UI"><span class="toc-text">3、在 Button 的事件中开启线程，更新 UI</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#4%E3%80%81%E4%BD%BF%E7%94%A8-Handler-%E7%BB%93%E5%90%88%E5%A4%9A%E7%BA%BF%E7%A8%8B%E6%9B%B4%E6%96%B0-UI"><span class="toc-text">4、使用 Handler 结合多线程更新 UI</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#5%E3%80%81Handler-%E5%92%8C-invalidate-%E6%96%B9%E6%B3%95%E7%BB%93%E5%90%88%E5%A4%9A%E7%BA%BF%E7%A8%8B%E6%9B%B4%E6%96%B0-UI"><span class="toc-text">5、Handler 和 invalidate 方法结合多线程更新 UI</span></a></li></ol></li><li class="toc-item toc-level-2"><a class="toc-link" href="#%E5%B0%8F%E7%BB%93"><span class="toc-text">小结</span></a></li></ol></div></div></div>
+
+
+</div>
+
+
+    </aside>
+    <div class='l_main'>
+      
+
+      
+
+
+<div class="bread-nav fs12"><div id="breadcrumb"><a class="cap breadcrumb" href="/">主页</a><span class="sep"></span><a class="cap breadcrumb" href="/">文章</a><span class="sep"></span><a class="cap breadcrumb-link" href="/categories/Android/">Android</a></div><div id="post-meta">发布于&nbsp;<time datetime="2019-12-21T02:45:54.000Z">2019-12-21</time></div></div>
+
+<article class='content md post'>
+<h1 class="article-title"><span>Android中值得说的Handler之更新UI</span></h1>
+<p>最近在看电视剧《庆余年》，被调皮的编剧逗得爱不释手，范闲同志从“潜龙勿用”直到大殿醉酒背诵唐诗300首，让众官瞠目结舌，也算是“飞龙在天”了，这一集(第27集)看的那叫一个过瘾。尤其范闲那句“我醉欲眠君且去，去你妈的…”，差点让我喷饭。</p>
+<p>推荐大家周末可以看看，算是休闲一下吧！</p>
+<h2 id="简介"><a href="#简介" class="headerlink" title="简介"></a>简介</h2><p>个人总是感觉 Android中更新 UI 很让人纠结！特此小结一下，算是抛砖引玉。</p>
+<p>读这篇文章之前，假设你已经明白多线程、Handler 如何使用。</p>
+<p>在文章的最后，<strong>附录一张草图，主要用于说明 Handler、Message、MessageQueue、Looper 之间的关系。</strong></p>
+<h3 id="更新UI的骚操作"><a href="#更新UI的骚操作" class="headerlink" title="更新UI的骚操作"></a>更新UI的骚操作</h3><h3 id="1、在-onCreate-方法中开启线程更新-UI"><a href="#1、在-onCreate-方法中开启线程更新-UI" class="headerlink" title="1、在 onCreate() 方法中开启线程更新 UI"></a>1、在 onCreate() 方法中开启线程更新 UI</h3><p>直接上例子，如下：</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">public</span> <span class="keyword">class</span> <span class="title class_">MasterActivity</span> <span class="keyword">extends</span> <span class="title class_">Activity</span> &#123; </span><br><span class="line"><span class="type">TextView</span> <span class="variable">tv</span> <span class="operator">=</span> <span class="literal">null</span>; <span class="type">Button</span> <span class="variable">btn</span> <span class="operator">=</span> <span class="literal">null</span>; </span><br><span class="line"><span class="meta">@Override</span> </span><br><span class="line"><span class="keyword">public</span> <span class="keyword">void</span> <span class="title function_">onCreate</span><span class="params">(Bundle savedInstanceState)</span> &#123; </span><br><span class="line">    <span class="built_in">super</span>.onCreate(savedInstanceState); </span><br><span class="line">    setContentView(R.layout.main); </span><br><span class="line">    System.out.println(Thread.currentThread().getName() + <span class="string">&quot;: &quot;</span> + Thread.currentThread().getId()); </span><br><span class="line">    tv = (TextView)findViewById(R.id.text); </span><br><span class="line">    <span class="comment">/*onCreate中开启新线程，更新UI。没有报错或者异常信息！*/</span> </span><br><span class="line">    btn = (Button)findViewById(R.id.btn); </span><br><span class="line">    <span class="type">Thread</span> <span class="variable">thread</span> <span class="operator">=</span> <span class="keyword">new</span> <span class="title class_">Thread</span>(<span class="keyword">new</span> <span class="title class_">Runnable</span>() &#123; </span><br><span class="line">        <span class="meta">@Override</span> <span class="keyword">public</span> <span class="keyword">void</span> <span class="title function_">run</span><span class="params">()</span> &#123; </span><br><span class="line">            System.out.println(Thread.currentThread().getName() + <span class="string">&quot;: &quot;</span> + Thread.currentThread().getId()); </span><br><span class="line">            tv.setText(<span class="string">&quot;update UI is success!&quot;</span>); </span><br><span class="line">            btn.setText(<span class="string">&quot;update UI is success!&quot;</span>); </span><br><span class="line">        &#125;</span><br><span class="line">    &#125;); </span><br><span class="line">    thread.start(); </span><br><span class="line">&#125;  </span><br></pre></td></tr></table></figure>
+
+<p>随便折腾，不会报错也不会报任何异常！</p>
+<p>以为开启的线程和 UI 线程（主线程）是同一个线程，但是很不幸，他们的线程<code>id</code>风牛马不相及！</p>
+<p>大家可以查一下 Android 源码，这个主要是因为在加载 Activity 的时候，还没有触发检查单线程的模型（即子线程不可以更新UI）。</p>
+<p>如果你不相信的话，可以在上面的线程里面 <code>while true</code>，那么一定会报错的。</p>
+<h3 id="2、在-Activity-生命周期方法中更新-UI"><a href="#2、在-Activity-生命周期方法中更新-UI" class="headerlink" title="2、在 Activity 生命周期方法中更新 UI"></a>2、在 Activity 生命周期方法中更新 UI</h3><p>如 Activity 的 <code>onResume</code>、<code>onStart</code>、反正是以 <code>on</code> 开头的回调方法中在非主线程中更新 UI，实例如下：</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br></pre></td><td class="code"><pre><span class="line"><span class="meta">@Override</span></span><br><span class="line"><span class="keyword">protected</span> <span class="keyword">void</span> <span class="title function_">onRestart</span><span class="params">()</span> &#123;</span><br><span class="line">    <span class="built_in">super</span>.onRestart(); <span class="comment">/*onRestart中开启新线程，更新UI*/</span></span><br><span class="line">    <span class="type">Thread</span> <span class="variable">thread</span> <span class="operator">=</span> <span class="keyword">new</span> <span class="title class_">Thread</span>(<span class="keyword">new</span> <span class="title class_">Runnable</span>() &#123;</span><br><span class="line">        <span class="meta">@Override</span></span><br><span class="line">        <span class="keyword">public</span> <span class="keyword">void</span> <span class="title function_">run</span><span class="params">()</span> &#123;</span><br><span class="line">            System.out.println(Thread.currentThread().getName() + <span class="string">&quot;: &quot;</span> + Thread.currentThread().getId());</span><br><span class="line">            tv.setText(<span class="string">&quot;update UI is success!&quot;</span>);</span><br><span class="line">            btn.setText(<span class="string">&quot;update UI is success!&quot;</span>);</span><br><span class="line">        &#125;</span><br><span class="line">    &#125;);</span><br><span class="line">    thread.start();</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<p>不好意思，按下返回按钮在启动程序，或者按 Home 键再启动程序，就这么折腾几下，就会包异常！</p>
+<p>异常信息如下：</p>
+<figure class="highlight shell"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line">UI.view.ViewRoot$CalledFromWrongThreadException: </span><br><span class="line">Only the original thread that created a view hierarchy can touch its views.</span><br></pre></td></tr></table></figure>
+
+<p>大概意思是：只有在主线程中才可以进行更新 UI 的操作。</p>
+<p>这个时候，大家都应该想到 <code>postInvalidate()</code> 这个方法了。修改实例如下：</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br></pre></td><td class="code"><pre><span class="line"><span class="meta">@Override</span> <span class="keyword">protected</span> <span class="keyword">void</span> <span class="title function_">onRestart</span><span class="params">()</span> &#123; </span><br><span class="line">    <span class="built_in">super</span>.onRestart(); <span class="comment">/*onRestart中开启新线程，更新UI*/</span> </span><br><span class="line">    <span class="type">Thread</span> <span class="variable">thread</span> <span class="operator">=</span> <span class="keyword">new</span> <span class="title class_">Thread</span>(<span class="keyword">new</span> <span class="title class_">Runnable</span>() &#123; </span><br><span class="line">        <span class="meta">@Override</span> <span class="keyword">public</span> <span class="keyword">void</span> <span class="title function_">run</span><span class="params">()</span> &#123; </span><br><span class="line">            System.out.println(Thread.currentThread().getName() + <span class="string">&quot;: &quot;</span> + Thread.currentThread().getId()); </span><br><span class="line">            tv.postInvalidate(); btn.postInvalidate(); </span><br><span class="line">            tv.setText(<span class="string">&quot;update UI is success!&quot;</span>); </span><br><span class="line">            btn.setText(<span class="string">&quot;update UI is success!&quot;</span>); </span><br><span class="line">        &#125;</span><br><span class="line">    &#125;); </span><br><span class="line">    thread.start(); </span><br><span class="line">&#125; </span><br></pre></td></tr></table></figure>
+
+<p><code>postInvalidate()</code> 方法，源码：</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">public</span> <span class="keyword">void</span> <span class="title function_">postInvalidate</span><span class="params">()</span> &#123; </span><br><span class="line">    postInvalidateDelayed(<span class="number">0</span>); </span><br><span class="line">&#125; </span><br><span class="line"></span><br><span class="line"><span class="keyword">public</span> <span class="keyword">void</span> <span class="title function_">postInvalidateDelayed</span><span class="params">(<span class="type">long</span> delayMilliseconds)</span> &#123; </span><br><span class="line">    <span class="comment">// We try only with the AttachInfo because there&#x27;s no point in invalidating </span></span><br><span class="line">    <span class="comment">// if we are not attached to our window </span></span><br><span class="line">    <span class="keyword">if</span> (mAttachInfo != <span class="literal">null</span>) &#123; </span><br><span class="line">        <span class="type">Message</span> <span class="variable">msg</span> <span class="operator">=</span> Message.obtain(); </span><br><span class="line">        msg.what = AttachInfo.INVALIDATE_MSG; </span><br><span class="line">        msg.obj = <span class="built_in">this</span>; </span><br><span class="line">        mAttachInfo.mHandler.sendMessageDelayed(msg, delayMilliseconds); </span><br><span class="line">    &#125;</span><br><span class="line">&#125; </span><br></pre></td></tr></table></figure>
+
+<p>可以看出，<code>postInvalidate()</code> 本质是使用了 Handler 处理消息的机制！该方法可以在子线程中直接用来更新UI。对应的还有一个方法 **invalidate()**，稍候再说！</p>
+<h3 id="3、在-Button-的事件中开启线程，更新-UI"><a href="#3、在-Button-的事件中开启线程，更新-UI" class="headerlink" title="3、在 Button 的事件中开启线程，更新 UI"></a>3、在 Button 的事件中开启线程，更新 UI</h3><figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">public</span> <span class="keyword">class</span> <span class="title class_">MasterActivity</span> <span class="keyword">extends</span> <span class="title class_">Activity</span> &#123;</span><br><span class="line">    <span class="type">TextView</span> <span class="variable">tv</span> <span class="operator">=</span> <span class="literal">null</span>; <span class="type">Button</span> <span class="variable">btn</span> <span class="operator">=</span> <span class="literal">null</span>; </span><br><span class="line">    <span class="meta">@Override</span> </span><br><span class="line">    <span class="keyword">public</span> <span class="keyword">void</span> <span class="title function_">onCreate</span><span class="params">(Bundle savedInstanceState)</span> &#123; </span><br><span class="line">        <span class="built_in">super</span>.onCreate(savedInstanceState); </span><br><span class="line">        setContentView(R.layout.main); </span><br><span class="line">        System.out.println(Thread.currentThread().getName() + <span class="string">&quot;: &quot;</span> + Thread.currentThread().getId()); </span><br><span class="line">        tv = (TextView)findViewById(R.id.text); </span><br><span class="line">        btn = (Button)findViewById(R.id.btn); </span><br><span class="line">        btn.setOnClickListener(<span class="keyword">new</span> <span class="title class_">OnClickListener</span>() &#123; </span><br><span class="line">            <span class="meta">@Override</span> </span><br><span class="line">            <span class="keyword">public</span> <span class="keyword">void</span> <span class="title function_">onClick</span><span class="params">(View v)</span> &#123; </span><br><span class="line">                <span class="type">Thread</span> <span class="variable">thread</span> <span class="operator">=</span> <span class="keyword">new</span> <span class="title class_">Thread</span>(<span class="keyword">new</span> <span class="title class_">Runnable</span>() &#123; </span><br><span class="line">                    <span class="meta">@Override</span> <span class="keyword">public</span> <span class="keyword">void</span> <span class="title function_">run</span><span class="params">()</span> &#123; </span><br><span class="line">                    System.out.println(Thread.currentThread().getName() + <span class="string">&quot;: &quot;</span> + Thread.currentThread().getId()); </span><br><span class="line">                    tv.setText(<span class="string">&quot;update UI is success!&quot;</span>); </span><br><span class="line">                    btn.setText(<span class="string">&quot;update UI is success!&quot;</span>); </span><br><span class="line">                &#125;</span><br><span class="line">            &#125;); </span><br><span class="line">            thread.start(); </span><br><span class="line">        &#125;</span><br><span class="line">     &#125;); </span><br><span class="line">&#125; </span><br></pre></td></tr></table></figure>
+
+<p> Sorry，报错！即使你加上 <code>postInvalidate()</code> 方法，也会报这个错误。</p>
+ <figure class="highlight shell"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">UI.view.ViewRoot$CalledFromWrongThreadException: Only the original thread that created a view hierarchy can touch its views.</span><br></pre></td></tr></table></figure>
+
+<p><img class="lazy" src="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAABGdBTUEAALGPC/xhBQAAADhlWElmTU0AKgAAAAgAAYdpAAQAAAABAAAAGgAAAAAAAqACAAQAAAABAAAAAaADAAQAAAABAAAAAQAAAADa6r/EAAAAC0lEQVQIHWNgAAIAAAUAAY27m/MAAAAASUVORK5CYII=" data-src="/upload/images/2019/12/21/1.jpg" alt="1"></p>
+<h3 id="4、使用-Handler-结合多线程更新-UI"><a href="#4、使用-Handler-结合多线程更新-UI" class="headerlink" title="4、使用 Handler 结合多线程更新 UI"></a>4、使用 Handler 结合多线程更新 UI</h3><p>a. 开启一个线程，在 run 方法中通知 Handler</p>
+<p>b. Handler 中使用 handleMessage 方法更新 UI</p>
+<h3 id="5、Handler-和-invalidate-方法结合多线程更新-UI"><a href="#5、Handler-和-invalidate-方法结合多线程更新-UI" class="headerlink" title="5、Handler 和 invalidate 方法结合多线程更新 UI"></a>5、Handler 和 invalidate 方法结合多线程更新 UI</h3><p>方法 <code>invalidate</code> 主要用在主线程中（即UI 线程中），<strong>不可以用于子线程。</strong>如果在子线程中需要使用 <code>postInvalidate</code> 方法。</p>
+<p>Android 的 API 有说明：</p>
+<blockquote>
+<p>public void invalidate () Since: API Level 1 Invalidate the whole view.</p>
+<p>If the view is visible, onDraw(Canvas) will be called at some point in the future.</p>
+<p>This must be called from a UI thread. To call from a non-UI thread, call postInvalidate(). </p>
+</blockquote>
+<p>看看该方法源码：</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">public</span> <span class="keyword">void</span> <span class="title function_">invalidate</span><span class="params">()</span> &#123;</span><br><span class="line">        <span class="keyword">if</span> (ViewDebug.TRACE_HIERARCHY) &#123;</span><br><span class="line">            ViewDebug.trace(<span class="built_in">this</span>, ViewDebug.HierarchyTraceType.INVALIDATE);</span><br><span class="line">        &#125;</span><br><span class="line">        <span class="keyword">if</span> ((mPrivateFlags &amp; (DRAWN | HAS_BOUNDS)) == (DRAWN | HAS_BOUNDS)) &#123;</span><br><span class="line">            mPrivateFlags &amp;= ~DRAWN &amp; ~DRAWING_CACHE_VALID;</span><br><span class="line">            <span class="keyword">final</span> <span class="type">ViewParent</span> <span class="variable">p</span> <span class="operator">=</span> mParent;</span><br><span class="line">            <span class="keyword">final</span> <span class="type">AttachInfo</span> <span class="variable">ai</span> <span class="operator">=</span> mAttachInfo;</span><br><span class="line">            <span class="keyword">if</span> (p != <span class="literal">null</span> &amp;&amp; ai != <span class="literal">null</span>) &#123;</span><br><span class="line">                <span class="keyword">final</span> <span class="type">Rect</span> <span class="variable">r</span> <span class="operator">=</span> ai.mTmpInvalRect;</span><br><span class="line">                r.set(<span class="number">0</span>, <span class="number">0</span>, mRight - mLeft, mBottom - mTop); <span class="comment">// Don&#x27;t call invalidate -- we don&#x27;t want to internally scroll // our own bounds p.invalidateChild(this, r); &#125; &#125; &#125; </span></span><br><span class="line">            &#125;</span><br><span class="line">        &#125;</span><br><span class="line">    &#125;</span><br></pre></td></tr></table></figure>
+
+<p><code>invalidate</code> 方法如果你直接在主线程中调用，是看不到任何更新的。需要与 Handler 结合！</p>
+<p>Android  在 <code>onDraw</code> 事件处理绘图，而 <code>invalidate()</code> 函数可以再一次触发 <code>onDraw</code> 事件，然后再一次进行绘图动作。实例代码如下：</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">public</span> <span class="keyword">class</span> <span class="title class_">MasterActivity</span> <span class="keyword">extends</span> <span class="title class_">Activity</span> &#123;</span><br><span class="line">	<span class="keyword">static</span> <span class="type">int</span> <span class="variable">times</span> <span class="operator">=</span> <span class="number">1</span>;</span><br><span class="line"> </span><br><span class="line">    <span class="comment">/** Called when the activity is first created. */</span></span><br><span class="line">    <span class="meta">@Override</span></span><br><span class="line">    <span class="keyword">public</span> <span class="keyword">void</span> <span class="title function_">onCreate</span><span class="params">(Bundle savedInstanceState)</span> &#123;</span><br><span class="line">        <span class="built_in">super</span>.onCreate(savedInstanceState);</span><br><span class="line"> </span><br><span class="line">        setContentView( <span class="keyword">new</span> <span class="title class_">View</span>(<span class="literal">null</span>) &#123;</span><br><span class="line"> </span><br><span class="line">            <span class="type">Paint</span> <span class="variable">vPaint</span> <span class="operator">=</span> <span class="keyword">new</span> <span class="title class_">Paint</span>();  <span class="comment">//绘制样式物件</span></span><br><span class="line">            <span class="keyword">private</span> <span class="type">int</span> <span class="variable">i</span> <span class="operator">=</span> <span class="number">0</span>;           <span class="comment">//弧形角度</span></span><br><span class="line"> </span><br><span class="line">            <span class="meta">@Override</span></span><br><span class="line">            <span class="keyword">protected</span> <span class="keyword">void</span> <span class="title function_">onDraw</span> <span class="params">(Canvas canvas)</span> &#123;</span><br><span class="line">                <span class="built_in">super</span>.onDraw(canvas);</span><br><span class="line">                System.out.println(<span class="string">&quot;this run &quot;</span> + (times++) +<span class="string">&quot; times!&quot;</span>);</span><br><span class="line"> </span><br><span class="line">                <span class="comment">// 设定绘图样式</span></span><br><span class="line">                vPaint.setColor( <span class="number">0xff00ffff</span> ); <span class="comment">//画笔颜色</span></span><br><span class="line">                vPaint.setAntiAlias( <span class="literal">true</span> );   <span class="comment">//反锯齿</span></span><br><span class="line">                vPaint.setStyle( Paint.Style.STROKE );</span><br><span class="line"> </span><br><span class="line">                <span class="comment">// 绘制一个弧形</span></span><br><span class="line">                canvas.drawArc(<span class="keyword">new</span> <span class="title class_">RectF</span>(<span class="number">60</span>, <span class="number">120</span>, <span class="number">260</span>, <span class="number">320</span>), <span class="number">0</span>, i, <span class="literal">true</span>, vPaint );</span><br><span class="line"> </span><br><span class="line">                <span class="comment">// 弧形角度</span></span><br><span class="line">                <span class="keyword">if</span>( (i+=<span class="number">10</span>) &gt; <span class="number">360</span> ) &#123;</span><br><span class="line">                    i = <span class="number">0</span>;</span><br><span class="line">                &#125;</span><br><span class="line"> </span><br><span class="line">                <span class="comment">// 重绘, 再一次执行onDraw 程序</span></span><br><span class="line">                invalidate();</span><br><span class="line">            &#125;</span><br><span class="line">        &#125;);</span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<p>经过测试，发现 <code>times</code> 一直在被 <code>++</code>，说明 <code>onDraw</code> 被多次调用，并且一直在画图！</p>
+<p>Android 的 API 有时候让人看的很郁闷很无语…..关于 <code>invalidate</code> 的使用，还待探索。革命尚未成功，同志仍需努力！</p>
+<h2 id="小结"><a href="#小结" class="headerlink" title="小结"></a>小结</h2><p><strong>附录： Handler、Message、MessageQueue、Looper 之间的关系</strong></p>
+<p><img class="lazy" src="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAABGdBTUEAALGPC/xhBQAAADhlWElmTU0AKgAAAAgAAYdpAAQAAAABAAAAGgAAAAAAAqACAAQAAAABAAAAAaADAAQAAAABAAAAAQAAAADa6r/EAAAAC0lEQVQIHWNgAAIAAAUAAY27m/MAAAAASUVORK5CYII=" data-src="/upload/images/2019/12/21/2.jpg" alt="1"></p>
+<p><strong>这里说明</strong></p>
+<ul>
+<li><p>Looper 使用无限循环取出消息，是有 UI OS 控制的；</p>
+</li>
+<li><p>UI 线程是非安全的，即不要在子线程中更新 UI；</p>
+</li>
+<li><p>Looper 取出来的消息，Handler 可以通过 <code>what</code>、<code>obj</code>  等量来区别分别获取属于自己的消息，所以推荐使用这些内置变量。</p>
+</li>
+</ul>
+<hr>
+<p><strong>天生我材必有用，千金散尽还复来。</strong></p>
+<p><img class="lazy" src="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAABGdBTUEAALGPC/xhBQAAADhlWElmTU0AKgAAAAgAAYdpAAQAAAABAAAAGgAAAAAAAqACAAQAAAABAAAAAaADAAQAAAABAAAAAQAAAADa6r/EAAAAC0lEQVQIHWNgAAIAAAUAAY27m/MAAAAASUVORK5CYII=" data-src="/upload/me/qrcode_wx.jpg"></p>
+
+
+
+
+</article>
+
+<div class="related-wrap reveal" id="read-next"><section class="header cap theme"><span>接下来阅读</span></section><section class="body fs14"><a id="next" href="/2019/12/07/%E5%BE%AE%E6%9C%8D%E5%8A%A1-MySQL%E5%9F%BA%E6%9C%AC%E6%93%8D%E4%BD%9C/">微服务: MySQL基本操作<span class="note">较早</span></a><div class="line"></div><a id="prev" href="/2019/12/29/OpenSSL-%E7%AE%80%E5%8D%95%E6%98%93%E4%B8%8A%E6%89%8B%E7%9A%84RSA%E5%8A%A0%E8%A7%A3%E5%AF%86/">OpenSSL: 简单易上手的RSA加解密<span class="note">较新</span></a></section></div>
+
+
+
+
+
+
+  <div class='related-wrap md reveal' id="comments">
+    <div class='cmt-title cap theme'>
+      快来参与讨论吧
+    </div>
+    <div class='cmt-body valine'>
+      
+
+<div id="valine_container" class="valine_thread"><svg class="loading" style="vertical-align: middle;fill: currentColor;overflow: hidden;" viewBox="0 0 1024 1024" version="1.1" xmlns="http://www.w3.org/2000/svg" p-id="2709"><path d="M832 512c0-176-144-320-320-320V128c211.2 0 384 172.8 384 384h-64zM192 512c0 176 144 320 320 320v64C300.8 896 128 723.2 128 512h64z" p-id="2710"></path></svg></div>
+
+    </div>
+  </div>
+
+
+
+      
+<footer class="page-footer reveal fs12"><hr><div class="text"><p>本博客所有文章除特别声明外，均采用 <a target="_blank" rel="noopener" href="https://creativecommons.org/licenses/by-nc-sa/4.0/">CC BY-NC-SA 4.0</a> 许可协议，转载请注明出处。</p>
+<p>veryitman</p>
+</div></footer>
+
+      <div class='float-panel mobile-only blur' style='display:none'>
+  <button type='button' class='sidebar-toggle mobile' onclick='sidebar.toggle()'>
+    <svg class="icon" style="width: 1em; height: 1em;vertical-align: middle;fill: currentColor;overflow: hidden;" viewBox="0 0 1024 1024" version="1.1" xmlns="http://www.w3.org/2000/svg" p-id="15301"><path d="M566.407 808.3c26.9-0.1 49.3-20.8 51.6-47.6-1.9-27.7-23.9-49.7-51.6-51.6h-412.6c-28.2-1.4-52.6 19.5-55.5 47.6 2.3 26.8 24.6 47.5 51.6 47.6h416.5v4z m309.3-249.9c26.9-0.1 49.3-20.8 51.6-47.6-2.2-26.8-24.6-47.5-51.6-47.6h-721.9c-27.7-2.8-52.5 17.4-55.3 45.1-0.1 0.8-0.1 1.7-0.2 2.5 0.9 27.2 23.6 48.5 50.7 47.6H875.707z m-103.1-245.9c26.9-0.1 49.3-20.8 51.6-47.6-0.4-28.3-23.2-51.1-51.5-51.6h-618.9c-29.5-1.1-54.3 21.9-55.5 51.4v0.2c1.4 27.8 25.2 49.2 53 47.8 0.8 0 1.7-0.1 2.5-0.2h618.8z" p-id="15302"></path><path d="M566.407 808.3c26.9-0.1 49.3-20.8 51.6-47.6-1.9-27.7-23.9-49.7-51.6-51.6h-412.6c-28.2-1.4-52.6 19.5-55.5 47.6 1.9 27.7 23.9 49.7 51.6 51.6h416.5z m309.3-249.9c26.9-0.1 49.3-20.8 51.6-47.6-2.2-26.8-24.6-47.5-51.6-47.6h-721.9c-27.7-2.8-52.5 17.4-55.3 45.1-0.1 0.8-0.1 1.7-0.2 2.5 0.9 27.2 23.6 48.5 50.7 47.6H875.707z m-103.1-245.9c26.9-0.1 49.3-20.8 51.6-47.6-0.4-28.3-23.2-51.1-51.5-51.6h-618.9c-29.5-1.1-54.3 21.9-55.5 51.4v0.2c1.4 27.8 25.2 49.2 53 47.8 0.8 0 1.7-0.1 2.5-0.2h618.8z" p-id="15303"></path></svg>
+  </button>
+</div>
+
+    </div>
+  </div>
+  <div class='scripts'>
+    <script type="text/javascript">
+  stellar = {
+    // 懒加载 css https://github.com/filamentgroup/loadCSS
+    loadCSS: (href, before, media, attributes) => {
+      var doc = window.document;
+      var ss = doc.createElement("link");
+      var ref;
+      if (before) {
+        ref = before;
+      } else {
+        var refs = (doc.body || doc.getElementsByTagName("head")[0]).childNodes;
+        ref = refs[refs.length - 1];
+      }
+      var sheets = doc.styleSheets;
+      if (attributes) {
+        for (var attributeName in attributes) {
+          if (attributes.hasOwnProperty(attributeName)) {
+            ss.setAttribute(attributeName, attributes[attributeName]);
+          }
+        }
+      }
+      ss.rel = "stylesheet";
+      ss.href = href;
+      ss.media = "only x";
+      function ready(cb) {
+        if (doc.body) {
+          return cb();
+        }
+        setTimeout(function () {
+          ready(cb);
+        });
+      }
+      ready(function () {
+        ref.parentNode.insertBefore(ss, before ? ref : ref.nextSibling);
+      });
+      var onloadcssdefined = function (cb) {
+        var resolvedHref = ss.href;
+        var i = sheets.length;
+        while (i--) {
+          if (sheets[i].href === resolvedHref) {
+            return cb();
+          }
+        }
+        setTimeout(function () {
+          onloadcssdefined(cb);
+        });
+      };
+      function loadCB() {
+        if (ss.addEventListener) {
+          ss.removeEventListener("load", loadCB);
+        }
+        ss.media = media || "all";
+      }
+      if (ss.addEventListener) {
+        ss.addEventListener("load", loadCB);
+      }
+      ss.onloadcssdefined = onloadcssdefined;
+      onloadcssdefined(loadCB);
+      return ss;
+    },
+
+    // 从 butterfly 和 volantis 获得灵感
+    loadScript: (src, opt) => new Promise((resolve, reject) => {
+      var script = document.createElement('script');
+      script.src = src;
+      if (opt) {
+        for (let key of Object.keys(opt)) {
+          script[key] = opt[key]
+        }
+      } else {
+        // 默认异步，如果需要同步，第二个参数传入 {} 即可
+        script.async = true
+      }
+      script.onerror = reject
+      script.onload = script.onreadystatechange = function() {
+        const loadState = this.readyState
+        if (loadState && loadState !== 'loaded' && loadState !== 'complete') return
+        script.onload = script.onreadystatechange = null
+        resolve()
+      }
+      document.head.appendChild(script)
+    }),
+
+    // https://github.com/jerryc127/hexo-theme-butterfly
+    jQuery: (fn) => {
+      if (typeof jQuery === 'undefined') {
+        stellar.loadScript(stellar.plugins.jQuery).then(fn)
+      } else {
+        fn()
+      }
+    }
+  };
+  stellar.github = 'https://github.com/xaoxuu/hexo-theme-stellar/tree/1.6.1';
+  stellar.config = {
+    date_suffix: {
+      just: '刚刚',
+      min: '分钟前',
+      hour: '小时前',
+      day: '天前',
+      month: '个月前',
+    },
+  };
+
+  // required plugins (only load if needs)
+  stellar.plugins = {
+    jQuery: 'https://cdn.jsdelivr.net/npm/jquery@3.5.1/dist/jquery.min.js',
+    sitesjs: '/js/plugins/sites.js',
+    friendsjs: '/js/plugins/friends.js',
+  };
+
+  // optional plugins
+  if ('true' == 'true') {
+    stellar.plugins.lazyload = Object.assign({"enable":true,"js":"https://cdn.jsdelivr.net/npm/vanilla-lazyload@17.3.1/dist/lazyload.min.js","transition":"blur"});
+  }
+  if ('true' == 'true') {
+    stellar.plugins.swiper = Object.assign({"enable":true,"css":"https://unpkg.com/swiper@6/swiper-bundle.min.css","js":"https://unpkg.com/swiper@6/swiper-bundle.min.js"});
+  }
+  if ('' == 'true') {
+    stellar.plugins.scrollreveal = Object.assign({"enable":null,"js":"https://cdn.jsdelivr.net/npm/scrollreveal@4.0.9/dist/scrollreveal.min.js","distance":"8px","duration":500,"interval":100,"scale":1});
+  }
+  if ('true' == 'true') {
+    stellar.plugins.preload = Object.assign({"enable":true,"service":"flying_pages","instant_page":"https://cdn.jsdelivr.net/gh/volantis-x/cdn-volantis@4.1.2/js/instant_page.js","flying_pages":"https://cdn.jsdelivr.net/gh/gijo-varghese/flying-pages@2.1.2/flying-pages.min.js"});
+  }
+</script>
+
+<!-- required -->
+
+  
+<script src="/js/main.js" async></script>
+
+
+
+<!-- optional -->
+
+  <script>
+  function getEmojiMaps() {
+    function emoji(path, idx, ext) {
+      return path + "/" + path + "-" + idx + "." + ext;
+    }
+    var emojiMaps = {};
+    for (var i = 1; i <= 54; i++) {
+      emojiMaps['tieba-' + i] = emoji('tieba', i, 'png');
+    }
+    for (var i = 1; i <= 101; i++) {
+      emojiMaps['qq-' + i] = emoji('qq', i, 'gif');
+    }
+    for (var i = 1; i <= 116; i++) {
+      emojiMaps['aru-' + i] = emoji('aru', i, 'gif');
+    }
+    for (var i = 1; i <= 125; i++) {
+      emojiMaps['twemoji-' + i] = emoji('twemoji', i, 'png');
+    }
+    for (var i = 1; i <= 4; i++) {
+      emojiMaps['weibo-' + i] = emoji('weibo', i, 'png');
+    }
+    return emojiMaps;
+  }
+  function load_comment(){
+    if(!document.getElementById("valine_container"))return;
+    stellar.loadScript('https://cdn.jsdelivr.net/gh/XuxuGood/simple-blog-cdn@main/js/Valine.min.js', {defer:true}).then(function () {
+      const el = document.getElementById("valine_container");
+      var path = el.getAttribute('comment_id');
+      const placeholder = "欢迎您留言~";
+      if (!path) {
+        path = decodeURI(window.location.pathname);
+      }
+      var valine = new Valine();
+      valine.init(Object.assign({"js":"https://cdn.jsdelivr.net/gh/XuxuGood/simple-blog-cdn@main/js/Valine.min.js","appId":"FY2C9UCttYNaE1j8umenqdCE-gzGzoHsz","appKey":"4i7xMwkfSEGmEDhi6SceKFxz","placeholder":"欢迎您留言~","requiredFields":["nick","mail"],"enableQQ":true,"recordIP":false,"avatar":"robohash","pageSize":10,"lang":"zh-cn","highlight":true,"mathJax":false,"tagMeta":["博主","小伙伴","访客"],"metaPlaceholder":{"nick":"昵称/QQ号(必填)","mail":"邮箱（必填，完全保密）"},"master":["6783037F2DF30EAB99F9FC256157D875"],"friends":["6783037F2DF30EAB99F9FC256157D875"],"comment_count":true}, {
+        el: '#valine_container',
+        path: path,
+        placeholder: placeholder,
+        emojiCDN: 'https://cdn.jsdelivr.net/gh/volantis-x/cdn-emoji/valine/',
+        emojiMaps: getEmojiMaps(),
+      }));
+    });
+  }
+  window.addEventListener('DOMContentLoaded', (event) => {
+    console.log('DOM fully loaded and parsed');
+    load_comment();
+  });
+
+</script>
+
+
+
+
+<!-- inject -->
+
+
+  </div>
+</body>
+</html>

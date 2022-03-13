@@ -1,0 +1,370 @@
+<!DOCTYPE html>
+<html lang='zh-CN'>
+
+<head>
+  <meta name="generator" content="Hexo 6.0.0">
+  <meta charset="utf-8">
+  
+
+  <meta http-equiv='x-dns-prefetch-control' content='on' />
+  <link rel='dns-prefetch' href='https://cdn.jsdelivr.net'>
+  <link rel="preconnect" href="https://cdn.jsdelivr.net" crossorigin>
+
+  <meta name="renderer" content="webkit">
+  <meta name="force-rendering" content="webkit">
+  <meta http-equiv="X-UA-Compatible" content="IE=Edge,chrome=1">
+  <meta name="HandheldFriendly" content="True" >
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1">
+  <meta name="theme-color" content="#f8f8f8">
+  <title>OC: self - Veryitman</title>
+
+  
+    <meta name="description" content="为了更好的说明 Objective-C 中的 self，我们先从 Java 的 this 关键字开始来引入话题。 Java 中的 this在 Java 中 this 关键字表示当前类对象，其只能在类的非静态方法中使用，静态方法和静态的代码块中绝对不能出现 this，this 只和特定的对象关联，而不和类关联，同一个类的不同对象有不同的 this. 先看一个 Java 示例，能说明上面的问题，示例如">
+<meta property="og:type" content="article">
+<meta property="og:title" content="OC: self">
+<meta property="og:url" content="http://example.com/2018/12/23/OC-self/index.html">
+<meta property="og:site_name" content="Veryitman">
+<meta property="og:description" content="为了更好的说明 Objective-C 中的 self，我们先从 Java 的 this 关键字开始来引入话题。 Java 中的 this在 Java 中 this 关键字表示当前类对象，其只能在类的非静态方法中使用，静态方法和静态的代码块中绝对不能出现 this，this 只和特定的对象关联，而不和类关联，同一个类的不同对象有不同的 this. 先看一个 Java 示例，能说明上面的问题，示例如">
+<meta property="og:locale" content="zh_CN">
+<meta property="og:image" content="http://example.com/upload/me/qrcode_wx.jpg">
+<meta property="article:published_time" content="2018-12-23T10:19:43.000Z">
+<meta property="article:modified_time" content="2022-03-09T14:53:24.349Z">
+<meta property="article:author" content="veryitman">
+<meta property="article:tag" content="Objective-C self keyword">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:image" content="http://example.com/upload/me/qrcode_wx.jpg">
+  
+  
+
+  <!-- feed -->
+  
+
+  
+    
+<link rel="stylesheet" href="/css/main.css">
+
+  
+
+  
+
+  
+</head>
+
+<body>
+  
+
+
+  <div class='l_body' id='start'>
+    <aside class='l_left' layout='post'>
+    
+
+
+<header class="header">
+
+<div class="logo-wrap"><a class="title" href="/"><div class="main">Veryitman</div></a></div>
+<nav class="menu dis-select"></nav></header>
+
+<div class="widgets">
+
+<div class="widget-wrap single" id="toc"><div class="widget-header cap dis-select"><span class="name">本文目录</span></div><div class="widget-body fs14"><div class="doc-tree active"><ol class="toc"><li class="toc-item toc-level-2"><a class="toc-link" href="#Java-%E4%B8%AD%E7%9A%84-this"><span class="toc-text">Java 中的 this</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#Objective-C-%E4%B8%AD%E7%9A%84-self"><span class="toc-text">Objective-C 中的 self</span></a><ol class="toc-child"><li class="toc-item toc-level-3"><a class="toc-link" href="#1%E3%80%81%E5%AE%9E%E4%BE%8B%E6%96%B9%E6%B3%95%E4%B8%AD%E7%9A%84-self"><span class="toc-text">1、实例方法中的 self</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#2%E3%80%81%E7%B1%BB%E6%96%B9%E6%B3%95%E4%B8%AD%E7%9A%84-self"><span class="toc-text">2、类方法中的 self</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#3%E3%80%81%E5%AE%9E%E4%BE%8B%E5%92%8C%E7%B1%BB%E6%96%B9%E6%B3%95%E4%B8%AD%E7%9A%84-self-%E5%8C%BA%E5%88%AB"><span class="toc-text">3、实例和类方法中的 self 区别</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#4%E3%80%81%E6%AF%8F%E4%B8%AA%E5%AE%9E%E4%BE%8B%E5%AF%B9%E8%B1%A1%E7%9A%84-self-%E9%83%BD%E6%98%AF%E4%B8%8D%E4%B8%80%E6%A0%B7%E7%9A%84"><span class="toc-text">4、每个实例对象的 self 都是不一样的</span></a></li></ol></li><li class="toc-item toc-level-2"><a class="toc-link" href="#%E6%9C%80%E5%90%8E"><span class="toc-text">最后</span></a></li></ol></div></div></div>
+
+
+</div>
+
+
+    </aside>
+    <div class='l_main'>
+      
+
+      
+
+
+<div class="bread-nav fs12"><div id="breadcrumb"><a class="cap breadcrumb" href="/">主页</a><span class="sep"></span><a class="cap breadcrumb" href="/">文章</a><span class="sep"></span><a class="cap breadcrumb-link" href="/categories/iOS/">iOS</a></div><div id="post-meta">发布于&nbsp;<time datetime="2018-12-23T10:19:43.000Z">2018-12-23</time></div></div>
+
+<article class='content md post'>
+<h1 class="article-title"><span>OC: self</span></h1>
+<p>为了更好的说明 Objective-C 中的 <code>self</code>，我们先从 Java 的 <code>this</code> 关键字开始来引入话题。</p>
+<h2 id="Java-中的-this"><a href="#Java-中的-this" class="headerlink" title="Java 中的 this"></a>Java 中的 this</h2><p>在 Java 中 <code>this</code> 关键字表示当前类对象，其只能在类的非静态方法中使用，静态方法和静态的代码块中绝对不能出现 <code>this</code>，<code>this</code> 只和特定的对象关联，而不和类关联，同一个类的不同对象有不同的 <code>this</code>.</p>
+<p>先看一个 Java 示例，能说明上面的问题，示例如下：</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment">// 静态代码块中也不可以使用 this</span></span><br><span class="line"><span class="comment">// Error: non-static variable this cannot be referenced from a static context</span></span><br><span class="line"><span class="keyword">static</span> &#123;</span><br><span class="line">    <span class="comment">// this.eat();</span></span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line"><span class="keyword">public</span> <span class="keyword">void</span> <span class="title function_">play</span><span class="params">()</span> &#123;</span><br><span class="line">    System.out.println(<span class="string">&quot;play()&quot;</span>);</span><br><span class="line"></span><br><span class="line">    <span class="comment">// this 调用类方法</span></span><br><span class="line">    <span class="built_in">this</span>.eat();</span><br><span class="line"></span><br><span class="line">    <span class="comment">// this 调用实例方法</span></span><br><span class="line">    <span class="built_in">this</span>.finish();</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line"><span class="keyword">public</span> <span class="keyword">static</span> <span class="keyword">void</span> <span class="title function_">eat</span><span class="params">()</span> &#123;</span><br><span class="line">    System.out.println(<span class="string">&quot;static eat()&quot;</span>);</span><br><span class="line"></span><br><span class="line">    <span class="comment">// 不可以在类方法中使用 this</span></span><br><span class="line">    <span class="comment">// Error: non-static variable this cannot be referenced from a static context</span></span><br><span class="line">    <span class="comment">// this.play();</span></span><br><span class="line">    <span class="comment">// System.out.println(this);</span></span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line"><span class="keyword">public</span> <span class="keyword">void</span> <span class="title function_">finish</span><span class="params">()</span> &#123;</span><br><span class="line">    System.out.println(<span class="string">&quot;finish()&quot;</span>);</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<p>通过实际的 Java 例子，基本表明了在静态方法和实例方法中 <code>this</code> 的使用场景。</p>
+<h2 id="Objective-C-中的-self"><a href="#Objective-C-中的-self" class="headerlink" title="Objective-C 中的 self"></a>Objective-C 中的 self</h2><p>在 <code>Objective-C</code> 中，<code>self</code> 是一个比较特殊的对象，它既可以是实例对象也可以是类对象，有点类似于上面 Java 中的 <code>this</code> 关键字。</p>
+<p>下面结合实际例子，来说明 <code>self</code> 这个关键字。</p>
+<h3 id="1、实例方法中的-self"><a href="#1、实例方法中的-self" class="headerlink" title="1、实例方法中的 self"></a>1、实例方法中的 self</h3><p>实例方法中的 <code>self</code> 可以直接调用实例方法但不可以直接调用类方法，如下示例中，调用实例方法 <code>finish</code>没有问题，而调用类方法 <code>eat</code> 直接报编译错误。</p>
+<figure class="highlight objc"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br></pre></td><td class="code"><pre><span class="line">- (<span class="keyword">void</span>)play</span><br><span class="line">&#123;</span><br><span class="line">    <span class="built_in">NSLog</span>(<span class="string">@&quot;---------------- &#x27;- (void)play&#x27; ------------------&quot;</span>);</span><br><span class="line">    <span class="built_in">NSLog</span>(<span class="string">@&quot;self: %@, self -&gt; %p&quot;</span>, <span class="keyword">self</span>, <span class="keyword">self</span>);</span><br><span class="line">    </span><br><span class="line">    <span class="comment">// 无法使用 self 来调用类方法</span></span><br><span class="line">    <span class="comment">// Error: No visible @interface for &#x27;MZPerson&#x27; declares the selector &#x27;eat&#x27;</span></span><br><span class="line">    <span class="comment">// [self eat];</span></span><br><span class="line">    </span><br><span class="line">    <span class="comment">// 调用实例方法</span></span><br><span class="line">    [<span class="keyword">self</span> finish];</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line">+ (<span class="keyword">void</span>)eat</span><br><span class="line">&#123;</span><br><span class="line">    <span class="built_in">NSLog</span>(<span class="string">@&quot;---------------- &#x27;+ (void)eat&#x27; ------------------&quot;</span>);</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line">- (<span class="keyword">void</span>)finish</span><br><span class="line">&#123;</span><br><span class="line">    <span class="built_in">NSLog</span>(<span class="string">@&quot;--------------- &#x27;- (void)finish&#x27; ----------------&quot;</span>);</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<p>我们知道，在实例方法中可以直接通过&#96;&#96;[类 类方法]<code>的方式来调用类方法，那么如果想在实例方法中使用</code>self&#96; 关键字，如何办呢？</p>
+<p>很简单，使用 <code>[self class]</code> 即可。</p>
+<figure class="highlight objc"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br></pre></td><td class="code"><pre><span class="line">- (<span class="keyword">void</span>)play</span><br><span class="line">&#123;</span><br><span class="line">    <span class="built_in">NSLog</span>(<span class="string">@&quot;---------------- &#x27;- (void)play&#x27; ------------------&quot;</span>);</span><br><span class="line">    <span class="built_in">NSLog</span>(<span class="string">@&quot;self: %@, self -&gt; %p&quot;</span>, <span class="keyword">self</span>, <span class="keyword">self</span>);</span><br><span class="line">    </span><br><span class="line">    [[<span class="keyword">self</span> <span class="keyword">class</span>] eat];</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<p>关于 <code>class</code> 后续再分享给大家，这里只需要知道可以这么使用就好了。</p>
+<h3 id="2、类方法中的-self"><a href="#2、类方法中的-self" class="headerlink" title="2、类方法中的 self"></a>2、类方法中的 self</h3><p>这个跟 Java 的 <code>this</code> 有点不一样，上面的 Java 示例中我们可以看到无论是打印 <code>this</code> 还是使用 <code>this</code> 调用方法都不可以，但是在 <code>Objective-C</code> 中却可以使用 <code>self</code>，只是不能使用 <code>self</code> 来调用实例方法和实例变量。</p>
+<figure class="highlight objc"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br></pre></td><td class="code"><pre><span class="line">+ (<span class="keyword">void</span>)eat</span><br><span class="line">&#123;</span><br><span class="line">    <span class="built_in">NSLog</span>(<span class="string">@&quot;---------------- &#x27;+ (void)eat&#x27; ------------------&quot;</span>);</span><br><span class="line">    </span><br><span class="line">    <span class="comment">// No known class method for selector &#x27;finish&#x27;</span></span><br><span class="line">    <span class="comment">// [self finish];</span></span><br><span class="line">    </span><br><span class="line">    <span class="comment">// 调用类方法</span></span><br><span class="line">    [<span class="keyword">self</span> beat];</span><br><span class="line">    </span><br><span class="line">    <span class="comment">// 打印 self</span></span><br><span class="line">    <span class="built_in">NSLog</span>(<span class="string">@&quot;self: %@&quot;</span>, <span class="keyword">self</span>);</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line">+ (<span class="keyword">void</span>)beat</span><br><span class="line">&#123;</span><br><span class="line">    <span class="built_in">NSLog</span>(<span class="string">@&quot;---------------- &#x27;+ (void)beat&#x27; ------------------&quot;</span>);</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<p>那么为什么在类方法中可以使用 <code>self</code> 呢？</p>
+<p>别着急，接着往下看。</p>
+<h3 id="3、实例和类方法中的-self-区别"><a href="#3、实例和类方法中的-self-区别" class="headerlink" title="3、实例和类方法中的 self 区别"></a>3、实例和类方法中的 self 区别</h3><p>其实，在类方法中，<code>self</code> 表示当前类对象，在实例方法中 <code>self</code> 表示实例对象，这个是本质区别，务必要理解透彻。</p>
+<p>举个例子，如下：</p>
+<figure class="highlight objc"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br></pre></td><td class="code"><pre><span class="line">- (<span class="keyword">void</span>)play</span><br><span class="line">&#123;</span><br><span class="line">    <span class="built_in">NSLog</span>(<span class="string">@&quot;---------------- &#x27;- (void)play&#x27; ------------------&quot;</span>);</span><br><span class="line">    <span class="built_in">NSLog</span>(<span class="string">@&quot;self: %@, self -&gt; %p&quot;</span>, <span class="keyword">self</span>, <span class="keyword">self</span>);</span><br><span class="line">    </span><br><span class="line">    <span class="comment">// 打印对应的类地址</span></span><br><span class="line">    <span class="built_in">NSLog</span>(<span class="string">@&quot;self class: %p&quot;</span>, [<span class="keyword">self</span> <span class="keyword">class</span>]);</span><br><span class="line">    </span><br><span class="line">    [[<span class="keyword">self</span> <span class="keyword">class</span>] eat];</span><br><span class="line">    </span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line">+ (<span class="keyword">void</span>)eat</span><br><span class="line">&#123;</span><br><span class="line">    <span class="built_in">NSLog</span>(<span class="string">@&quot;---------------- &#x27;+ (void)eat&#x27; ------------------&quot;</span>);</span><br><span class="line">    </span><br><span class="line">    <span class="comment">// No known class method for selector &#x27;finish&#x27;</span></span><br><span class="line">    <span class="comment">// [self finish];</span></span><br><span class="line">    </span><br><span class="line">    <span class="comment">// 打印 self 地址</span></span><br><span class="line">    <span class="built_in">NSLog</span>(<span class="string">@&quot;self: %p&quot;</span>, <span class="keyword">self</span>);</span><br><span class="line">    </span><br><span class="line">    <span class="comment">// 调用类方法</span></span><br><span class="line">    [<span class="keyword">self</span> beat];</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line">+ (<span class="keyword">void</span>)beat</span><br><span class="line">&#123;</span><br><span class="line">    <span class="built_in">NSLog</span>(<span class="string">@&quot;---------------- &#x27;+ (void)beat&#x27; ------------------&quot;</span>);</span><br><span class="line">    </span><br><span class="line">    <span class="comment">// 打印 self 地址</span></span><br><span class="line">    <span class="built_in">NSLog</span>(<span class="string">@&quot;self: %p&quot;</span>, <span class="keyword">self</span>);</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<p>在实例方法 <code>play</code> 中打印类地址，在类方法 <code>eat</code> 和 <code>beat</code> 中打印 <code>self</code> 的地址，输出结果是一样的，都是 <code>0x10adb3f98</code> 这个地址。</p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br></pre></td><td class="code"><pre><span class="line">---------------- &#x27;- (void)play&#x27; ------------------</span><br><span class="line">self: &lt;MZPerson: 0x6000000d8f90&gt;, self -&gt; 0x6000000d8f90</span><br><span class="line">self class: 0x10adb3f98</span><br><span class="line">---------------- &#x27;+ (void)eat&#x27; ------------------</span><br><span class="line">self: 0x10adb3f98</span><br><span class="line">---------------- &#x27;+ (void)beat&#x27; ------------------</span><br><span class="line">self: 0x10adb3f98</span><br></pre></td></tr></table></figure>
+
+<p>为了更好的说明，我给大家再举一个形象的例子帮助大家理解。</p>
+<p>在 <code>MZPerson</code> 中声明两个方法，方法同名，一个是实例方法，另一个是类方法，如下：</p>
+<figure class="highlight objc"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br></pre></td><td class="code"><pre><span class="line"><span class="class"><span class="keyword">@interface</span> <span class="title">MZPerson</span> : <span class="title">NSObject</span></span></span><br><span class="line"></span><br><span class="line">- (<span class="keyword">void</span>)play;</span><br><span class="line"></span><br><span class="line">+ (<span class="keyword">void</span>)play;</span><br><span class="line"></span><br><span class="line">+ (<span class="keyword">void</span>)eat;</span><br><span class="line"></span><br><span class="line">- (<span class="keyword">void</span>)finish;</span><br><span class="line"></span><br><span class="line"><span class="keyword">@end</span></span><br></pre></td></tr></table></figure>
+
+<figure class="highlight objc"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br></pre></td><td class="code"><pre><span class="line"><span class="class"><span class="keyword">@implementation</span> <span class="title">MZPerson</span></span></span><br><span class="line"></span><br><span class="line">- (<span class="keyword">void</span>)play</span><br><span class="line">&#123;</span><br><span class="line">    <span class="built_in">NSLog</span>(<span class="string">@&quot;---------------- &#x27;- (void)play&#x27; ------------------&quot;</span>);</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line">+ (<span class="keyword">void</span>)play</span><br><span class="line">&#123;</span><br><span class="line">    <span class="built_in">NSLog</span>(<span class="string">@&quot;---------------- &#x27;+ (void)play&#x27; ------------------&quot;</span>);</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line">+ (<span class="keyword">void</span>)eat</span><br><span class="line">&#123;</span><br><span class="line">    <span class="built_in">NSLog</span>(<span class="string">@&quot;---------------- &#x27;+ (void)eat&#x27; ------------------&quot;</span>);</span><br><span class="line">    </span><br><span class="line">    [<span class="keyword">self</span> play];</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line">- (<span class="keyword">void</span>)finish</span><br><span class="line">&#123;</span><br><span class="line">    <span class="built_in">NSLog</span>(<span class="string">@&quot;---------------- &#x27;- (void)finish&#x27; ------------------&quot;</span>);</span><br><span class="line">    [<span class="keyword">self</span> play];</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line"><span class="keyword">@end</span></span><br></pre></td></tr></table></figure>
+
+<p>在类方法 <code>eat</code> 中调用 <code>[self play]</code> 在实例方法 <code>finish</code> 中也调用 <code>[self play]</code>，那么结果如何呢？</p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br></pre></td><td class="code"><pre><span class="line">---------------- &#x27;- (void)finish&#x27; ---------------</span><br><span class="line">---------------- &#x27;- (void)play&#x27; -----------------</span><br><span class="line"></span><br><span class="line">---------------- &#x27;+ (void)eat&#x27; ------------------</span><br><span class="line">---------------- &#x27;+ (void)play&#x27; -----------------</span><br></pre></td></tr></table></figure>
+
+<p>可以看出符合如期，类和实例方法中的 self 分别代表类本身和实例对象。</p>
+<p><code>self</code> 表示谁，在运行时是由编译器来决定的。</p>
+<h3 id="4、每个实例对象的-self-都是不一样的"><a href="#4、每个实例对象的-self-都是不一样的" class="headerlink" title="4、每个实例对象的 self 都是不一样的"></a>4、每个实例对象的 self 都是不一样的</h3><p>这个跟 Java 的 <code>this</code> 是一样的，每个类的实例对象对应的 <code>this</code> 都是不一样的，<code>self</code> 亦如此。</p>
+<p>下面的例子，分别创建两个 MZPerson 实例对象，然后分别调用<code>play</code> 方法，如下：</p>
+<figure class="highlight objc"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br></pre></td><td class="code"><pre><span class="line">MZPerson *iperson1 = [MZPerson new];</span><br><span class="line">[iperson1 play];</span><br><span class="line">    </span><br><span class="line">MZPerson *iperson2 = [MZPerson new];</span><br><span class="line">[iperson2 play];</span><br></pre></td></tr></table></figure>
+
+<p>输出结果表明了上面说法的正确性。</p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><span class="line">---------------- &#x27;- (void)play&#x27; ------------------</span><br><span class="line">self: &lt;MZPerson: 0x600000576ee0&gt;, self -&gt; 0x600000576ee0</span><br><span class="line">---------------- &#x27;- (void)play&#x27; ------------------</span><br><span class="line">self: &lt;MZPerson: 0x600000576f40&gt;, self -&gt; 0x600000576f40</span><br></pre></td></tr></table></figure>
+
+<h2 id="最后"><a href="#最后" class="headerlink" title="最后"></a>最后</h2><p>在继承关系中，使用 <code>self</code> 调用方法时，首先从当前类的方法列表中开始寻找，如果没有再从父类中寻找。</p>
+<p>运行时(runtime)会使用 <code>objc_msgSend</code> 向对象发送消息，这个也是调用方法的本质。</p>
+<hr>
+<p><strong>扫码关注，你我就各多一个朋友~</strong></p>
+<p><img class="lazy" src="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAABGdBTUEAALGPC/xhBQAAADhlWElmTU0AKgAAAAgAAYdpAAQAAAABAAAAGgAAAAAAAqACAAQAAAABAAAAAaADAAQAAAABAAAAAQAAAADa6r/EAAAAC0lEQVQIHWNgAAIAAAUAAY27m/MAAAAASUVORK5CYII=" data-src="/upload/me/qrcode_wx.jpg"></p>
+
+
+
+
+</article>
+
+<div class="related-wrap reveal" id="read-next"><section class="header cap theme"><span>接下来阅读</span></section><section class="body fs14"><a id="next" href="/2018/12/16/Wireshark-%E5%88%86%E6%9E%90-TCP-%E5%9B%9B%E6%AC%A1%E6%8C%A5%E6%89%8B/">Wireshark: 分析 TCP 四次挥手<span class="note">较早</span></a><div class="line"></div><a id="prev" href="/2018/12/30/NSString%E3%80%81NSMutableString-%E5%8F%AF%E5%8F%98%E4%B8%8E%E4%B8%8D%E5%8F%AF%E5%8F%98%E7%9A%84%E9%82%A3%E4%BA%9B%E4%BA%8B%E5%84%BF/">NSString、NSMutableString 可变与不可变的那些事儿<span class="note">较新</span></a></section></div>
+
+
+
+
+
+
+  <div class='related-wrap md reveal' id="comments">
+    <div class='cmt-title cap theme'>
+      快来参与讨论吧
+    </div>
+    <div class='cmt-body valine'>
+      
+
+<div id="valine_container" class="valine_thread"><svg class="loading" style="vertical-align: middle;fill: currentColor;overflow: hidden;" viewBox="0 0 1024 1024" version="1.1" xmlns="http://www.w3.org/2000/svg" p-id="2709"><path d="M832 512c0-176-144-320-320-320V128c211.2 0 384 172.8 384 384h-64zM192 512c0 176 144 320 320 320v64C300.8 896 128 723.2 128 512h64z" p-id="2710"></path></svg></div>
+
+    </div>
+  </div>
+
+
+
+      
+<footer class="page-footer reveal fs12"><hr><div class="text"><p>本博客所有文章除特别声明外，均采用 <a target="_blank" rel="noopener" href="https://creativecommons.org/licenses/by-nc-sa/4.0/">CC BY-NC-SA 4.0</a> 许可协议，转载请注明出处。</p>
+<p>veryitman</p>
+</div></footer>
+
+      <div class='float-panel mobile-only blur' style='display:none'>
+  <button type='button' class='sidebar-toggle mobile' onclick='sidebar.toggle()'>
+    <svg class="icon" style="width: 1em; height: 1em;vertical-align: middle;fill: currentColor;overflow: hidden;" viewBox="0 0 1024 1024" version="1.1" xmlns="http://www.w3.org/2000/svg" p-id="15301"><path d="M566.407 808.3c26.9-0.1 49.3-20.8 51.6-47.6-1.9-27.7-23.9-49.7-51.6-51.6h-412.6c-28.2-1.4-52.6 19.5-55.5 47.6 2.3 26.8 24.6 47.5 51.6 47.6h416.5v4z m309.3-249.9c26.9-0.1 49.3-20.8 51.6-47.6-2.2-26.8-24.6-47.5-51.6-47.6h-721.9c-27.7-2.8-52.5 17.4-55.3 45.1-0.1 0.8-0.1 1.7-0.2 2.5 0.9 27.2 23.6 48.5 50.7 47.6H875.707z m-103.1-245.9c26.9-0.1 49.3-20.8 51.6-47.6-0.4-28.3-23.2-51.1-51.5-51.6h-618.9c-29.5-1.1-54.3 21.9-55.5 51.4v0.2c1.4 27.8 25.2 49.2 53 47.8 0.8 0 1.7-0.1 2.5-0.2h618.8z" p-id="15302"></path><path d="M566.407 808.3c26.9-0.1 49.3-20.8 51.6-47.6-1.9-27.7-23.9-49.7-51.6-51.6h-412.6c-28.2-1.4-52.6 19.5-55.5 47.6 1.9 27.7 23.9 49.7 51.6 51.6h416.5z m309.3-249.9c26.9-0.1 49.3-20.8 51.6-47.6-2.2-26.8-24.6-47.5-51.6-47.6h-721.9c-27.7-2.8-52.5 17.4-55.3 45.1-0.1 0.8-0.1 1.7-0.2 2.5 0.9 27.2 23.6 48.5 50.7 47.6H875.707z m-103.1-245.9c26.9-0.1 49.3-20.8 51.6-47.6-0.4-28.3-23.2-51.1-51.5-51.6h-618.9c-29.5-1.1-54.3 21.9-55.5 51.4v0.2c1.4 27.8 25.2 49.2 53 47.8 0.8 0 1.7-0.1 2.5-0.2h618.8z" p-id="15303"></path></svg>
+  </button>
+</div>
+
+    </div>
+  </div>
+  <div class='scripts'>
+    <script type="text/javascript">
+  stellar = {
+    // 懒加载 css https://github.com/filamentgroup/loadCSS
+    loadCSS: (href, before, media, attributes) => {
+      var doc = window.document;
+      var ss = doc.createElement("link");
+      var ref;
+      if (before) {
+        ref = before;
+      } else {
+        var refs = (doc.body || doc.getElementsByTagName("head")[0]).childNodes;
+        ref = refs[refs.length - 1];
+      }
+      var sheets = doc.styleSheets;
+      if (attributes) {
+        for (var attributeName in attributes) {
+          if (attributes.hasOwnProperty(attributeName)) {
+            ss.setAttribute(attributeName, attributes[attributeName]);
+          }
+        }
+      }
+      ss.rel = "stylesheet";
+      ss.href = href;
+      ss.media = "only x";
+      function ready(cb) {
+        if (doc.body) {
+          return cb();
+        }
+        setTimeout(function () {
+          ready(cb);
+        });
+      }
+      ready(function () {
+        ref.parentNode.insertBefore(ss, before ? ref : ref.nextSibling);
+      });
+      var onloadcssdefined = function (cb) {
+        var resolvedHref = ss.href;
+        var i = sheets.length;
+        while (i--) {
+          if (sheets[i].href === resolvedHref) {
+            return cb();
+          }
+        }
+        setTimeout(function () {
+          onloadcssdefined(cb);
+        });
+      };
+      function loadCB() {
+        if (ss.addEventListener) {
+          ss.removeEventListener("load", loadCB);
+        }
+        ss.media = media || "all";
+      }
+      if (ss.addEventListener) {
+        ss.addEventListener("load", loadCB);
+      }
+      ss.onloadcssdefined = onloadcssdefined;
+      onloadcssdefined(loadCB);
+      return ss;
+    },
+
+    // 从 butterfly 和 volantis 获得灵感
+    loadScript: (src, opt) => new Promise((resolve, reject) => {
+      var script = document.createElement('script');
+      script.src = src;
+      if (opt) {
+        for (let key of Object.keys(opt)) {
+          script[key] = opt[key]
+        }
+      } else {
+        // 默认异步，如果需要同步，第二个参数传入 {} 即可
+        script.async = true
+      }
+      script.onerror = reject
+      script.onload = script.onreadystatechange = function() {
+        const loadState = this.readyState
+        if (loadState && loadState !== 'loaded' && loadState !== 'complete') return
+        script.onload = script.onreadystatechange = null
+        resolve()
+      }
+      document.head.appendChild(script)
+    }),
+
+    // https://github.com/jerryc127/hexo-theme-butterfly
+    jQuery: (fn) => {
+      if (typeof jQuery === 'undefined') {
+        stellar.loadScript(stellar.plugins.jQuery).then(fn)
+      } else {
+        fn()
+      }
+    }
+  };
+  stellar.github = 'https://github.com/xaoxuu/hexo-theme-stellar/tree/1.6.1';
+  stellar.config = {
+    date_suffix: {
+      just: '刚刚',
+      min: '分钟前',
+      hour: '小时前',
+      day: '天前',
+      month: '个月前',
+    },
+  };
+
+  // required plugins (only load if needs)
+  stellar.plugins = {
+    jQuery: 'https://cdn.jsdelivr.net/npm/jquery@3.5.1/dist/jquery.min.js',
+    sitesjs: '/js/plugins/sites.js',
+    friendsjs: '/js/plugins/friends.js',
+  };
+
+  // optional plugins
+  if ('true' == 'true') {
+    stellar.plugins.lazyload = Object.assign({"enable":true,"js":"https://cdn.jsdelivr.net/npm/vanilla-lazyload@17.3.1/dist/lazyload.min.js","transition":"blur"});
+  }
+  if ('true' == 'true') {
+    stellar.plugins.swiper = Object.assign({"enable":true,"css":"https://unpkg.com/swiper@6/swiper-bundle.min.css","js":"https://unpkg.com/swiper@6/swiper-bundle.min.js"});
+  }
+  if ('' == 'true') {
+    stellar.plugins.scrollreveal = Object.assign({"enable":null,"js":"https://cdn.jsdelivr.net/npm/scrollreveal@4.0.9/dist/scrollreveal.min.js","distance":"8px","duration":500,"interval":100,"scale":1});
+  }
+  if ('true' == 'true') {
+    stellar.plugins.preload = Object.assign({"enable":true,"service":"flying_pages","instant_page":"https://cdn.jsdelivr.net/gh/volantis-x/cdn-volantis@4.1.2/js/instant_page.js","flying_pages":"https://cdn.jsdelivr.net/gh/gijo-varghese/flying-pages@2.1.2/flying-pages.min.js"});
+  }
+</script>
+
+<!-- required -->
+
+  
+<script src="/js/main.js" async></script>
+
+
+
+<!-- optional -->
+
+  <script>
+  function getEmojiMaps() {
+    function emoji(path, idx, ext) {
+      return path + "/" + path + "-" + idx + "." + ext;
+    }
+    var emojiMaps = {};
+    for (var i = 1; i <= 54; i++) {
+      emojiMaps['tieba-' + i] = emoji('tieba', i, 'png');
+    }
+    for (var i = 1; i <= 101; i++) {
+      emojiMaps['qq-' + i] = emoji('qq', i, 'gif');
+    }
+    for (var i = 1; i <= 116; i++) {
+      emojiMaps['aru-' + i] = emoji('aru', i, 'gif');
+    }
+    for (var i = 1; i <= 125; i++) {
+      emojiMaps['twemoji-' + i] = emoji('twemoji', i, 'png');
+    }
+    for (var i = 1; i <= 4; i++) {
+      emojiMaps['weibo-' + i] = emoji('weibo', i, 'png');
+    }
+    return emojiMaps;
+  }
+  function load_comment(){
+    if(!document.getElementById("valine_container"))return;
+    stellar.loadScript('https://cdn.jsdelivr.net/gh/XuxuGood/simple-blog-cdn@main/js/Valine.min.js', {defer:true}).then(function () {
+      const el = document.getElementById("valine_container");
+      var path = el.getAttribute('comment_id');
+      const placeholder = "欢迎您留言~";
+      if (!path) {
+        path = decodeURI(window.location.pathname);
+      }
+      var valine = new Valine();
+      valine.init(Object.assign({"js":"https://cdn.jsdelivr.net/gh/XuxuGood/simple-blog-cdn@main/js/Valine.min.js","appId":"FY2C9UCttYNaE1j8umenqdCE-gzGzoHsz","appKey":"4i7xMwkfSEGmEDhi6SceKFxz","placeholder":"欢迎您留言~","requiredFields":["nick","mail"],"enableQQ":true,"recordIP":false,"avatar":"robohash","pageSize":10,"lang":"zh-cn","highlight":true,"mathJax":false,"tagMeta":["博主","小伙伴","访客"],"metaPlaceholder":{"nick":"昵称/QQ号(必填)","mail":"邮箱（必填，完全保密）"},"master":["6783037F2DF30EAB99F9FC256157D875"],"friends":["6783037F2DF30EAB99F9FC256157D875"],"comment_count":true}, {
+        el: '#valine_container',
+        path: path,
+        placeholder: placeholder,
+        emojiCDN: 'https://cdn.jsdelivr.net/gh/volantis-x/cdn-emoji/valine/',
+        emojiMaps: getEmojiMaps(),
+      }));
+    });
+  }
+  window.addEventListener('DOMContentLoaded', (event) => {
+    console.log('DOM fully loaded and parsed');
+    load_comment();
+  });
+
+</script>
+
+
+
+
+<!-- inject -->
+
+
+  </div>
+</body>
+</html>

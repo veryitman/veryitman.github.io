@@ -1,0 +1,369 @@
+<!DOCTYPE html>
+<html lang='zh-CN'>
+
+<head>
+  <meta name="generator" content="Hexo 6.0.0">
+  <meta charset="utf-8">
+  
+
+  <meta http-equiv='x-dns-prefetch-control' content='on' />
+  <link rel='dns-prefetch' href='https://cdn.jsdelivr.net'>
+  <link rel="preconnect" href="https://cdn.jsdelivr.net" crossorigin>
+
+  <meta name="renderer" content="webkit">
+  <meta name="force-rendering" content="webkit">
+  <meta http-equiv="X-UA-Compatible" content="IE=Edge,chrome=1">
+  <meta name="HandheldFriendly" content="True" >
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1">
+  <meta name="theme-color" content="#f8f8f8">
+  <title>C++中用char数组构造string - Veryitman</title>
+
+  
+    <meta name="description" content="在 C++ 中如何使用用 char 数组 构造 string，确实是一个老掉牙的话题，但是稍加不注意你就会出错。 最近在写一个可以跨平台打印的日志程序，遇到了这个问题，故记之，共勉! 用 char 数组初始化 string 示例 12345678910111213#include &lt;string&gt;using std::string;using std::cout;int main(in">
+<meta property="og:type" content="article">
+<meta property="og:title" content="C++中用char数组构造string">
+<meta property="og:url" content="http://example.com/2020/09/05/C-%E4%B8%AD%E7%94%A8char%E6%95%B0%E7%BB%84%E6%9E%84%E9%80%A0string/index.html">
+<meta property="og:site_name" content="Veryitman">
+<meta property="og:description" content="在 C++ 中如何使用用 char 数组 构造 string，确实是一个老掉牙的话题，但是稍加不注意你就会出错。 最近在写一个可以跨平台打印的日志程序，遇到了这个问题，故记之，共勉! 用 char 数组初始化 string 示例 12345678910111213#include &lt;string&gt;using std::string;using std::cout;int main(in">
+<meta property="og:locale" content="zh_CN">
+<meta property="og:image" content="http://example.com/upload/me/qrcode_wx.jpg">
+<meta property="article:published_time" content="2020-09-05T08:15:16.000Z">
+<meta property="article:modified_time" content="2022-03-09T14:53:24.331Z">
+<meta property="article:author" content="veryitman">
+<meta property="article:tag" content="macOS C++ string">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:image" content="http://example.com/upload/me/qrcode_wx.jpg">
+  
+  
+
+  <!-- feed -->
+  
+
+  
+    
+<link rel="stylesheet" href="/css/main.css">
+
+  
+
+  
+
+  
+</head>
+
+<body>
+  
+
+
+  <div class='l_body' id='start'>
+    <aside class='l_left' layout='post'>
+    
+
+
+<header class="header">
+
+<div class="logo-wrap"><a class="title" href="/"><div class="main">Veryitman</div></a></div>
+<nav class="menu dis-select"></nav></header>
+
+<div class="widgets">
+
+
+<div class="widget-wrap" id="recent"><div class="widget-header cap dis-select"><span class="name">最近更新</span></div><div class="widget-body fs14"><div class="line"></div><a class="more-item" href="/2016/12/31/%E5%86%8D%E8%A7%81-2016/"><div class="cap"><time>2022-03-09</time><span>随笔</span></div><span class="title">再见 2016</span></a><div class="line"></div><a class="more-item" href="/2016/09/22/RN-%E5%A6%82%E4%BD%95%E5%90%AF%E5%8A%A8-local-server/"><div class="cap"><time>2022-03-09</time><span>ReactNative</span></div><span class="title">RN: 如何启动 local server</span></a><div class="line"></div><a class="more-item" href="/2016/09/25/iOS-%E9%A1%B9%E7%9B%AE-%E6%89%93%E9%80%A0%E6%9C%AC%E5%9C%B0-pod-%E5%BA%93/"><div class="cap"><time>2022-03-09</time><span>iOS</span></div><span class="title">iOS 项目: 打造本地 pod 库</span></a><div class="line"></div><a class="more-item" href="/2016/09/16/RN-Mac-%E9%85%8D%E7%BD%AE-ES6-%E7%AE%80%E6%98%93%E5%BC%80%E5%8F%91%E7%8E%AF%E5%A2%83/"><div class="cap"><time>2022-03-09</time><span>ReactNative</span></div><span class="title">RN: Mac 配置 ES6 简易开发环境</span></a><div class="line"></div><a class="more-item" href="/2016/09/10/%E4%B8%8E-CSDN-%E7%9A%84%E8%AF%80%E5%88%AB/"><div class="cap"><time>2022-03-09</time><span>随笔</span></div><span class="title">与 CSDN 的诀别</span></a></div></div>
+
+
+
+</div>
+
+
+    </aside>
+    <div class='l_main'>
+      
+
+      
+
+
+<div class="bread-nav fs12"><div id="breadcrumb"><a class="cap breadcrumb" href="/">主页</a><span class="sep"></span><a class="cap breadcrumb" href="/">文章</a><span class="sep"></span><a class="cap breadcrumb-link" href="/categories/C-C/">C/C++</a></div><div id="post-meta">发布于&nbsp;<time datetime="2020-09-05T08:15:16.000Z">2020-09-05</time></div></div>
+
+<article class='content md post'>
+<h1 class="article-title"><span>C++中用char数组构造string</span></h1>
+<p>在 <code>C++</code> 中如何使用用 <code>char 数组</code> 构造 <code>string</code>，确实是一个老掉牙的话题，但是稍加不注意你就会出错。</p>
+<p>最近在写一个可以跨平台打印的日志程序，遇到了这个问题，故记之，共勉!</p>
+<p><strong>用 char 数组初始化 string 示例</strong></p>
+<figure class="highlight cpp"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br></pre></td><td class="code"><pre><span class="line"><span class="meta">#<span class="keyword">include</span> <span class="string">&lt;string&gt;</span></span></span><br><span class="line"></span><br><span class="line"><span class="keyword">using</span> std::string;</span><br><span class="line"><span class="keyword">using</span> std::cout;</span><br><span class="line"></span><br><span class="line"><span class="function"><span class="type">int</span> <span class="title">main</span><span class="params">(<span class="type">int</span> argc, <span class="type">const</span> <span class="type">char</span> * argv[])</span></span></span><br><span class="line"><span class="function"></span>&#123;</span><br><span class="line">    <span class="type">char</span> chArray[] = &#123;<span class="string">&#x27;h&#x27;</span>, <span class="string">&#x27;e&#x27;</span>, <span class="string">&#x27;l&#x27;</span>, <span class="string">&#x27;l&#x27;</span>&#125;;</span><br><span class="line">    cout &lt;&lt; <span class="string">&quot;array size = &quot;</span> &lt;&lt; <span class="built_in">sizeof</span>(chArray)/<span class="built_in">sizeof</span>(<span class="type">char</span>) &lt;&lt; endl;</span><br><span class="line">    cout &lt;&lt; chArray &lt;&lt; endl;</span><br><span class="line">    <span class="function">string <span class="title">str</span><span class="params">(chArray)</span></span>;</span><br><span class="line">    cout &lt;&lt; <span class="string">&quot;str = &quot;</span> &lt;&lt; str &lt;&lt; <span class="string">&quot; and str&#x27;s size = &quot;</span> &lt;&lt; str.<span class="built_in">length</span>() &lt;&lt; endl;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<p>针对上面的代码，不同的编译器输出结果不一致，具有一定的随机性。</p>
+<p>在 macos 系统下，输出结果</p>
+<figure class="highlight cpp"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line">array size = <span class="number">4</span></span><br><span class="line">hell\<span class="number">310</span>\<span class="number">367</span>\<span class="number">277</span>_\<span class="number">377</span></span><br><span class="line">str = hell\<span class="number">310</span>\<span class="number">367</span>\<span class="number">277</span>_\<span class="number">377</span> <span class="keyword">and</span> str<span class="number">&#x27;</span>s size = <span class="number">10</span></span><br></pre></td></tr></table></figure>
+
+<p>得到这种结果，简直要法克…</p>
+<p>但是有时候输出结果又是下面那样的</p>
+<figure class="highlight cpp"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line">array size = <span class="number">4</span></span><br><span class="line">hell</span><br><span class="line">str = hell <span class="keyword">and</span> str<span class="number">&#x27;</span>s size = <span class="number">5</span></span><br></pre></td></tr></table></figure>
+
+<p>很明显，<code>string</code> 的 <code>size</code> 不对.</p>
+<p>思考一下，原来是少了 ‘\0’，修改上面代码，如下：</p>
+<figure class="highlight cpp"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br></pre></td><td class="code"><pre><span class="line"><span class="meta">#<span class="keyword">include</span> <span class="string">&lt;string&gt;</span></span></span><br><span class="line"></span><br><span class="line"><span class="keyword">using</span> std::string;</span><br><span class="line"><span class="keyword">using</span> std::cout;</span><br><span class="line"></span><br><span class="line"><span class="function"><span class="type">int</span> <span class="title">main</span><span class="params">(<span class="type">int</span> argc, <span class="type">const</span> <span class="type">char</span> * argv[])</span></span></span><br><span class="line"><span class="function"></span>&#123;</span><br><span class="line">    <span class="type">char</span> chArray[] = &#123;<span class="string">&#x27;h&#x27;</span>, <span class="string">&#x27;e&#x27;</span>, <span class="string">&#x27;l&#x27;</span>, <span class="string">&#x27;l&#x27;</span>, <span class="string">&#x27;\0&#x27;</span>&#125;;</span><br><span class="line">    cout &lt;&lt; <span class="string">&quot;array size = &quot;</span> &lt;&lt; <span class="built_in">sizeof</span>(chArray)/<span class="built_in">sizeof</span>(<span class="type">char</span>) &lt;&lt; endl;</span><br><span class="line">    cout &lt;&lt; chArray &lt;&lt; endl;</span><br><span class="line">    <span class="function">string <span class="title">str</span><span class="params">(chArray)</span></span>;</span><br><span class="line">    cout &lt;&lt; <span class="string">&quot;str = &quot;</span> &lt;&lt; str &lt;&lt; <span class="string">&quot; and str&#x27;s size = &quot;</span> &lt;&lt; str.<span class="built_in">length</span>() &lt;&lt; endl;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<p>修改之后，代码的结果输出正常了。</p>
+<figure class="highlight cpp"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line">array size = <span class="number">5</span></span><br><span class="line">hell</span><br><span class="line">str = hell <span class="keyword">and</span> str<span class="number">&#x27;</span>s size = <span class="number">4</span></span><br></pre></td></tr></table></figure>
+
+<p>也就是说，<code>char</code> 数组初始化 <code>string</code> 对象，数组的结束符 ‘\0’ 不要忘记了。</p>
+<p>另外，要注意 <code>string</code> 的 <code>size</code> 要比 <code>char 数组</code> 的 <code>size</code> 小。</p>
+<p>不知道上面的东西，你有没有看明白?</p>
+<p>那么下面的代码输出，你觉得会达到自己的预期吗?</p>
+<figure class="highlight cpp"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br></pre></td><td class="code"><pre><span class="line"><span class="type">const</span> <span class="type">char</span> * cp = str.<span class="built_in">c_str</span>();</span><br><span class="line"><span class="type">unsigned</span> <span class="type">long</span> size = str.<span class="built_in">length</span>();</span><br><span class="line"><span class="type">char</span> chArray2[size];</span><br><span class="line"><span class="keyword">for</span> (<span class="type">int</span> i=<span class="number">0</span>; i&lt;size; i++) &#123;</span><br><span class="line">    chArray2[i] = cp[i];</span><br><span class="line">    cout &lt;&lt; chArray2[i] &lt;&lt; endl;</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line"><span class="function">string <span class="title">str2</span><span class="params">(chArray2)</span></span>;</span><br><span class="line">cout &lt;&lt; <span class="string">&quot;str2 = &quot;</span> &lt;&lt; str2 &lt;&lt; <span class="string">&quot; and str2&#x27;s size = &quot;</span> &lt;&lt; str2.<span class="built_in">length</span>() &lt;&lt; endl;</span><br></pre></td></tr></table></figure>
+
+<p>这里很显然是错误的，至少两处是不对的。</p>
+<p>1、<code>chArray2</code> 的大小；</p>
+<p>2、<code>chArray2</code> 的结束符没有添加 ‘\0’；</p>
+<p>修改一下，给出完整示例</p>
+<figure class="highlight cpp"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br></pre></td><td class="code"><pre><span class="line"><span class="meta">#<span class="keyword">include</span> <span class="string">&lt;string&gt;</span></span></span><br><span class="line"></span><br><span class="line"><span class="keyword">using</span> std::string;</span><br><span class="line"><span class="keyword">using</span> std::cout;</span><br><span class="line"></span><br><span class="line"><span class="function"><span class="type">int</span> <span class="title">main</span><span class="params">(<span class="type">int</span> argc, <span class="type">const</span> <span class="type">char</span> * argv[])</span></span></span><br><span class="line"><span class="function"></span>&#123;</span><br><span class="line">    <span class="comment">// char[] ---&gt; string</span></span><br><span class="line">    <span class="type">char</span> chArray[] = &#123;<span class="string">&#x27;h&#x27;</span>, <span class="string">&#x27;e&#x27;</span>, <span class="string">&#x27;l&#x27;</span>, <span class="string">&#x27;l&#x27;</span>, <span class="string">&#x27;\0&#x27;</span>&#125;;</span><br><span class="line">    cout &lt;&lt; <span class="string">&quot;array size = &quot;</span> &lt;&lt; <span class="built_in">sizeof</span>(chArray)/<span class="built_in">sizeof</span>(<span class="type">char</span>) &lt;&lt; endl;</span><br><span class="line">    cout &lt;&lt; chArray &lt;&lt; endl;</span><br><span class="line">    <span class="function">string <span class="title">str</span><span class="params">(chArray)</span></span>;</span><br><span class="line">    cout &lt;&lt; <span class="string">&quot;str = &quot;</span> &lt;&lt; str &lt;&lt; <span class="string">&quot; and str&#x27;s size = &quot;</span> &lt;&lt; str.<span class="built_in">length</span>() &lt;&lt; endl;</span><br><span class="line">    </span><br><span class="line">    <span class="comment">// string --&gt; char[]</span></span><br><span class="line">    <span class="type">const</span> <span class="type">char</span> * cp = str.<span class="built_in">c_str</span>();</span><br><span class="line">    <span class="type">unsigned</span> <span class="type">long</span> size = str.<span class="built_in">length</span>();</span><br><span class="line">    <span class="type">char</span> chArray2[size + <span class="number">1</span>];</span><br><span class="line">    <span class="keyword">for</span> (<span class="type">int</span> i=<span class="number">0</span>; i&lt;size; i++) &#123;</span><br><span class="line">        chArray2[i] = cp[i];</span><br><span class="line">        cout &lt;&lt; chArray2[i] &lt;&lt; endl;</span><br><span class="line">    &#125;</span><br><span class="line">    chArray2[size] = <span class="string">&#x27;\0&#x27;</span>;</span><br><span class="line">    </span><br><span class="line">    <span class="function">string <span class="title">str2</span><span class="params">(chArray2)</span></span>;</span><br><span class="line">    cout &lt;&lt; <span class="string">&quot;str2 = &quot;</span> &lt;&lt; str2 &lt;&lt; <span class="string">&quot; and str2&#x27;s size = &quot;</span> &lt;&lt; str2.<span class="built_in">length</span>() &lt;&lt; endl;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<p>也许有人会说，为什么要用 <code>char 数组</code> 去构造 <code>string</code> 对象，用 <code>char *</code>(指针)不是更好吗?</p>
+<p>的确是这样，但是有时候需要 <code>char</code> 数组来操作，我也是把自己遇到的问题,加以总结跟大家分享一下。</p>
+<p>把示例代码中的</p>
+<figure class="highlight cpp"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line"><span class="type">char</span> chArray[] = &#123;<span class="string">&#x27;h&#x27;</span>, <span class="string">&#x27;e&#x27;</span>, <span class="string">&#x27;l&#x27;</span>, <span class="string">&#x27;l&#x27;</span>, <span class="string">&#x27;\0&#x27;</span>&#125;;</span><br></pre></td></tr></table></figure>
+
+<p>修改为</p>
+<figure class="highlight cpp"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line"><span class="type">char</span> chArray[] = <span class="string">&quot;hell&quot;</span>;</span><br></pre></td></tr></table></figure>
+
+<p>或者</p>
+<figure class="highlight cpp"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line"><span class="type">const</span> <span class="type">char</span> *chArray = <span class="string">&quot;hell&quot;</span>;</span><br></pre></td></tr></table></figure>
+
+<p>代码也可以正常正确的输出。</p>
+<p>如果你有兴趣，可以看我之前总结的一篇文章 <a target="_blank" rel="noopener" href="http://www.veryitman.com/2019/03/07/%E4%B8%8D%E8%A7%81%E5%BE%97%E4%BD%A0%E4%BC%9A%E8%AE%A1%E7%AE%97C%E5%AD%97%E7%AC%A6%E4%B8%B2%E9%95%BF%E5%BA%A6/">不见得你会计算C字符串长度</a>, 🙇‍！</p>
+<hr>
+<p><strong>心若相知，无言也默契。</strong></p>
+<p><img class="lazy" src="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAABGdBTUEAALGPC/xhBQAAADhlWElmTU0AKgAAAAgAAYdpAAQAAAABAAAAGgAAAAAAAqACAAQAAAABAAAAAaADAAQAAAABAAAAAQAAAADa6r/EAAAAC0lEQVQIHWNgAAIAAAUAAY27m/MAAAAASUVORK5CYII=" data-src="/upload/me/qrcode_wx.jpg"></p>
+
+
+
+
+</article>
+
+<div class="related-wrap reveal" id="read-next"><section class="header cap theme"><span>接下来阅读</span></section><section class="body fs14"><a id="next" href="/2020/08/29/%E5%BE%AE%E6%9C%8D%E5%8A%A1-%E5%A4%9A-Module-%E7%AE%A1%E7%90%86%E5%B7%A5%E7%A8%8B/">微服务: 多 Module 管理工程<span class="note">较早</span></a><div class="line"></div><a id="prev" href="/2020/09/26/%E7%94%9F%E8%80%8C%E4%B8%BA%E4%BA%BA%EF%BC%8C%E6%88%91%E5%BE%88%E6%AC%A2%E5%96%9C/">生而为人，我很欢喜<span class="note">较新</span></a></section></div>
+
+
+
+
+
+
+  <div class='related-wrap md reveal' id="comments">
+    <div class='cmt-title cap theme'>
+      快来参与讨论吧
+    </div>
+    <div class='cmt-body valine'>
+      
+
+<div id="valine_container" class="valine_thread"><svg class="loading" style="vertical-align: middle;fill: currentColor;overflow: hidden;" viewBox="0 0 1024 1024" version="1.1" xmlns="http://www.w3.org/2000/svg" p-id="2709"><path d="M832 512c0-176-144-320-320-320V128c211.2 0 384 172.8 384 384h-64zM192 512c0 176 144 320 320 320v64C300.8 896 128 723.2 128 512h64z" p-id="2710"></path></svg></div>
+
+    </div>
+  </div>
+
+
+
+      
+<footer class="page-footer reveal fs12"><hr><div class="text"><p>本博客所有文章除特别声明外，均采用 <a target="_blank" rel="noopener" href="https://creativecommons.org/licenses/by-nc-sa/4.0/">CC BY-NC-SA 4.0</a> 许可协议，转载请注明出处。</p>
+<p>veryitman</p>
+</div></footer>
+
+      <div class='float-panel mobile-only blur' style='display:none'>
+  <button type='button' class='sidebar-toggle mobile' onclick='sidebar.toggle()'>
+    <svg class="icon" style="width: 1em; height: 1em;vertical-align: middle;fill: currentColor;overflow: hidden;" viewBox="0 0 1024 1024" version="1.1" xmlns="http://www.w3.org/2000/svg" p-id="15301"><path d="M566.407 808.3c26.9-0.1 49.3-20.8 51.6-47.6-1.9-27.7-23.9-49.7-51.6-51.6h-412.6c-28.2-1.4-52.6 19.5-55.5 47.6 2.3 26.8 24.6 47.5 51.6 47.6h416.5v4z m309.3-249.9c26.9-0.1 49.3-20.8 51.6-47.6-2.2-26.8-24.6-47.5-51.6-47.6h-721.9c-27.7-2.8-52.5 17.4-55.3 45.1-0.1 0.8-0.1 1.7-0.2 2.5 0.9 27.2 23.6 48.5 50.7 47.6H875.707z m-103.1-245.9c26.9-0.1 49.3-20.8 51.6-47.6-0.4-28.3-23.2-51.1-51.5-51.6h-618.9c-29.5-1.1-54.3 21.9-55.5 51.4v0.2c1.4 27.8 25.2 49.2 53 47.8 0.8 0 1.7-0.1 2.5-0.2h618.8z" p-id="15302"></path><path d="M566.407 808.3c26.9-0.1 49.3-20.8 51.6-47.6-1.9-27.7-23.9-49.7-51.6-51.6h-412.6c-28.2-1.4-52.6 19.5-55.5 47.6 1.9 27.7 23.9 49.7 51.6 51.6h416.5z m309.3-249.9c26.9-0.1 49.3-20.8 51.6-47.6-2.2-26.8-24.6-47.5-51.6-47.6h-721.9c-27.7-2.8-52.5 17.4-55.3 45.1-0.1 0.8-0.1 1.7-0.2 2.5 0.9 27.2 23.6 48.5 50.7 47.6H875.707z m-103.1-245.9c26.9-0.1 49.3-20.8 51.6-47.6-0.4-28.3-23.2-51.1-51.5-51.6h-618.9c-29.5-1.1-54.3 21.9-55.5 51.4v0.2c1.4 27.8 25.2 49.2 53 47.8 0.8 0 1.7-0.1 2.5-0.2h618.8z" p-id="15303"></path></svg>
+  </button>
+</div>
+
+    </div>
+  </div>
+  <div class='scripts'>
+    <script type="text/javascript">
+  stellar = {
+    // 懒加载 css https://github.com/filamentgroup/loadCSS
+    loadCSS: (href, before, media, attributes) => {
+      var doc = window.document;
+      var ss = doc.createElement("link");
+      var ref;
+      if (before) {
+        ref = before;
+      } else {
+        var refs = (doc.body || doc.getElementsByTagName("head")[0]).childNodes;
+        ref = refs[refs.length - 1];
+      }
+      var sheets = doc.styleSheets;
+      if (attributes) {
+        for (var attributeName in attributes) {
+          if (attributes.hasOwnProperty(attributeName)) {
+            ss.setAttribute(attributeName, attributes[attributeName]);
+          }
+        }
+      }
+      ss.rel = "stylesheet";
+      ss.href = href;
+      ss.media = "only x";
+      function ready(cb) {
+        if (doc.body) {
+          return cb();
+        }
+        setTimeout(function () {
+          ready(cb);
+        });
+      }
+      ready(function () {
+        ref.parentNode.insertBefore(ss, before ? ref : ref.nextSibling);
+      });
+      var onloadcssdefined = function (cb) {
+        var resolvedHref = ss.href;
+        var i = sheets.length;
+        while (i--) {
+          if (sheets[i].href === resolvedHref) {
+            return cb();
+          }
+        }
+        setTimeout(function () {
+          onloadcssdefined(cb);
+        });
+      };
+      function loadCB() {
+        if (ss.addEventListener) {
+          ss.removeEventListener("load", loadCB);
+        }
+        ss.media = media || "all";
+      }
+      if (ss.addEventListener) {
+        ss.addEventListener("load", loadCB);
+      }
+      ss.onloadcssdefined = onloadcssdefined;
+      onloadcssdefined(loadCB);
+      return ss;
+    },
+
+    // 从 butterfly 和 volantis 获得灵感
+    loadScript: (src, opt) => new Promise((resolve, reject) => {
+      var script = document.createElement('script');
+      script.src = src;
+      if (opt) {
+        for (let key of Object.keys(opt)) {
+          script[key] = opt[key]
+        }
+      } else {
+        // 默认异步，如果需要同步，第二个参数传入 {} 即可
+        script.async = true
+      }
+      script.onerror = reject
+      script.onload = script.onreadystatechange = function() {
+        const loadState = this.readyState
+        if (loadState && loadState !== 'loaded' && loadState !== 'complete') return
+        script.onload = script.onreadystatechange = null
+        resolve()
+      }
+      document.head.appendChild(script)
+    }),
+
+    // https://github.com/jerryc127/hexo-theme-butterfly
+    jQuery: (fn) => {
+      if (typeof jQuery === 'undefined') {
+        stellar.loadScript(stellar.plugins.jQuery).then(fn)
+      } else {
+        fn()
+      }
+    }
+  };
+  stellar.github = 'https://github.com/xaoxuu/hexo-theme-stellar/tree/1.6.1';
+  stellar.config = {
+    date_suffix: {
+      just: '刚刚',
+      min: '分钟前',
+      hour: '小时前',
+      day: '天前',
+      month: '个月前',
+    },
+  };
+
+  // required plugins (only load if needs)
+  stellar.plugins = {
+    jQuery: 'https://cdn.jsdelivr.net/npm/jquery@3.5.1/dist/jquery.min.js',
+    sitesjs: '/js/plugins/sites.js',
+    friendsjs: '/js/plugins/friends.js',
+  };
+
+  // optional plugins
+  if ('true' == 'true') {
+    stellar.plugins.lazyload = Object.assign({"enable":true,"js":"https://cdn.jsdelivr.net/npm/vanilla-lazyload@17.3.1/dist/lazyload.min.js","transition":"blur"});
+  }
+  if ('true' == 'true') {
+    stellar.plugins.swiper = Object.assign({"enable":true,"css":"https://unpkg.com/swiper@6/swiper-bundle.min.css","js":"https://unpkg.com/swiper@6/swiper-bundle.min.js"});
+  }
+  if ('' == 'true') {
+    stellar.plugins.scrollreveal = Object.assign({"enable":null,"js":"https://cdn.jsdelivr.net/npm/scrollreveal@4.0.9/dist/scrollreveal.min.js","distance":"8px","duration":500,"interval":100,"scale":1});
+  }
+  if ('true' == 'true') {
+    stellar.plugins.preload = Object.assign({"enable":true,"service":"flying_pages","instant_page":"https://cdn.jsdelivr.net/gh/volantis-x/cdn-volantis@4.1.2/js/instant_page.js","flying_pages":"https://cdn.jsdelivr.net/gh/gijo-varghese/flying-pages@2.1.2/flying-pages.min.js"});
+  }
+</script>
+
+<!-- required -->
+
+  
+<script src="/js/main.js" async></script>
+
+
+
+<!-- optional -->
+
+  <script>
+  function getEmojiMaps() {
+    function emoji(path, idx, ext) {
+      return path + "/" + path + "-" + idx + "." + ext;
+    }
+    var emojiMaps = {};
+    for (var i = 1; i <= 54; i++) {
+      emojiMaps['tieba-' + i] = emoji('tieba', i, 'png');
+    }
+    for (var i = 1; i <= 101; i++) {
+      emojiMaps['qq-' + i] = emoji('qq', i, 'gif');
+    }
+    for (var i = 1; i <= 116; i++) {
+      emojiMaps['aru-' + i] = emoji('aru', i, 'gif');
+    }
+    for (var i = 1; i <= 125; i++) {
+      emojiMaps['twemoji-' + i] = emoji('twemoji', i, 'png');
+    }
+    for (var i = 1; i <= 4; i++) {
+      emojiMaps['weibo-' + i] = emoji('weibo', i, 'png');
+    }
+    return emojiMaps;
+  }
+  function load_comment(){
+    if(!document.getElementById("valine_container"))return;
+    stellar.loadScript('https://cdn.jsdelivr.net/gh/XuxuGood/simple-blog-cdn@main/js/Valine.min.js', {defer:true}).then(function () {
+      const el = document.getElementById("valine_container");
+      var path = el.getAttribute('comment_id');
+      const placeholder = "欢迎您留言~";
+      if (!path) {
+        path = decodeURI(window.location.pathname);
+      }
+      var valine = new Valine();
+      valine.init(Object.assign({"js":"https://cdn.jsdelivr.net/gh/XuxuGood/simple-blog-cdn@main/js/Valine.min.js","appId":"FY2C9UCttYNaE1j8umenqdCE-gzGzoHsz","appKey":"4i7xMwkfSEGmEDhi6SceKFxz","placeholder":"欢迎您留言~","requiredFields":["nick","mail"],"enableQQ":true,"recordIP":false,"avatar":"robohash","pageSize":10,"lang":"zh-cn","highlight":true,"mathJax":false,"tagMeta":["博主","小伙伴","访客"],"metaPlaceholder":{"nick":"昵称/QQ号(必填)","mail":"邮箱（必填，完全保密）"},"master":["6783037F2DF30EAB99F9FC256157D875"],"friends":["6783037F2DF30EAB99F9FC256157D875"],"comment_count":true}, {
+        el: '#valine_container',
+        path: path,
+        placeholder: placeholder,
+        emojiCDN: 'https://cdn.jsdelivr.net/gh/volantis-x/cdn-emoji/valine/',
+        emojiMaps: getEmojiMaps(),
+      }));
+    });
+  }
+  window.addEventListener('DOMContentLoaded', (event) => {
+    console.log('DOM fully loaded and parsed');
+    load_comment();
+  });
+
+</script>
+
+
+
+
+<!-- inject -->
+
+
+  </div>
+</body>
+</html>

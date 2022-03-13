@@ -1,0 +1,425 @@
+<!DOCTYPE html>
+<html lang='zh-CN'>
+
+<head>
+  <meta name="generator" content="Hexo 6.0.0">
+  <meta charset="utf-8">
+  
+
+  <meta http-equiv='x-dns-prefetch-control' content='on' />
+  <link rel='dns-prefetch' href='https://cdn.jsdelivr.net'>
+  <link rel="preconnect" href="https://cdn.jsdelivr.net" crossorigin>
+
+  <meta name="renderer" content="webkit">
+  <meta name="force-rendering" content="webkit">
+  <meta http-equiv="X-UA-Compatible" content="IE=Edge,chrome=1">
+  <meta name="HandheldFriendly" content="True" >
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1">
+  <meta name="theme-color" content="#f8f8f8">
+  <title>Cocoapods: 私有仓库 - Veryitman</title>
+
+  
+    <meta name="description" content="使用场景在我之前的博客中分享了几篇关于 Cocoapods 的文章（文末有链接），今天分享另外一个主题即如何创建你自己的私有仓库以及如何使用私有仓库。 为什么会有这种需求呢？ 开发组内或者公司内，不希望把一些核心的公用代码给到外界使用（不开源），但是这些代码基本很稳定很成熟，可以做成组件给到其他人或者组内使用。 那么，就可以使用 Cocoapods 来创建自己的私有仓库，让大家共享代码，也是组件化">
+<meta property="og:type" content="article">
+<meta property="og:title" content="Cocoapods: 私有仓库">
+<meta property="og:url" content="http://example.com/2018/09/24/Cocoapods-%E7%A7%81%E6%9C%89%E4%BB%93%E5%BA%93/index.html">
+<meta property="og:site_name" content="Veryitman">
+<meta property="og:description" content="使用场景在我之前的博客中分享了几篇关于 Cocoapods 的文章（文末有链接），今天分享另外一个主题即如何创建你自己的私有仓库以及如何使用私有仓库。 为什么会有这种需求呢？ 开发组内或者公司内，不希望把一些核心的公用代码给到外界使用（不开源），但是这些代码基本很稳定很成熟，可以做成组件给到其他人或者组内使用。 那么，就可以使用 Cocoapods 来创建自己的私有仓库，让大家共享代码，也是组件化">
+<meta property="og:locale" content="zh_CN">
+<meta property="og:image" content="http://example.com/upload/images/2018/09/24/1.jpg">
+<meta property="og:image" content="http://example.com/upload/images/2018/09/24/2.jpg">
+<meta property="og:image" content="http://example.com/upload/images/2018/09/24/3.jpg">
+<meta property="og:image" content="http://example.com/upload/images/2018/09/24/4.jpg">
+<meta property="og:image" content="http://example.com/upload/images/2018/09/24/5.jpg">
+<meta property="og:image" content="http://example.com/upload/images/2018/09/24/6.jpg">
+<meta property="og:image" content="http://example.com/upload/images/2018/09/24/7.jpg">
+<meta property="og:image" content="http://example.com/upload/images/2018/09/24/8.jpg">
+<meta property="og:image" content="http://example.com/upload/me/qrcode_wx.jpg">
+<meta property="article:published_time" content="2018-09-24T14:35:04.000Z">
+<meta property="article:modified_time" content="2022-03-09T14:53:24.346Z">
+<meta property="article:author" content="veryitman">
+<meta property="article:tag" content="iOS cocoapods">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:image" content="http://example.com/upload/images/2018/09/24/1.jpg">
+  
+  
+
+  <!-- feed -->
+  
+
+  
+    
+<link rel="stylesheet" href="/css/main.css">
+
+  
+
+  
+
+  
+</head>
+
+<body>
+  
+
+
+  <div class='l_body' id='start'>
+    <aside class='l_left' layout='post'>
+    
+
+
+<header class="header">
+
+<div class="logo-wrap"><a class="title" href="/"><div class="main">Veryitman</div></a></div>
+<nav class="menu dis-select"></nav></header>
+
+<div class="widgets">
+
+<div class="widget-wrap single" id="toc"><div class="widget-header cap dis-select"><span class="name">本文目录</span></div><div class="widget-body fs14"><div class="doc-tree active"><ol class="toc"><li class="toc-item toc-level-2"><a class="toc-link" href="#%E4%BD%BF%E7%94%A8%E5%9C%BA%E6%99%AF"><span class="toc-text">使用场景</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#%E5%88%9B%E5%BB%BA%E4%BB%93%E5%BA%93"><span class="toc-text">创建仓库</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#%E5%88%9B%E5%BB%BA%E4%BB%A3%E7%A0%81%E5%B7%A5%E7%A8%8B"><span class="toc-text">创建代码工程</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#%E6%8F%90%E4%BA%A4%E7%A7%81%E6%9C%89-podspec"><span class="toc-text">提交私有 podspec</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#%E4%BD%BF%E7%94%A8%E7%A7%81%E6%9C%89%E5%BA%93"><span class="toc-text">使用私有库</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#pod-%E5%91%BD%E4%BB%A4"><span class="toc-text">pod 命令</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#%E5%8F%82%E8%80%83%E6%96%87%E6%A1%A3"><span class="toc-text">参考文档</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#%E6%88%91%E7%9A%84%E5%85%B6%E4%BB%96%E6%96%87%E7%AB%A0"><span class="toc-text">我的其他文章</span></a></li></ol></div></div></div>
+
+
+</div>
+
+
+    </aside>
+    <div class='l_main'>
+      
+
+      
+
+
+<div class="bread-nav fs12"><div id="breadcrumb"><a class="cap breadcrumb" href="/">主页</a><span class="sep"></span><a class="cap breadcrumb" href="/">文章</a><span class="sep"></span><a class="cap breadcrumb-link" href="/categories/MacOS/">MacOS</a></div><div id="post-meta">发布于&nbsp;<time datetime="2018-09-24T14:35:04.000Z">2018-09-24</time></div></div>
+
+<article class='content md post'>
+<h1 class="article-title"><span>Cocoapods: 私有仓库</span></h1>
+<h2 id="使用场景"><a href="#使用场景" class="headerlink" title="使用场景"></a>使用场景</h2><p>在我之前的博客中分享了几篇关于 Cocoapods 的文章（文末有链接），今天分享另外一个主题即如何创建你自己的私有仓库以及如何使用私有仓库。</p>
+<p>为什么会有这种需求呢？</p>
+<p>开发组内或者公司内，不希望把一些核心的公用代码给到外界使用（不开源），但是这些代码基本很稳定很成熟，可以做成组件给到其他人或者组内使用。</p>
+<p>那么，就可以使用 Cocoapods 来创建自己的私有仓库，让大家共享代码，也是组件化的一种方案。</p>
+<p>下面的分享全是基于实践所得，中间也遇到很多坑，都被我一一解决了，希望能帮到正在阅读文章的你。</p>
+<h2 id="创建仓库"><a href="#创建仓库" class="headerlink" title="创建仓库"></a>创建仓库</h2><p>这里的创建仓库，包括两个仓库，一个是代码仓库，另一个是 pod 源的仓库。</p>
+<p>在 <a target="_blank" rel="noopener" href="https://github.com/">Github</a> 创建 repository，如图：<br><img class="lazy" src="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAABGdBTUEAALGPC/xhBQAAADhlWElmTU0AKgAAAAgAAYdpAAQAAAABAAAAGgAAAAAAAqACAAQAAAABAAAAAaADAAQAAAABAAAAAQAAAADa6r/EAAAAC0lEQVQIHWNgAAIAAAUAAY27m/MAAAAASUVORK5CYII=" data-src="/upload/images/2018/09/24/1.jpg" alt="1"></p>
+<p><img class="lazy" src="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAABGdBTUEAALGPC/xhBQAAADhlWElmTU0AKgAAAAgAAYdpAAQAAAABAAAAGgAAAAAAAqACAAQAAAABAAAAAaADAAQAAAABAAAAAQAAAADa6r/EAAAAC0lEQVQIHWNgAAIAAAUAAY27m/MAAAAASUVORK5CYII=" data-src="/upload/images/2018/09/24/2.jpg" alt="1"></p>
+<p>创建名为 <code>iOS_private_lib</code> 的 repository，这个主要用来存放我们的代码。</p>
+<p>同样道理，创建一个 Repo 用于存放私有的 SpecRepo 源，我创建的是 <code>https://github.com/veryitman/private_spec_repo.git</code> 这个仓库。</p>
+<p>为了说明问题，这里我使用了 <code>Public</code> 来模拟 <code>Private</code> 仓库。在实际开发中，一般都是使用公司自己搭建的私有 git 服务器来做，我这里主要是为了说明问题。</p>
+<h2 id="创建代码工程"><a href="#创建代码工程" class="headerlink" title="创建代码工程"></a>创建代码工程</h2><p><strong>1. 先 clone 刚才创建的 repo 到本地</strong></p>
+<figure class="highlight shell"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line">cd ~/workspace/</span><br><span class="line"></span><br><span class="line">git clone https://github.com/veryitman/iOS_private_lib</span><br></pre></td></tr></table></figure>
+
+<p><strong>2. 创建工程</strong></p>
+<p>在 <code>~/workspace/iOS_private_lib</code> 下使用 <code>pod lib create</code> 创建工程，工程名字为 <code>CoreHTTP</code>，执行命令如下：</p>
+<figure class="highlight shell"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line">cd ~/workspace/iOS_private_lib</span><br><span class="line"></span><br><span class="line">pod lib create CoreHTTP</span><br></pre></td></tr></table></figure>
+
+<p>根据提示输入对应的信息即可完成创建，如图：<br><img class="lazy" src="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAABGdBTUEAALGPC/xhBQAAADhlWElmTU0AKgAAAAgAAYdpAAQAAAABAAAAGgAAAAAAAqACAAQAAAABAAAAAaADAAQAAAABAAAAAQAAAADa6r/EAAAAC0lEQVQIHWNgAAIAAAUAAY27m/MAAAAASUVORK5CYII=" data-src="/upload/images/2018/09/24/3.jpg" alt="1"></p>
+<p>创建成功后，包含一个 <strong>Example</strong> 例子工程，工程目录如下：<br><img class="lazy" src="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAABGdBTUEAALGPC/xhBQAAADhlWElmTU0AKgAAAAgAAYdpAAQAAAABAAAAGgAAAAAAAqACAAQAAAABAAAAAaADAAQAAAABAAAAAQAAAADa6r/EAAAAC0lEQVQIHWNgAAIAAAUAAY27m/MAAAAASUVORK5CYII=" data-src="/upload/images/2018/09/24/4.jpg" alt="1"></p>
+<p>使用 Xcode 打开例子工程，在 <code>CoreHTTP/Classes</code> 中创建文件即可，如下图所示：<br><img class="lazy" src="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAABGdBTUEAALGPC/xhBQAAADhlWElmTU0AKgAAAAgAAYdpAAQAAAABAAAAGgAAAAAAAqACAAQAAAABAAAAAaADAAQAAAABAAAAAQAAAADa6r/EAAAAC0lEQVQIHWNgAAIAAAUAAY27m/MAAAAASUVORK5CYII=" data-src="/upload/images/2018/09/24/5.jpg" alt="1"></p>
+<p><strong>3. 编辑 podspec 文件</strong></p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br></pre></td><td class="code"><pre><span class="line">Pod::Spec.new do |s|</span><br><span class="line">  s.name             = &#x27;CoreHTTP&#x27;</span><br><span class="line">  s.version          = &#x27;0.1.0&#x27;</span><br><span class="line">  s.summary          = &#x27;CoreHTTP for create private pod, it is a demo only.&#x27;</span><br><span class="line">  s.description      = &lt;&lt;-DESC</span><br><span class="line">                       The project of CoreHTTP is a private pod, it is a demo only.</span><br><span class="line">                       DESC</span><br><span class="line"></span><br><span class="line">  s.homepage         = &#x27;https://github.com/veryitman/iOS_private_lib.git&#x27;</span><br><span class="line">  s.license          = &#123; :type =&gt; &#x27;MIT&#x27;, :file =&gt; &#x27;LICENSE&#x27; &#125;</span><br><span class="line">  s.author           = &#123; &#x27;veryitman@126.com&#x27; =&gt; &#x27;veryitman@126.com&#x27; &#125;</span><br><span class="line">  s.platform         = :ios, &quot;7.0&quot;</span><br><span class="line">  s.source           = &#123; :git =&gt; &#x27;https://github.com/veryitman/iOS_private_lib.git&#x27;, :tag =&gt; s.version.to_s &#125;</span><br><span class="line"></span><br><span class="line">  s.ios.deployment_target = &#x27;8.0&#x27;</span><br><span class="line"></span><br><span class="line">  s.source_files = &#x27;CoreHTTP/Classes/**/*&#x27;</span><br><span class="line">  s.requires_arc = true</span><br><span class="line">end</span><br></pre></td></tr></table></figure>
+
+<p>这里需要注意，如果 <code>s.source_files</code> 写的不对，会报下面的错误。</p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">- ERROR | [iOS] file patterns: The `source_files` pattern did not match any file.</span><br></pre></td></tr></table></figure>
+
+<p><code>CoreHTTP</code> 的名字必须是你代码存放的文件夹名，而且这个文件件要与 <code>podspec</code> 文件在同一级文件目录下，从上面截图的目录结构可以看出。</p>
+<p>另外一个提示的错误点，可能是因为空目录的问题造成的，如果这样的话，可以在各个文件夹下面创建 <code>.gitkeep</code> 文件，该文件的作用是为了提交空文件夹，因为 git 默认是不会添加空文件夹到仓库的。</p>
+<p>创建 <code>.gitkeep</code> 文件的命令如下：</p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line">cd 文件夹下</span><br><span class="line"></span><br><span class="line">touch .gitkeep</span><br></pre></td></tr></table></figure>
+
+<p>这里我折腾了蛮久，最后思考和参考了自己之前的开源项目管理博客，才解决这个问题。</p>
+<p><strong>4. 检查和验证本地 podspec 文件</strong></p>
+<figure class="highlight shell"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line">cd CoreHTTP </span><br><span class="line"></span><br><span class="line">pod lib lint CoreHTTP.podspec </span><br></pre></td></tr></table></figure>
+
+<p>验证通过会显示如下图所示的成功提示<br><img class="lazy" src="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAABGdBTUEAALGPC/xhBQAAADhlWElmTU0AKgAAAAgAAYdpAAQAAAABAAAAGgAAAAAAAqACAAQAAAABAAAAAaADAAQAAAABAAAAAQAAAADa6r/EAAAAC0lEQVQIHWNgAAIAAAUAAY27m/MAAAAASUVORK5CYII=" data-src="/upload/images/2018/09/24/6.jpg" alt="1"></p>
+<p>使用 Xcode 打开工程，删除对应以 <code>Test开头</code> 的相关的库和文件夹，确保 Xcode 能编译通过，选择模拟器即可。</p>
+<p><strong>这里一定要先清空 cocoapods 的缓存，否则后面远程验证还是报错，无法通过验证。</strong></p>
+<p>清空 cocoapods 的缓存，命令如下：</p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line">rm ~/Library/Caches/CocoaPods/Pods/External/CoreHTTP</span><br><span class="line"></span><br><span class="line">rm ~/Library/Caches/CocoaPods/Pods/Specs/External/CoreHTTP</span><br></pre></td></tr></table></figure>
+
+<p><strong>5. 上传工程到 Github 远程代码仓库</strong></p>
+<figure class="highlight shell"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br></pre></td><td class="code"><pre><span class="line">cd ~/workspace/iOS_private_lib</span><br><span class="line"></span><br><span class="line">git add CoreHTTP/</span><br><span class="line"></span><br><span class="line">git commit -m &quot;Add lib.&quot;</span><br><span class="line"></span><br><span class="line">git push</span><br></pre></td></tr></table></figure>
+
+<p><strong>6. 给版本添加 tag</strong></p>
+<figure class="highlight shell"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br></pre></td><td class="code"><pre><span class="line">cd ~/workspace/iOS_private_lib</span><br><span class="line"></span><br><span class="line">git tag 0.1.0 -m &quot;Add lib and example project.&quot;</span><br><span class="line"></span><br><span class="line">git push --tags</span><br></pre></td></tr></table></figure>
+
+<p><strong>7. 进行远程验证</strong></p>
+<figure class="highlight shell"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line">cd ~/workspace/iOS_private_lib</span><br><span class="line"></span><br><span class="line">pod spec lint CoreHTTP/CoreHTTP.podspec --verbose --use-libraries --allow-warnings</span><br></pre></td></tr></table></figure>
+
+<p><strong>注意：</strong><code>--verbose</code> 选项是为了看编译和验证信息，<code>--use-libraries</code> 是为了能支持 i386 架构，如果不加此参数，私有库无法通过验证，<code>--allow-warnings</code> 参数是允许有警告。</p>
+<p>验证成功的示意图：<br><img class="lazy" src="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAABGdBTUEAALGPC/xhBQAAADhlWElmTU0AKgAAAAgAAYdpAAQAAAABAAAAGgAAAAAAAqACAAQAAAABAAAAAaADAAQAAAABAAAAAQAAAADa6r/EAAAAC0lEQVQIHWNgAAIAAAUAAY27m/MAAAAASUVORK5CYII=" data-src="/upload/images/2018/09/24/7.jpg" alt="1"></p>
+<h2 id="提交私有-podspec"><a href="#提交私有-podspec" class="headerlink" title="提交私有 podspec"></a>提交私有 podspec</h2><p><strong>1. 向本地的 cocoapods 仓库添加私有 Spec Repo</strong></p>
+<figure class="highlight shell"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line">cd ~/workspace/iOS_private_lib</span><br><span class="line"></span><br><span class="line">pod repo add PrivateSpec https://github.com/veryitman/private_spec_repo.git</span><br></pre></td></tr></table></figure>
+
+<p>这里一定要注意：对应的地址是 SpecRepo 仓库地址而不是代码仓库地址。</p>
+<p>本地存放 spec 的私有仓库名称，我这里取名为 <code>PrivateSpec</code>，你也可以取其他名字，但是记住在下面的步骤中要保持一致。</p>
+<figure class="highlight shell"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">ls -alt ~/.cocoapods/repos/</span><br></pre></td></tr></table></figure>
+
+<p>可以看到已经成功添加本地 repo 中，其他 master 是 cocoapods 官方公开的源，其他为私有源。如下图所示：<br><img class="lazy" src="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAABGdBTUEAALGPC/xhBQAAADhlWElmTU0AKgAAAAgAAYdpAAQAAAABAAAAGgAAAAAAAqACAAQAAAABAAAAAaADAAQAAAABAAAAAQAAAADa6r/EAAAAC0lEQVQIHWNgAAIAAAUAAY27m/MAAAAASUVORK5CYII=" data-src="/upload/images/2018/09/24/8.jpg" alt="1"></p>
+<p><strong>2. 向私有的 Spec Repo 中提交 podspec</strong></p>
+<p>下面的 <code>PrivateSpec</code> 是与上面的名称对应的。</p>
+<figure class="highlight shell"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line">cd ~/workspace/iOS_private_lib</span><br><span class="line"></span><br><span class="line">pod repo push PrivateSpec ./CoreHTTP/CoreHTTP.podspec --verbose --use-libraries --allow-warnings</span><br></pre></td></tr></table></figure>
+
+<p>这里要注意，添加私有库和之前博文 <a target="_blank" rel="noopener" href="http://www.veryitman.com/2016/11/01/Cocoapods-%E7%AE%A1%E7%90%86%E5%BC%80%E6%BA%90%E9%A1%B9%E7%9B%AE/">Cocoapods 管理开源项目</a> 中提到的 <code>pod trunk push</code> 是不一样的操作。</p>
+<h2 id="使用私有库"><a href="#使用私有库" class="headerlink" title="使用私有库"></a>使用私有库</h2><p><strong>1. 搜索库</strong></p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">pod search CoreHTTP</span><br></pre></td></tr></table></figure>
+
+<p>如果搜索不到，可以执行下面的两条命令:</p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line">rm ~/Library/Caches/CocoaPods/search_index.json</span><br><span class="line"></span><br><span class="line">pod setup</span><br></pre></td></tr></table></figure>
+
+<p>然后继续搜索就可以了，搜索成功会显示如下内容：</p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br></pre></td><td class="code"><pre><span class="line">CoreHTTP (0.1.0)</span><br><span class="line">   CoreHTTP for create private pod, it is a demo only.</span><br><span class="line">   pod &#x27;CoreHTTP&#x27;, &#x27;~&gt; 0.1.0&#x27;</span><br><span class="line">   - Homepage: https://github.com/veryitman/iOS_private_lib.git</span><br><span class="line">   - Source:   https://github.com/veryitman/iOS_private_lib.git</span><br><span class="line">   - Versions: 0.1.0 [PrivateSpec repo]</span><br></pre></td></tr></table></figure>
+
+<p>为了避免和其他私有库命名冲突，建议在自己的私有库前面加上公司或者其他标示，如 TepdCoreHTTP、FphCoreHTTP 等。</p>
+<p><strong>2. 在 Podfile 文件的顶部添加 source</strong></p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line">source &#x27;https://github.com/veryitman/private_spec_repo.git&#x27;</span><br><span class="line">source &#x27;https://github.com/CocoaPods/Specs.git&#x27;</span><br></pre></td></tr></table></figure>
+
+<p>注意一个是我们私有 SpecRepo 地址（非私有代码库地址），另一个是官方公有源地址。</p>
+<p>使用私有库的工程的 Podfile 写法示例如下：</p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br></pre></td><td class="code"><pre><span class="line">source &#x27;https://github.com/veryitman/private_spec_repo.git&#x27;</span><br><span class="line">source &#x27;https://github.com/CocoaPods/Specs.git&#x27;</span><br><span class="line"></span><br><span class="line">platform :ios, &#x27;7.0&#x27;</span><br><span class="line"></span><br><span class="line">target &#x27;TestCoreHTTP&#x27; do</span><br><span class="line">    pod &#x27;CoreHTTP&#x27;, &#x27;~&gt; 0.1.0&#x27;</span><br><span class="line">end</span><br></pre></td></tr></table></figure>
+
+<p>在工程中可以直接使用私有库了，示例代码如下：</p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br></pre></td><td class="code"><pre><span class="line">#import &quot;ViewController.h&quot;</span><br><span class="line">#import &lt;CoreHTTPHeader.h&gt;</span><br><span class="line"></span><br><span class="line">@interface ViewController ()</span><br><span class="line"></span><br><span class="line">@end</span><br><span class="line"></span><br><span class="line">@implementation ViewController</span><br><span class="line"></span><br><span class="line">- (void)viewDidLoad &#123;</span><br><span class="line">    </span><br><span class="line">    [super viewDidLoad];</span><br><span class="line">    NSString *lib_desc = [CoreHTTPHeader libDesc];</span><br><span class="line">    NSLog(@&quot;The HTTP&#x27;s library desc: %@&quot;, lib_desc);</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line">@end</span><br></pre></td></tr></table></figure>
+
+<h2 id="pod-命令"><a href="#pod-命令" class="headerlink" title="pod 命令"></a>pod 命令</h2><figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br></pre></td><td class="code"><pre><span class="line">//将工程添加到本地 repo 中 </span><br><span class="line">pod repo add [本地私有仓库名] [远程仓库地址]</span><br><span class="line"></span><br><span class="line">//移除本地 repo</span><br><span class="line">pod repo remove [本地私有仓库名]</span><br><span class="line"></span><br><span class="line">//查看本地 repo</span><br><span class="line">pod repo </span><br></pre></td></tr></table></figure>
+
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br></pre></td><td class="code"><pre><span class="line">//只从本地验证你的pod能否通过验证</span><br><span class="line">pod lib lint *.podspec</span><br><span class="line"></span><br><span class="line">//从本地和远程验证你的pod能否通过验证</span><br><span class="line">pod spec lint *.podspec</span><br></pre></td></tr></table></figure>
+
+<h2 id="参考文档"><a href="#参考文档" class="headerlink" title="参考文档"></a>参考文档</h2><p><a target="_blank" rel="noopener" href="https://guides.cocoapods.org/making/private-cocoapods.html">Private Pods</a></p>
+<h2 id="我的其他文章"><a href="#我的其他文章" class="headerlink" title="我的其他文章"></a>我的其他文章</h2><p><a target="_blank" rel="noopener" href="http://www.veryitman.com/2016/11/08/Mac-install-Cocoapods/">Mac install Cocoapods</a></p>
+<p><a target="_blank" rel="noopener" href="http://www.veryitman.com/2016/11/08/Cocoapods-%E9%97%AE%E9%A2%98%E9%9B%86%E9%94%A6/">Cocoapods 问题集锦</a></p>
+<p><a target="_blank" rel="noopener" href="http://www.veryitman.com/2016/11/01/Cocoapods-%E7%AE%A1%E7%90%86%E5%BC%80%E6%BA%90%E9%A1%B9%E7%9B%AE/">Cocoapods 管理开源项目</a></p>
+<p><a target="_blank" rel="noopener" href="http://www.veryitman.com/2016/09/25/iOS-%E9%A1%B9%E7%9B%AE-%E6%89%93%E9%80%A0%E6%9C%AC%E5%9C%B0-pod-%E5%BA%93/">iOS 项目: 打造本地 pod 库</a></p>
+<hr>
+<p><strong>扫码关注，你我就各多一个朋友~</strong></p>
+<p><img class="lazy" src="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAABGdBTUEAALGPC/xhBQAAADhlWElmTU0AKgAAAAgAAYdpAAQAAAABAAAAGgAAAAAAAqACAAQAAAABAAAAAaADAAQAAAABAAAAAQAAAADa6r/EAAAAC0lEQVQIHWNgAAIAAAUAAY27m/MAAAAASUVORK5CYII=" data-src="/upload/me/qrcode_wx.jpg"></p>
+
+
+
+
+</article>
+
+<div class="related-wrap reveal" id="read-next"><section class="header cap theme"><span>接下来阅读</span></section><section class="body fs14"><a id="next" href="/2018/09/23/%E6%B5%85%E8%B0%88%E5%AE%A2%E6%88%B7%E7%AB%AF%E6%A8%A1%E5%9D%97%E5%8C%96/">浅谈客户端模块化<span class="note">较早</span></a><div class="line"></div><a id="prev" href="/2018/10/06/SVN-%E6%A3%80%E5%87%BA%E6%96%87%E4%BB%B6/">SVN 检出文件<span class="note">较新</span></a></section></div>
+
+
+
+
+
+
+  <div class='related-wrap md reveal' id="comments">
+    <div class='cmt-title cap theme'>
+      快来参与讨论吧
+    </div>
+    <div class='cmt-body valine'>
+      
+
+<div id="valine_container" class="valine_thread"><svg class="loading" style="vertical-align: middle;fill: currentColor;overflow: hidden;" viewBox="0 0 1024 1024" version="1.1" xmlns="http://www.w3.org/2000/svg" p-id="2709"><path d="M832 512c0-176-144-320-320-320V128c211.2 0 384 172.8 384 384h-64zM192 512c0 176 144 320 320 320v64C300.8 896 128 723.2 128 512h64z" p-id="2710"></path></svg></div>
+
+    </div>
+  </div>
+
+
+
+      
+<footer class="page-footer reveal fs12"><hr><div class="text"><p>本博客所有文章除特别声明外，均采用 <a target="_blank" rel="noopener" href="https://creativecommons.org/licenses/by-nc-sa/4.0/">CC BY-NC-SA 4.0</a> 许可协议，转载请注明出处。</p>
+<p>veryitman</p>
+</div></footer>
+
+      <div class='float-panel mobile-only blur' style='display:none'>
+  <button type='button' class='sidebar-toggle mobile' onclick='sidebar.toggle()'>
+    <svg class="icon" style="width: 1em; height: 1em;vertical-align: middle;fill: currentColor;overflow: hidden;" viewBox="0 0 1024 1024" version="1.1" xmlns="http://www.w3.org/2000/svg" p-id="15301"><path d="M566.407 808.3c26.9-0.1 49.3-20.8 51.6-47.6-1.9-27.7-23.9-49.7-51.6-51.6h-412.6c-28.2-1.4-52.6 19.5-55.5 47.6 2.3 26.8 24.6 47.5 51.6 47.6h416.5v4z m309.3-249.9c26.9-0.1 49.3-20.8 51.6-47.6-2.2-26.8-24.6-47.5-51.6-47.6h-721.9c-27.7-2.8-52.5 17.4-55.3 45.1-0.1 0.8-0.1 1.7-0.2 2.5 0.9 27.2 23.6 48.5 50.7 47.6H875.707z m-103.1-245.9c26.9-0.1 49.3-20.8 51.6-47.6-0.4-28.3-23.2-51.1-51.5-51.6h-618.9c-29.5-1.1-54.3 21.9-55.5 51.4v0.2c1.4 27.8 25.2 49.2 53 47.8 0.8 0 1.7-0.1 2.5-0.2h618.8z" p-id="15302"></path><path d="M566.407 808.3c26.9-0.1 49.3-20.8 51.6-47.6-1.9-27.7-23.9-49.7-51.6-51.6h-412.6c-28.2-1.4-52.6 19.5-55.5 47.6 1.9 27.7 23.9 49.7 51.6 51.6h416.5z m309.3-249.9c26.9-0.1 49.3-20.8 51.6-47.6-2.2-26.8-24.6-47.5-51.6-47.6h-721.9c-27.7-2.8-52.5 17.4-55.3 45.1-0.1 0.8-0.1 1.7-0.2 2.5 0.9 27.2 23.6 48.5 50.7 47.6H875.707z m-103.1-245.9c26.9-0.1 49.3-20.8 51.6-47.6-0.4-28.3-23.2-51.1-51.5-51.6h-618.9c-29.5-1.1-54.3 21.9-55.5 51.4v0.2c1.4 27.8 25.2 49.2 53 47.8 0.8 0 1.7-0.1 2.5-0.2h618.8z" p-id="15303"></path></svg>
+  </button>
+</div>
+
+    </div>
+  </div>
+  <div class='scripts'>
+    <script type="text/javascript">
+  stellar = {
+    // 懒加载 css https://github.com/filamentgroup/loadCSS
+    loadCSS: (href, before, media, attributes) => {
+      var doc = window.document;
+      var ss = doc.createElement("link");
+      var ref;
+      if (before) {
+        ref = before;
+      } else {
+        var refs = (doc.body || doc.getElementsByTagName("head")[0]).childNodes;
+        ref = refs[refs.length - 1];
+      }
+      var sheets = doc.styleSheets;
+      if (attributes) {
+        for (var attributeName in attributes) {
+          if (attributes.hasOwnProperty(attributeName)) {
+            ss.setAttribute(attributeName, attributes[attributeName]);
+          }
+        }
+      }
+      ss.rel = "stylesheet";
+      ss.href = href;
+      ss.media = "only x";
+      function ready(cb) {
+        if (doc.body) {
+          return cb();
+        }
+        setTimeout(function () {
+          ready(cb);
+        });
+      }
+      ready(function () {
+        ref.parentNode.insertBefore(ss, before ? ref : ref.nextSibling);
+      });
+      var onloadcssdefined = function (cb) {
+        var resolvedHref = ss.href;
+        var i = sheets.length;
+        while (i--) {
+          if (sheets[i].href === resolvedHref) {
+            return cb();
+          }
+        }
+        setTimeout(function () {
+          onloadcssdefined(cb);
+        });
+      };
+      function loadCB() {
+        if (ss.addEventListener) {
+          ss.removeEventListener("load", loadCB);
+        }
+        ss.media = media || "all";
+      }
+      if (ss.addEventListener) {
+        ss.addEventListener("load", loadCB);
+      }
+      ss.onloadcssdefined = onloadcssdefined;
+      onloadcssdefined(loadCB);
+      return ss;
+    },
+
+    // 从 butterfly 和 volantis 获得灵感
+    loadScript: (src, opt) => new Promise((resolve, reject) => {
+      var script = document.createElement('script');
+      script.src = src;
+      if (opt) {
+        for (let key of Object.keys(opt)) {
+          script[key] = opt[key]
+        }
+      } else {
+        // 默认异步，如果需要同步，第二个参数传入 {} 即可
+        script.async = true
+      }
+      script.onerror = reject
+      script.onload = script.onreadystatechange = function() {
+        const loadState = this.readyState
+        if (loadState && loadState !== 'loaded' && loadState !== 'complete') return
+        script.onload = script.onreadystatechange = null
+        resolve()
+      }
+      document.head.appendChild(script)
+    }),
+
+    // https://github.com/jerryc127/hexo-theme-butterfly
+    jQuery: (fn) => {
+      if (typeof jQuery === 'undefined') {
+        stellar.loadScript(stellar.plugins.jQuery).then(fn)
+      } else {
+        fn()
+      }
+    }
+  };
+  stellar.github = 'https://github.com/xaoxuu/hexo-theme-stellar/tree/1.6.1';
+  stellar.config = {
+    date_suffix: {
+      just: '刚刚',
+      min: '分钟前',
+      hour: '小时前',
+      day: '天前',
+      month: '个月前',
+    },
+  };
+
+  // required plugins (only load if needs)
+  stellar.plugins = {
+    jQuery: 'https://cdn.jsdelivr.net/npm/jquery@3.5.1/dist/jquery.min.js',
+    sitesjs: '/js/plugins/sites.js',
+    friendsjs: '/js/plugins/friends.js',
+  };
+
+  // optional plugins
+  if ('true' == 'true') {
+    stellar.plugins.lazyload = Object.assign({"enable":true,"js":"https://cdn.jsdelivr.net/npm/vanilla-lazyload@17.3.1/dist/lazyload.min.js","transition":"blur"});
+  }
+  if ('true' == 'true') {
+    stellar.plugins.swiper = Object.assign({"enable":true,"css":"https://unpkg.com/swiper@6/swiper-bundle.min.css","js":"https://unpkg.com/swiper@6/swiper-bundle.min.js"});
+  }
+  if ('' == 'true') {
+    stellar.plugins.scrollreveal = Object.assign({"enable":null,"js":"https://cdn.jsdelivr.net/npm/scrollreveal@4.0.9/dist/scrollreveal.min.js","distance":"8px","duration":500,"interval":100,"scale":1});
+  }
+  if ('true' == 'true') {
+    stellar.plugins.preload = Object.assign({"enable":true,"service":"flying_pages","instant_page":"https://cdn.jsdelivr.net/gh/volantis-x/cdn-volantis@4.1.2/js/instant_page.js","flying_pages":"https://cdn.jsdelivr.net/gh/gijo-varghese/flying-pages@2.1.2/flying-pages.min.js"});
+  }
+</script>
+
+<!-- required -->
+
+  
+<script src="/js/main.js" async></script>
+
+
+
+<!-- optional -->
+
+  <script>
+  function getEmojiMaps() {
+    function emoji(path, idx, ext) {
+      return path + "/" + path + "-" + idx + "." + ext;
+    }
+    var emojiMaps = {};
+    for (var i = 1; i <= 54; i++) {
+      emojiMaps['tieba-' + i] = emoji('tieba', i, 'png');
+    }
+    for (var i = 1; i <= 101; i++) {
+      emojiMaps['qq-' + i] = emoji('qq', i, 'gif');
+    }
+    for (var i = 1; i <= 116; i++) {
+      emojiMaps['aru-' + i] = emoji('aru', i, 'gif');
+    }
+    for (var i = 1; i <= 125; i++) {
+      emojiMaps['twemoji-' + i] = emoji('twemoji', i, 'png');
+    }
+    for (var i = 1; i <= 4; i++) {
+      emojiMaps['weibo-' + i] = emoji('weibo', i, 'png');
+    }
+    return emojiMaps;
+  }
+  function load_comment(){
+    if(!document.getElementById("valine_container"))return;
+    stellar.loadScript('https://cdn.jsdelivr.net/gh/XuxuGood/simple-blog-cdn@main/js/Valine.min.js', {defer:true}).then(function () {
+      const el = document.getElementById("valine_container");
+      var path = el.getAttribute('comment_id');
+      const placeholder = "欢迎您留言~";
+      if (!path) {
+        path = decodeURI(window.location.pathname);
+      }
+      var valine = new Valine();
+      valine.init(Object.assign({"js":"https://cdn.jsdelivr.net/gh/XuxuGood/simple-blog-cdn@main/js/Valine.min.js","appId":"FY2C9UCttYNaE1j8umenqdCE-gzGzoHsz","appKey":"4i7xMwkfSEGmEDhi6SceKFxz","placeholder":"欢迎您留言~","requiredFields":["nick","mail"],"enableQQ":true,"recordIP":false,"avatar":"robohash","pageSize":10,"lang":"zh-cn","highlight":true,"mathJax":false,"tagMeta":["博主","小伙伴","访客"],"metaPlaceholder":{"nick":"昵称/QQ号(必填)","mail":"邮箱（必填，完全保密）"},"master":["6783037F2DF30EAB99F9FC256157D875"],"friends":["6783037F2DF30EAB99F9FC256157D875"],"comment_count":true}, {
+        el: '#valine_container',
+        path: path,
+        placeholder: placeholder,
+        emojiCDN: 'https://cdn.jsdelivr.net/gh/volantis-x/cdn-emoji/valine/',
+        emojiMaps: getEmojiMaps(),
+      }));
+    });
+  }
+  window.addEventListener('DOMContentLoaded', (event) => {
+    console.log('DOM fully loaded and parsed');
+    load_comment();
+  });
+
+</script>
+
+
+
+
+<!-- inject -->
+
+
+  </div>
+</body>
+</html>

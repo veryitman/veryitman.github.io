@@ -1,0 +1,398 @@
+<!DOCTYPE html>
+<html lang='zh-CN'>
+
+<head>
+  <meta name="generator" content="Hexo 6.0.0">
+  <meta charset="utf-8">
+  
+
+  <meta http-equiv='x-dns-prefetch-control' content='on' />
+  <link rel='dns-prefetch' href='https://cdn.jsdelivr.net'>
+  <link rel="preconnect" href="https://cdn.jsdelivr.net" crossorigin>
+
+  <meta name="renderer" content="webkit">
+  <meta name="force-rendering" content="webkit">
+  <meta http-equiv="X-UA-Compatible" content="IE=Edge,chrome=1">
+  <meta name="HandheldFriendly" content="True" >
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1">
+  <meta name="theme-color" content="#f8f8f8">
+  <title>微服务: MySQL基本操作 - Veryitman</title>
+
+  
+    <meta name="description" content="简介本篇是 微服务系列 的第 N 篇，从本篇开始我们就要接触和学习数据库相关的知识了。 数据库我们选择 MySQL 数据库，免费且资料多，大部分公司都会使用该数据库。我是在 Windows 10 上面搭建的微服务开发环境，同理，MySQL 数据库也是在这个系统上面安装的并且使用的是 MySQL8.0 版本，如果你还没有安装或者在安装 MySQL8.0 遇到问题可以参考 MySQL8.0.15在Wi">
+<meta property="og:type" content="article">
+<meta property="og:title" content="微服务: MySQL基本操作">
+<meta property="og:url" content="http://example.com/2019/12/07/%E5%BE%AE%E6%9C%8D%E5%8A%A1-MySQL%E5%9F%BA%E6%9C%AC%E6%93%8D%E4%BD%9C/index.html">
+<meta property="og:site_name" content="Veryitman">
+<meta property="og:description" content="简介本篇是 微服务系列 的第 N 篇，从本篇开始我们就要接触和学习数据库相关的知识了。 数据库我们选择 MySQL 数据库，免费且资料多，大部分公司都会使用该数据库。我是在 Windows 10 上面搭建的微服务开发环境，同理，MySQL 数据库也是在这个系统上面安装的并且使用的是 MySQL8.0 版本，如果你还没有安装或者在安装 MySQL8.0 遇到问题可以参考 MySQL8.0.15在Wi">
+<meta property="og:locale" content="zh_CN">
+<meta property="og:image" content="http://example.com/upload/images/2019/12/07/1.png">
+<meta property="og:image" content="http://example.com/upload/images/2019/12/07/2.png">
+<meta property="og:image" content="http://example.com/upload/images/2019/12/07/3.png">
+<meta property="og:image" content="http://example.com/upload/images/2019/12/07/4.png">
+<meta property="og:image" content="http://example.com/upload/me/qrcode_wx.jpg">
+<meta property="article:published_time" content="2019-12-07T14:47:30.000Z">
+<meta property="article:modified_time" content="2022-03-09T14:53:24.324Z">
+<meta property="article:author" content="veryitman">
+<meta property="article:tag" content="MySQL JDBC">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:image" content="http://example.com/upload/images/2019/12/07/1.png">
+  
+  
+
+  <!-- feed -->
+  
+
+  
+    
+<link rel="stylesheet" href="/css/main.css">
+
+  
+
+  
+
+  
+</head>
+
+<body>
+  
+
+
+  <div class='l_body' id='start'>
+    <aside class='l_left' layout='post'>
+    
+
+
+<header class="header">
+
+<div class="logo-wrap"><a class="title" href="/"><div class="main">Veryitman</div></a></div>
+<nav class="menu dis-select"></nav></header>
+
+<div class="widgets">
+
+<div class="widget-wrap single" id="toc"><div class="widget-header cap dis-select"><span class="name">本文目录</span></div><div class="widget-body fs14"><div class="doc-tree active"><ol class="toc"><li class="toc-item toc-level-2"><a class="toc-link" href="#%E7%AE%80%E4%BB%8B"><span class="toc-text">简介</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#JDBC%E3%80%81ODBC%E3%80%81MySQL-Connectors"><span class="toc-text">JDBC、ODBC、MySQL Connectors</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#%E9%85%8D%E7%BD%AE-pom-%E6%96%87%E4%BB%B6"><span class="toc-text">配置 pom 文件</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#%E9%85%8D%E7%BD%AE-properties"><span class="toc-text">配置 properties</span></a><ol class="toc-child"><li class="toc-item toc-level-3"><a class="toc-link" href="#1%E3%80%81spring-datasource-driver-class-name-%E7%9A%84%E9%85%8D%E7%BD%AE"><span class="toc-text">1、spring.datasource.driver-class-name 的配置</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#2%E3%80%81spring-datasource-url-%E7%9A%84%E9%85%8D%E7%BD%AE"><span class="toc-text">2、spring.datasource.url 的配置</span></a></li></ol></li><li class="toc-item toc-level-2"><a class="toc-link" href="#%E4%B8%87%E4%BA%8B%E4%BF%B1%E5%A4%87%EF%BC%8C%E5%8F%AA%E6%AC%A0%E4%BB%A3%E7%A0%81"><span class="toc-text">万事俱备，只欠代码</span></a></li></ol></div></div></div>
+
+
+</div>
+
+
+    </aside>
+    <div class='l_main'>
+      
+
+      
+
+
+<div class="bread-nav fs12"><div id="breadcrumb"><a class="cap breadcrumb" href="/">主页</a><span class="sep"></span><a class="cap breadcrumb" href="/">文章</a><span class="sep"></span><a class="cap breadcrumb-link" href="/categories/Server/">Server</a></div><div id="post-meta">发布于&nbsp;<time datetime="2019-12-07T14:47:30.000Z">2019-12-07</time></div></div>
+
+<article class='content md post'>
+<h1 class="article-title"><span>微服务: MySQL基本操作</span></h1>
+<h2 id="简介"><a href="#简介" class="headerlink" title="简介"></a>简介</h2><p>本篇是 <a target="_blank" rel="noopener" href="http://www.veryitman.com/2019/05/28/%E5%BE%AE%E6%9C%8D%E5%8A%A1%E9%A1%B9%E7%9B%AE%E7%B3%BB%E5%88%97%E6%96%87%E7%AB%A0/">微服务系列</a> 的第 N 篇，从本篇开始我们就要接触和学习数据库相关的知识了。</p>
+<p>数据库我们选择 MySQL 数据库，免费且资料多，大部分公司都会使用该数据库。我是在 <code>Windows 10</code> 上面搭建的微服务开发环境，同理，MySQL 数据库也是在这个系统上面安装的并且使用的是 MySQL8.0 版本，如果你还没有安装或者在安装 MySQL8.0 遇到问题可以参考 <a target="_blank" rel="noopener" href="http://www.veryitman.com/2019/11/10/MySQL8-0-15%E5%9C%A8Win10%E4%B8%8A%E7%9A%84%E6%8A%98%E8%85%BE%E8%AE%B0/">MySQL8.0.15在Win10上的折腾记</a> 这篇文章。</p>
+<p>今天主要跟大家分享如何使用 SpringBoot 结合 JDBC 连接和操作 MySQL 数据库，主要还是以实例为主。</p>
+<h2 id="JDBC、ODBC、MySQL-Connectors"><a href="#JDBC、ODBC、MySQL-Connectors" class="headerlink" title="JDBC、ODBC、MySQL Connectors"></a>JDBC、ODBC、MySQL Connectors</h2><p>在说实例之前，带大家先了解一下标题中几个名词的概念。</p>
+<p>JDBC（Java database connectivity，数据连接），是 Sun 公司编的一堆类和方法，都封装在 <code>java.sql</code> 包中，可以利用这些类和方法来把你的 Java 程序和任意的数据库连通。即通过使用 JDBC，Java 开发人员可以将 SQL 语句传送给几乎任何一种数据库。 </p>
+<p>对应的还有 ODBC（ Open Database Connectivity， 开放数据库互连），ODBC 是 Microsoft 提出的数据库访问接口标准。开放数据库互连定义了访问数据库 API 的一个规范，Microsoft 的 ODBC 文档是用 C 语言描述的，许多实际的 ODBC 驱动程序也是用 C 语言写的。ODBC 提供了对 SQL 语言的支持，用户可以直接将 SQL 语句送给 ODBC。</p>
+<p>JDBC 和 ODBC 都是用来连接数据库的启动程序，两者具有数据库独立性甚至平台无关性。</p>
+<p><a target="_blank" rel="noopener" href="https://www.mysql.com/products/connector/">MySQL Connectors</a> 是 MySQL 数据库的驱动（程序），有对各种语言的支持。<code>mysql-connector-java</code>（也称之为 Connector&#x2F;J 或者 mysql-connector-jdbc） 是 MySQL-Connectors 的 Java 版本的一个实现 ，用它可以连接 MySQL 系统。 </p>
+<p>同理，还有 <code>mysql-connector-python</code>、<code>mysql-connector-c</code>、 <code>mysql-connector-ODBC</code>、<code>mysql-connector-jdbc</code> 等，如下图（来自 <a target="_blank" rel="noopener" href="https://www.mysql.com/products/connector/">MySQL Connectors</a> 官网）：</p>
+<p><img class="lazy" src="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAABGdBTUEAALGPC/xhBQAAADhlWElmTU0AKgAAAAgAAYdpAAQAAAABAAAAGgAAAAAAAqACAAQAAAABAAAAAaADAAQAAAABAAAAAQAAAADa6r/EAAAAC0lEQVQIHWNgAAIAAAUAAY27m/MAAAAASUVORK5CYII=" data-src="/upload/images/2019/12/07/1.png" alt="1568529858131"></p>
+<p>可以使用下面的图简单描述一下JDBC和数据连接的示意图，如下图：</p>
+<p><img class="lazy" src="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAABGdBTUEAALGPC/xhBQAAADhlWElmTU0AKgAAAAgAAYdpAAQAAAABAAAAGgAAAAAAAqACAAQAAAABAAAAAaADAAQAAAABAAAAAQAAAADa6r/EAAAAC0lEQVQIHWNgAAIAAAUAAY27m/MAAAAASUVORK5CYII=" data-src="/upload/images/2019/12/07/2.png" alt="1568529858131"></p>
+<p>一图胜千言，Java 应用程序可以通过 JDBC 和数据库驱动程序连接、访问、操作数据库（MySQL、Oracle等）。</p>
+<h2 id="配置-pom-文件"><a href="#配置-pom-文件" class="headerlink" title="配置 pom 文件"></a>配置 pom 文件</h2><p>我还是用 <a target="_blank" rel="noopener" href="https://github.com/veryitman/MSTutorial">Github</a> 代码仓库的例子，大家可以自行 Clone 代码。</p>
+<p>打开工程的 <code>pom.xml</code> 文件，增加 <code>mysql-connector-java</code> 和 <code>spring-boot-starter-jdbc</code> 依赖，从上面内容大家应该可以理解为什么要加入这两项了吧！</p>
+<figure class="highlight xml"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment">&lt;!--mysql-connector-java--&gt;</span></span><br><span class="line"><span class="tag">&lt;<span class="name">dependency</span>&gt;</span></span><br><span class="line">    <span class="tag">&lt;<span class="name">groupId</span>&gt;</span>mysql<span class="tag">&lt;/<span class="name">groupId</span>&gt;</span></span><br><span class="line">    <span class="tag">&lt;<span class="name">artifactId</span>&gt;</span>mysql-connector-java<span class="tag">&lt;/<span class="name">artifactId</span>&gt;</span></span><br><span class="line">    <span class="tag">&lt;<span class="name">scope</span>&gt;</span>runtime<span class="tag">&lt;/<span class="name">scope</span>&gt;</span></span><br><span class="line"><span class="tag">&lt;/<span class="name">dependency</span>&gt;</span></span><br><span class="line"><span class="tag">&lt;<span class="name">dependency</span>&gt;</span></span><br><span class="line">    <span class="tag">&lt;<span class="name">groupId</span>&gt;</span>org.springframework.boot<span class="tag">&lt;/<span class="name">groupId</span>&gt;</span></span><br><span class="line">    <span class="tag">&lt;<span class="name">artifactId</span>&gt;</span>spring-boot-starter-jdbc<span class="tag">&lt;/<span class="name">artifactId</span>&gt;</span></span><br><span class="line"><span class="tag">&lt;/<span class="name">dependency</span>&gt;</span></span><br></pre></td></tr></table></figure>
+
+<p>等待 Maven 下载完成这两项依赖。</p>
+<h2 id="配置-properties"><a href="#配置-properties" class="headerlink" title="配置 properties"></a>配置 properties</h2><p>打开 <code>application-dev.properties</code> 文件，增加如下内容：</p>
+<figure class="highlight xml"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br></pre></td><td class="code"><pre><span class="line"># jdbc</span><br><span class="line"># spring.datasource.driver-class-name=com.mysql.jdbc.Driver</span><br><span class="line"># JDBC </span><br><span class="line">spring.datasource.driver-class-name=com.mysql.cj.jdbc.Driver</span><br><span class="line"># 连接的数据库</span><br><span class="line"># spring.datasource.url=jdbc:mysql://127.0.0.1:3306/mzc_user</span><br><span class="line">spring.datasource.url=jdbc:mysql://127.0.0.1:3306/mzc_user?serverTimezone=GMT%2B8&amp;useUnicode=true&amp;characterEncoding=utf-8</span><br><span class="line"># 数据库用户名</span><br><span class="line">spring.datasource.username=root</span><br><span class="line"># 数据库密码</span><br><span class="line">spring.datasource.password=pwd123</span><br></pre></td></tr></table></figure>
+
+<p>其中 <code>mzc_user</code> 是我创建的数据库文件名称，大家要根据自己的实际情况做相关的修改。配置 properties 注意以下几个问题。</p>
+<h3 id="1、spring-datasource-driver-class-name-的配置"><a href="#1、spring-datasource-driver-class-name-的配置" class="headerlink" title="1、spring.datasource.driver-class-name 的配置"></a>1、spring.datasource.driver-class-name 的配置</h3><p>如果配置值为 <code>com.mysql.jdbc.Driver</code>，会报下面的警告：</p>
+<figure class="highlight shell"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line">Loading class `com.mysql.jdbc.Driver&#x27;. This is deprecated. </span><br><span class="line">The new driver class is `com.mysql.cj.jdbc.Driver&#x27;. </span><br><span class="line">The driver is automatically registered via the SPI and manual loading of the driver class is generally unnecessary.</span><br></pre></td></tr></table></figure>
+
+<p>意思是这个类已经过时了，请使用最新的 <code>jdbc.driver</code> 修改数据源配置，如下：</p>
+<figure class="highlight sql"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">spring.datasource.driver<span class="operator">-</span>class<span class="operator">-</span>name<span class="operator">=</span>com.mysql.cj.jdbc.Driver</span><br></pre></td></tr></table></figure>
+
+<h3 id="2、spring-datasource-url-的配置"><a href="#2、spring-datasource-url-的配置" class="headerlink" title="2、spring.datasource.url 的配置"></a>2、spring.datasource.url 的配置</h3><p>关于这个url 的配置，官方有更加详细的配置说明，可以参考 <a target="_blank" rel="noopener" href="https://dev.mysql.com/doc/connector-j/8.0/en/connector-j-reference-jdbc-url-format.html">Connection URL Syntax</a> 和 <a target="_blank" rel="noopener" href="https://dev.mysql.com/doc/connector-j/8.0/en/connector-j-reference-configuration-properties.html">Configuration Properties</a> 两篇文档。</p>
+<p>如果配置为 <code>spring.datasource.url=jdbc:mysql://127.0.0.1:3306/mzc_user</code>，会一直报如下错误：</p>
+<figure class="highlight shell"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line">The server time zone value &#x27;�й���׼ʱ��&#x27; is unrecognized or represents more than one time zone. </span><br><span class="line">You must configure either the server or JDBC driver (via the serverTimezone configuration property) to use a more specifc time zone value if you want to utilize time zone support.</span><br></pre></td></tr></table></figure>
+
+<p>解决这个问题，有如下3种解决方案。</p>
+<p><strong>1、指定时区</strong></p>
+<figure class="highlight http"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line">// 北京时间东八区</span><br><span class="line">serverTimezone=GMT%2B8</span><br></pre></td></tr></table></figure>
+
+<p>注意，<code>%2B</code> 是 <code>+</code> 的编码格式。<br>如果你设置 <code>serverTimezone=UTC</code>，连接不报错， 但在用java代码插入到数据库时间的时候却出现了问题。 </p>
+<p>比如在 Java 代码里面插入的时间为 <code>2018-06-24 17:29:56</code>，但是在数据库里面显示的时间却为 <code>2018-06-24 09:29:56</code>，这样就有了8个小时的时差。UTC 代表的是全球标准时间 ，而我们使用的时间是北京时区也就是东八区，领先 UTC 八个小时。</p>
+<figure class="highlight http"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br></pre></td><td class="code"><pre><span class="line">// 京时间东八区</span><br><span class="line">serverTimezone=GMT%2B8</span><br><span class="line"></span><br><span class="line">// 或者使用上海时间</span><br><span class="line">serverTimezone=Asia/Shanghai</span><br></pre></td></tr></table></figure>
+
+<p><strong>2、修改 MySQL 配置文件</strong></p>
+<p>我在 <code>Windows 10</code> 找到 MySQL 配置文件 <code>my.ini</code> ，如果你没有找到可以参考 <a target="_blank" rel="noopener" href="http://www.veryitman.com/2019/11/10/MySQL8-0-15%E5%9C%A8Win10%E4%B8%8A%E7%9A%84%E6%8A%98%E8%85%BE%E8%AE%B0/">MySQL8.0.15在Win10上的折腾记</a>  这篇文章，非 <code>Windows</code> 系统可能配置文件时 <code>my.cnf</code>。</p>
+<p>在配置文件中，增加默认时区配置：</p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">default-time-zone=&#x27;+08:00&#x27;</span><br></pre></td></tr></table></figure>
+
+<p>在 <code>my.ini</code> 或者 <code>my.cnf</code> 文件的 <code>[mysqld]</code> 下面增加上面配置，示例如下：</p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br></pre></td><td class="code"><pre><span class="line">[mysqld]</span><br><span class="line"></span><br><span class="line"># Set default time-zone</span><br><span class="line">default-time-zone=&#x27;+08:00&#x27;</span><br><span class="line"></span><br><span class="line"># The TCP/IP Port the MySQL Server will listen on</span><br><span class="line">port=3306</span><br><span class="line"></span><br><span class="line"># ...</span><br></pre></td></tr></table></figure>
+
+<p>修改配置文件之后，重启MySQL服务就可以了。</p>
+<p><strong>3、修改数据库， 配置全局时区</strong> </p>
+<p>切换到名称为 <code>mysql</code> 的数据库，然后执行下面的语句：</p>
+<figure class="highlight sql"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">show</span> variables <span class="keyword">like</span> <span class="string">&#x27;%time_zone%&#x27;</span>;</span><br><span class="line"></span><br><span class="line"># 设置全局时区，即时生效，作用于所有session</span><br><span class="line"><span class="keyword">set</span> <span class="keyword">global</span> time_zone<span class="operator">=</span><span class="string">&#x27;+8:00&#x27;</span>;</span><br></pre></td></tr></table></figure>
+
+<p><img class="lazy" src="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAABGdBTUEAALGPC/xhBQAAADhlWElmTU0AKgAAAAgAAYdpAAQAAAABAAAAGgAAAAAAAqACAAQAAAABAAAAAaADAAQAAAABAAAAAQAAAADa6r/EAAAAC0lEQVQIHWNgAAIAAAUAAY27m/MAAAAASUVORK5CYII=" data-src="/upload/images/2019/12/07/3.png" alt="1568529858131"></p>
+<p>设置完成后，可以使用 <code>show variables like &#39;%time_zone%&#39;;</code> 看看是否修改成功。</p>
+<p>你也可以执行，但是只能对当前的 session 生效，示例如下：</p>
+<figure class="highlight sql"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line"># 设置当前session时区，即时生效，但仅作用于当前session</span><br><span class="line"><span class="keyword">set</span> time_zone<span class="operator">=</span><span class="string">&#x27;+8:00&#x27;</span>;</span><br></pre></td></tr></table></figure>
+
+<p>我个人使用的是上述中的第<strong>1</strong>种方法，我也推荐大家使用这种方法，简单且无副作用。</p>
+<p>这里有一篇坑记 <a target="_blank" rel="noopener" href="https://my.oschina.net/purely/blog/1477281">jdbc mysql connector 6 时区问题</a>，关于设置 <code>time_zone</code> 的坑，大家可以看看。</p>
+<h2 id="万事俱备，只欠代码"><a href="#万事俱备，只欠代码" class="headerlink" title="万事俱备，只欠代码"></a>万事俱备，只欠代码</h2><p>配置完成之后，我们可以写点测试代码了。</p>
+<p>本节的代码主要集中在 <code>MSUserService</code>、<code>MSUserServiceImpl</code>、<code>MSDBTests</code> 中，其中 <code>MSUserService</code> 是接口，定义了一些数据库操作的方法，如下：</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">import</span> java.util.List;</span><br><span class="line"><span class="keyword">import</span> java.util.Map;</span><br><span class="line"></span><br><span class="line"><span class="keyword">public</span> <span class="keyword">interface</span> <span class="title class_">MSUserService</span> &#123;</span><br><span class="line"></span><br><span class="line">    <span class="type">int</span> <span class="title function_">createUser</span><span class="params">(MSUser user)</span>;</span><br><span class="line"></span><br><span class="line">    <span class="type">int</span> <span class="title function_">deleteByUid</span><span class="params">(Integer uid)</span>;</span><br><span class="line"></span><br><span class="line">    List&lt;Map&gt; <span class="title function_">queryUserByUid</span><span class="params">(Integer uid)</span>;</span><br><span class="line"></span><br><span class="line">    List&lt;Map&gt; <span class="title function_">queryUserByUserName</span><span class="params">(String userName)</span>;</span><br><span class="line"></span><br><span class="line">    <span class="type">int</span> <span class="title function_">deleteUserTable</span><span class="params">()</span>;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<p>而 <code>MSUserServiceImpl</code> 则是  <code>MSUserService</code> 的实现类， <code>MSDBTests</code> 主要是测试类，用来测试操作 MySQL 数据表的如创建表、查询、删除等操作。大家自行 Clone 代码去看实现即可，我就不在这里占用篇幅贴代码了。</p>
+<p>在本节代码中，新增加了两个注解的使用即 <code>@Service</code> 和 <code>@Slf4j</code>，<code>@Slf4j</code> 这个注解主要用来简化使用日志。而 <code>@Service</code> 注解承担了两个职责一是 Bean 的创建，二是将一个类标识为一个服务。后续我会再深入跟大家分享  <code>@Service</code> 这个注解，目前你只需要用上它就可以了。</p>
+<p>在本节的例子中，用到的数据表（user）的数据结构大概如下：</p>
+<p><img class="lazy" src="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAABGdBTUEAALGPC/xhBQAAADhlWElmTU0AKgAAAAgAAYdpAAQAAAABAAAAGgAAAAAAAqACAAQAAAABAAAAAaADAAQAAAABAAAAAQAAAADa6r/EAAAAC0lEQVQIHWNgAAIAAAUAAY27m/MAAAAASUVORK5CYII=" data-src="/upload/images/2019/12/07/4.png" alt="1568529858131"></p>
+<p>启动 MySQL 服务，然后启动 <code>MSDBTests</code> 中的测试代码，就可以看到实际效果了。</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br></pre></td><td class="code"><pre><span class="line"><span class="meta">@Test</span></span><br><span class="line"><span class="keyword">public</span> <span class="keyword">void</span> <span class="title function_">createUserSQLTest</span><span class="params">()</span> &#123;</span><br><span class="line">    <span class="type">MSUser</span> <span class="variable">user</span> <span class="operator">=</span> <span class="keyword">new</span> <span class="title class_">MSUser</span>();</span><br><span class="line">    user.setUserID(<span class="number">1</span>);</span><br><span class="line">    user.setAccountName(<span class="string">&quot;mzc&quot;</span>);</span><br><span class="line">    user.setAccountPwd(<span class="string">&quot;123&quot;</span>);</span><br><span class="line">    user.setNickName(<span class="string">&quot;veryitman&quot;</span>);</span><br><span class="line">    user.setMotto(<span class="string">&quot;foo&quot;</span>);</span><br><span class="line">    user.setAge(<span class="number">25</span>);</span><br><span class="line">    user.setGender(MSUser.GENDER_MALE);</span><br><span class="line">    user.setPhone(<span class="string">&quot;17122036530&quot;</span>);</span><br><span class="line"></span><br><span class="line">    <span class="comment">// 增加user数据</span></span><br><span class="line">    msUserService.createUser(user);</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line"><span class="meta">@Test</span></span><br><span class="line"><span class="keyword">public</span> <span class="keyword">void</span> <span class="title function_">queryUserBySQLTest</span><span class="params">()</span> &#123;</span><br><span class="line">    <span class="comment">// 根据user_id查询</span></span><br><span class="line">    List&lt;Map&gt; userJson = msUserService.queryUserByUid(<span class="number">1</span>);</span><br><span class="line">    logger.info(<span class="string">&quot;MSBlog Test, userJson by query user&#x27;s id: &quot;</span> + userJson.get(<span class="number">0</span>));</span><br><span class="line"></span><br><span class="line">    <span class="comment">// 根据user_name查询</span></span><br><span class="line">    userJson = msUserService.queryUserByUserName(<span class="string">&quot;mzc&quot;</span>);</span><br><span class="line">    logger.info(<span class="string">&quot;MSBlog Test, userJson by query user&#x27;s name: &quot;</span> + userJson.get(<span class="number">0</span>));</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<p>今天就分享到这里，下次结合登录注册例子操作 MySQL 数据库。</p>
+<hr>
+<p><strong>做事情，不问能不能做成，要问应不应该做。</strong></p>
+<p><img class="lazy" src="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAABGdBTUEAALGPC/xhBQAAADhlWElmTU0AKgAAAAgAAYdpAAQAAAABAAAAGgAAAAAAAqACAAQAAAABAAAAAaADAAQAAAABAAAAAQAAAADa6r/EAAAAC0lEQVQIHWNgAAIAAAUAAY27m/MAAAAASUVORK5CYII=" data-src="/upload/me/qrcode_wx.jpg"></p>
+
+
+
+
+</article>
+
+<div class="related-wrap reveal" id="read-next"><section class="header cap theme"><span>接下来阅读</span></section><section class="body fs14"><a id="next" href="/2019/11/24/%E7%9F%AD%E5%9C%B0%E5%9D%80%E5%8E%9F%E7%90%86/">短地址原理<span class="note">较早</span></a><div class="line"></div><a id="prev" href="/2019/12/21/Android%E4%B8%AD%E5%80%BC%E5%BE%97%E8%AF%B4%E7%9A%84Handler%E4%B9%8B%E6%9B%B4%E6%96%B0UI/">Android中值得说的Handler之更新UI<span class="note">较新</span></a></section></div>
+
+
+
+
+
+
+  <div class='related-wrap md reveal' id="comments">
+    <div class='cmt-title cap theme'>
+      快来参与讨论吧
+    </div>
+    <div class='cmt-body valine'>
+      
+
+<div id="valine_container" class="valine_thread"><svg class="loading" style="vertical-align: middle;fill: currentColor;overflow: hidden;" viewBox="0 0 1024 1024" version="1.1" xmlns="http://www.w3.org/2000/svg" p-id="2709"><path d="M832 512c0-176-144-320-320-320V128c211.2 0 384 172.8 384 384h-64zM192 512c0 176 144 320 320 320v64C300.8 896 128 723.2 128 512h64z" p-id="2710"></path></svg></div>
+
+    </div>
+  </div>
+
+
+
+      
+<footer class="page-footer reveal fs12"><hr><div class="text"><p>本博客所有文章除特别声明外，均采用 <a target="_blank" rel="noopener" href="https://creativecommons.org/licenses/by-nc-sa/4.0/">CC BY-NC-SA 4.0</a> 许可协议，转载请注明出处。</p>
+<p>veryitman</p>
+</div></footer>
+
+      <div class='float-panel mobile-only blur' style='display:none'>
+  <button type='button' class='sidebar-toggle mobile' onclick='sidebar.toggle()'>
+    <svg class="icon" style="width: 1em; height: 1em;vertical-align: middle;fill: currentColor;overflow: hidden;" viewBox="0 0 1024 1024" version="1.1" xmlns="http://www.w3.org/2000/svg" p-id="15301"><path d="M566.407 808.3c26.9-0.1 49.3-20.8 51.6-47.6-1.9-27.7-23.9-49.7-51.6-51.6h-412.6c-28.2-1.4-52.6 19.5-55.5 47.6 2.3 26.8 24.6 47.5 51.6 47.6h416.5v4z m309.3-249.9c26.9-0.1 49.3-20.8 51.6-47.6-2.2-26.8-24.6-47.5-51.6-47.6h-721.9c-27.7-2.8-52.5 17.4-55.3 45.1-0.1 0.8-0.1 1.7-0.2 2.5 0.9 27.2 23.6 48.5 50.7 47.6H875.707z m-103.1-245.9c26.9-0.1 49.3-20.8 51.6-47.6-0.4-28.3-23.2-51.1-51.5-51.6h-618.9c-29.5-1.1-54.3 21.9-55.5 51.4v0.2c1.4 27.8 25.2 49.2 53 47.8 0.8 0 1.7-0.1 2.5-0.2h618.8z" p-id="15302"></path><path d="M566.407 808.3c26.9-0.1 49.3-20.8 51.6-47.6-1.9-27.7-23.9-49.7-51.6-51.6h-412.6c-28.2-1.4-52.6 19.5-55.5 47.6 1.9 27.7 23.9 49.7 51.6 51.6h416.5z m309.3-249.9c26.9-0.1 49.3-20.8 51.6-47.6-2.2-26.8-24.6-47.5-51.6-47.6h-721.9c-27.7-2.8-52.5 17.4-55.3 45.1-0.1 0.8-0.1 1.7-0.2 2.5 0.9 27.2 23.6 48.5 50.7 47.6H875.707z m-103.1-245.9c26.9-0.1 49.3-20.8 51.6-47.6-0.4-28.3-23.2-51.1-51.5-51.6h-618.9c-29.5-1.1-54.3 21.9-55.5 51.4v0.2c1.4 27.8 25.2 49.2 53 47.8 0.8 0 1.7-0.1 2.5-0.2h618.8z" p-id="15303"></path></svg>
+  </button>
+</div>
+
+    </div>
+  </div>
+  <div class='scripts'>
+    <script type="text/javascript">
+  stellar = {
+    // 懒加载 css https://github.com/filamentgroup/loadCSS
+    loadCSS: (href, before, media, attributes) => {
+      var doc = window.document;
+      var ss = doc.createElement("link");
+      var ref;
+      if (before) {
+        ref = before;
+      } else {
+        var refs = (doc.body || doc.getElementsByTagName("head")[0]).childNodes;
+        ref = refs[refs.length - 1];
+      }
+      var sheets = doc.styleSheets;
+      if (attributes) {
+        for (var attributeName in attributes) {
+          if (attributes.hasOwnProperty(attributeName)) {
+            ss.setAttribute(attributeName, attributes[attributeName]);
+          }
+        }
+      }
+      ss.rel = "stylesheet";
+      ss.href = href;
+      ss.media = "only x";
+      function ready(cb) {
+        if (doc.body) {
+          return cb();
+        }
+        setTimeout(function () {
+          ready(cb);
+        });
+      }
+      ready(function () {
+        ref.parentNode.insertBefore(ss, before ? ref : ref.nextSibling);
+      });
+      var onloadcssdefined = function (cb) {
+        var resolvedHref = ss.href;
+        var i = sheets.length;
+        while (i--) {
+          if (sheets[i].href === resolvedHref) {
+            return cb();
+          }
+        }
+        setTimeout(function () {
+          onloadcssdefined(cb);
+        });
+      };
+      function loadCB() {
+        if (ss.addEventListener) {
+          ss.removeEventListener("load", loadCB);
+        }
+        ss.media = media || "all";
+      }
+      if (ss.addEventListener) {
+        ss.addEventListener("load", loadCB);
+      }
+      ss.onloadcssdefined = onloadcssdefined;
+      onloadcssdefined(loadCB);
+      return ss;
+    },
+
+    // 从 butterfly 和 volantis 获得灵感
+    loadScript: (src, opt) => new Promise((resolve, reject) => {
+      var script = document.createElement('script');
+      script.src = src;
+      if (opt) {
+        for (let key of Object.keys(opt)) {
+          script[key] = opt[key]
+        }
+      } else {
+        // 默认异步，如果需要同步，第二个参数传入 {} 即可
+        script.async = true
+      }
+      script.onerror = reject
+      script.onload = script.onreadystatechange = function() {
+        const loadState = this.readyState
+        if (loadState && loadState !== 'loaded' && loadState !== 'complete') return
+        script.onload = script.onreadystatechange = null
+        resolve()
+      }
+      document.head.appendChild(script)
+    }),
+
+    // https://github.com/jerryc127/hexo-theme-butterfly
+    jQuery: (fn) => {
+      if (typeof jQuery === 'undefined') {
+        stellar.loadScript(stellar.plugins.jQuery).then(fn)
+      } else {
+        fn()
+      }
+    }
+  };
+  stellar.github = 'https://github.com/xaoxuu/hexo-theme-stellar/tree/1.6.1';
+  stellar.config = {
+    date_suffix: {
+      just: '刚刚',
+      min: '分钟前',
+      hour: '小时前',
+      day: '天前',
+      month: '个月前',
+    },
+  };
+
+  // required plugins (only load if needs)
+  stellar.plugins = {
+    jQuery: 'https://cdn.jsdelivr.net/npm/jquery@3.5.1/dist/jquery.min.js',
+    sitesjs: '/js/plugins/sites.js',
+    friendsjs: '/js/plugins/friends.js',
+  };
+
+  // optional plugins
+  if ('true' == 'true') {
+    stellar.plugins.lazyload = Object.assign({"enable":true,"js":"https://cdn.jsdelivr.net/npm/vanilla-lazyload@17.3.1/dist/lazyload.min.js","transition":"blur"});
+  }
+  if ('true' == 'true') {
+    stellar.plugins.swiper = Object.assign({"enable":true,"css":"https://unpkg.com/swiper@6/swiper-bundle.min.css","js":"https://unpkg.com/swiper@6/swiper-bundle.min.js"});
+  }
+  if ('' == 'true') {
+    stellar.plugins.scrollreveal = Object.assign({"enable":null,"js":"https://cdn.jsdelivr.net/npm/scrollreveal@4.0.9/dist/scrollreveal.min.js","distance":"8px","duration":500,"interval":100,"scale":1});
+  }
+  if ('true' == 'true') {
+    stellar.plugins.preload = Object.assign({"enable":true,"service":"flying_pages","instant_page":"https://cdn.jsdelivr.net/gh/volantis-x/cdn-volantis@4.1.2/js/instant_page.js","flying_pages":"https://cdn.jsdelivr.net/gh/gijo-varghese/flying-pages@2.1.2/flying-pages.min.js"});
+  }
+</script>
+
+<!-- required -->
+
+  
+<script src="/js/main.js" async></script>
+
+
+
+<!-- optional -->
+
+  <script>
+  function getEmojiMaps() {
+    function emoji(path, idx, ext) {
+      return path + "/" + path + "-" + idx + "." + ext;
+    }
+    var emojiMaps = {};
+    for (var i = 1; i <= 54; i++) {
+      emojiMaps['tieba-' + i] = emoji('tieba', i, 'png');
+    }
+    for (var i = 1; i <= 101; i++) {
+      emojiMaps['qq-' + i] = emoji('qq', i, 'gif');
+    }
+    for (var i = 1; i <= 116; i++) {
+      emojiMaps['aru-' + i] = emoji('aru', i, 'gif');
+    }
+    for (var i = 1; i <= 125; i++) {
+      emojiMaps['twemoji-' + i] = emoji('twemoji', i, 'png');
+    }
+    for (var i = 1; i <= 4; i++) {
+      emojiMaps['weibo-' + i] = emoji('weibo', i, 'png');
+    }
+    return emojiMaps;
+  }
+  function load_comment(){
+    if(!document.getElementById("valine_container"))return;
+    stellar.loadScript('https://cdn.jsdelivr.net/gh/XuxuGood/simple-blog-cdn@main/js/Valine.min.js', {defer:true}).then(function () {
+      const el = document.getElementById("valine_container");
+      var path = el.getAttribute('comment_id');
+      const placeholder = "欢迎您留言~";
+      if (!path) {
+        path = decodeURI(window.location.pathname);
+      }
+      var valine = new Valine();
+      valine.init(Object.assign({"js":"https://cdn.jsdelivr.net/gh/XuxuGood/simple-blog-cdn@main/js/Valine.min.js","appId":"FY2C9UCttYNaE1j8umenqdCE-gzGzoHsz","appKey":"4i7xMwkfSEGmEDhi6SceKFxz","placeholder":"欢迎您留言~","requiredFields":["nick","mail"],"enableQQ":true,"recordIP":false,"avatar":"robohash","pageSize":10,"lang":"zh-cn","highlight":true,"mathJax":false,"tagMeta":["博主","小伙伴","访客"],"metaPlaceholder":{"nick":"昵称/QQ号(必填)","mail":"邮箱（必填，完全保密）"},"master":["6783037F2DF30EAB99F9FC256157D875"],"friends":["6783037F2DF30EAB99F9FC256157D875"],"comment_count":true}, {
+        el: '#valine_container',
+        path: path,
+        placeholder: placeholder,
+        emojiCDN: 'https://cdn.jsdelivr.net/gh/volantis-x/cdn-emoji/valine/',
+        emojiMaps: getEmojiMaps(),
+      }));
+    });
+  }
+  window.addEventListener('DOMContentLoaded', (event) => {
+    console.log('DOM fully loaded and parsed');
+    load_comment();
+  });
+
+</script>
+
+
+
+
+<!-- inject -->
+
+
+  </div>
+</body>
+</html>

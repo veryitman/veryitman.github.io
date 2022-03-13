@@ -1,0 +1,430 @@
+<!DOCTYPE html>
+<html lang='zh-CN'>
+
+<head>
+  <meta name="generator" content="Hexo 6.0.0">
+  <meta charset="utf-8">
+  
+
+  <meta http-equiv='x-dns-prefetch-control' content='on' />
+  <link rel='dns-prefetch' href='https://cdn.jsdelivr.net'>
+  <link rel="preconnect" href="https://cdn.jsdelivr.net" crossorigin>
+
+  <meta name="renderer" content="webkit">
+  <meta name="force-rendering" content="webkit">
+  <meta http-equiv="X-UA-Compatible" content="IE=Edge,chrome=1">
+  <meta name="HandheldFriendly" content="True" >
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1">
+  <meta name="theme-color" content="#f8f8f8">
+  <title>GCC: 静态库 - Veryitman</title>
+
+  
+    <meta name="description" content="概要如果你对 GCC 的编译 C语言的流程不清楚, 建议在阅读本文之前先去看一下 GCC: 编译C语言的流程 这篇文章, 篇幅短小精悍, 阅读后, 至少可以扫扫盲😜. 本篇博文用到的一些基础知识点: 1.GCC gcc -c 选项含义: 1Only run preprocess, compile, and assemble steps  是 -c 选项只是进行了预处理, 编译, 汇编的阶段, 不">
+<meta property="og:type" content="article">
+<meta property="og:title" content="GCC: 静态库">
+<meta property="og:url" content="http://example.com/2017/10/08/GCC-%E9%9D%99%E6%80%81%E5%BA%93/index.html">
+<meta property="og:site_name" content="Veryitman">
+<meta property="og:description" content="概要如果你对 GCC 的编译 C语言的流程不清楚, 建议在阅读本文之前先去看一下 GCC: 编译C语言的流程 这篇文章, 篇幅短小精悍, 阅读后, 至少可以扫扫盲😜. 本篇博文用到的一些基础知识点: 1.GCC gcc -c 选项含义: 1Only run preprocess, compile, and assemble steps  是 -c 选项只是进行了预处理, 编译, 汇编的阶段, 不">
+<meta property="og:locale" content="zh_CN">
+<meta property="og:image" content="http://example.com/upload/images/2017/10/08/1.jpg">
+<meta property="og:image" content="http://example.com/upload/images/2017/10/08/2.jpg">
+<meta property="article:published_time" content="2017-10-08T14:12:35.000Z">
+<meta property="article:modified_time" content="2022-03-09T14:53:24.301Z">
+<meta property="article:author" content="veryitman">
+<meta property="article:tag" content="GCC 编译器 静态库">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:image" content="http://example.com/upload/images/2017/10/08/1.jpg">
+  
+  
+
+  <!-- feed -->
+  
+
+  
+    
+<link rel="stylesheet" href="/css/main.css">
+
+  
+
+  
+
+  
+</head>
+
+<body>
+  
+
+
+  <div class='l_body' id='start'>
+    <aside class='l_left' layout='post'>
+    
+
+
+<header class="header">
+
+<div class="logo-wrap"><a class="title" href="/"><div class="main">Veryitman</div></a></div>
+<nav class="menu dis-select"></nav></header>
+
+<div class="widgets">
+
+<div class="widget-wrap single" id="toc"><div class="widget-header cap dis-select"><span class="name">本文目录</span></div><div class="widget-body fs14"><div class="doc-tree active"><ol class="toc"><li class="toc-item toc-level-2"><a class="toc-link" href="#%E6%A6%82%E8%A6%81"><span class="toc-text">概要</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#%E5%88%9B%E5%BB%BA%E6%AD%A5%E9%AA%A4"><span class="toc-text">创建步骤</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#%E5%86%99%E6%BA%90%E6%96%87%E4%BB%B6"><span class="toc-text">写源文件</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#%E7%94%9F%E6%88%90%E7%9B%AE%E6%A0%87%E6%96%87%E4%BB%B6"><span class="toc-text">生成目标文件</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#%E5%BD%92%E6%A1%A3"><span class="toc-text">归档</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#%E5%86%99%E5%A4%B4%E6%96%87%E4%BB%B6"><span class="toc-text">写头文件</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#%E6%9C%89%E8%B6%A3%E7%9A%84%E5%AE%9E%E9%AA%8C"><span class="toc-text">有趣的实验</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#%E9%99%84%E5%BD%95"><span class="toc-text">附录</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#GCC-%E7%B3%BB%E5%88%97%E5%8D%9A%E6%96%87"><span class="toc-text">GCC 系列博文</span></a></li></ol></div></div></div>
+
+
+</div>
+
+
+    </aside>
+    <div class='l_main'>
+      
+
+      
+
+
+<div class="bread-nav fs12"><div id="breadcrumb"><a class="cap breadcrumb" href="/">主页</a><span class="sep"></span><a class="cap breadcrumb" href="/">文章</a><span class="sep"></span><a class="cap breadcrumb-link" href="/categories/C-C/">C/C++</a></div><div id="post-meta">发布于&nbsp;<time datetime="2017-10-08T14:12:35.000Z">2017-10-08</time></div></div>
+
+<article class='content md post'>
+<h1 class="article-title"><span>GCC: 静态库</span></h1>
+<h2 id="概要"><a href="#概要" class="headerlink" title="概要"></a>概要</h2><p>如果你对 GCC 的编译 C语言的流程不清楚, 建议在阅读本文之前先去看一下 <a target="_blank" rel="noopener" href="http://www.veryitman.com/2017/10/03/GCC-%E7%BC%96%E8%AF%91C%E8%AF%AD%E8%A8%80%E7%9A%84%E6%B5%81%E7%A8%8B/">GCC: 编译C语言的流程</a> 这篇文章, 篇幅短小精悍, 阅读后, 至少可以扫扫盲😜.</p>
+<p>本篇博文用到的一些基础知识点:</p>
+<p><strong>1.GCC</strong></p>
+<p>gcc -c 选项含义:</p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">Only run preprocess, compile, and assemble steps</span><br></pre></td></tr></table></figure>
+
+<p>是 <code>-c</code> 选项只是进行了预处理, 编译, 汇编的阶段, 不会进行链接的操作.</p>
+<p><strong>2.静态库</strong></p>
+<p>Linux 上的静态库，本质是一些目标文件的归档文件.</p>
+<p><strong>3.静态库和共享库区别</strong></p>
+<p>[1].使用共享库可以节省内存.</p>
+<blockquote>
+<p>比如 libc，系统中几乎所有的进程都映射 libc 到自己的进程地址空间，而 libc 的只读部分在物理内存中只需要存在一份，就可以被所有进程共享，这就是“共享库”这个名称的由来了.</p>
+</blockquote>
+<p>[2].使用共享库可以很方便地升级库文件而不需要重新编译应用程序.</p>
+<p>[3].共享库占用更少的体积.</p>
+<blockquote>
+<p>在运行时做动态链接.而在链接静态库时, 链接器会把静态库中的目标文件取出来和可执行文件真正链接在一起.</p>
+</blockquote>
+<h2 id="创建步骤"><a href="#创建步骤" class="headerlink" title="创建步骤"></a>创建步骤</h2><p>创建静态库的步骤如下:</p>
+<p>[1]. 写源文件.<br>[2]. 通过 gcc -c x.c 生成目标文件.<br>[2]. 归档. 用 ar 归档目标文件，生成静态库.<br>[3]. 写头文件, 便于使用者知道怎么使用该静态库.</p>
+<p>使用静态库时，在源码中包含对应的头文件，链接时记得链接自己的库.</p>
+<p>下面结合具体例子, 展开讲.</p>
+<h2 id="写源文件"><a href="#写源文件" class="headerlink" title="写源文件"></a>写源文件</h2><p>目录结构<br><img class="lazy" src="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAABGdBTUEAALGPC/xhBQAAADhlWElmTU0AKgAAAAgAAYdpAAQAAAABAAAAGgAAAAAAAqACAAQAAAABAAAAAaADAAQAAAABAAAAAQAAAADa6r/EAAAAC0lEQVQIHWNgAAIAAAUAAY27m/MAAAAASUVORK5CYII=" data-src="/upload/images/2017/10/08/1.jpg" alt="1"></p>
+<p>示例文件都是很简单的代码, 附录可以查看完整示例.</p>
+<h2 id="生成目标文件"><a href="#生成目标文件" class="headerlink" title="生成目标文件"></a>生成目标文件</h2><p>将 libs 目录下面的(c)源文件进行预处理, 编译和汇编.<br>注意这里没有进行链接.</p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">gcc -c libs/person.c libs/eat.c libs/play.c libs/sleep.c</span><br></pre></td></tr></table></figure>
+
+<p>执行城后, 会生成对应的 .o 文件.</p>
+<h2 id="归档"><a href="#归档" class="headerlink" title="归档"></a>归档</h2><p><code>libperson.a</code> 是要生成的库文件.</p>
+<p>库文件都以 lib 开头, 静态库以. a 为后缀. 所以一般是 lib+ 名字.a</p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">ar rs libperson.a person.o sleep.o play.o eat.o</span><br></pre></td></tr></table></figure>
+
+<p>ar: 类似于 tar, 用来对文件进行库打包.</p>
+<p>r 选项: 将其后面的文件列表添加到文件包(libperson.a)中, 如果 libperson.a 不存在就创建它, 如果 libperson.a 已经存在且里面有同名的目标文件就进行替换操作.</p>
+<p>s 选项: 为静态库创建索引.这个索引会被链接器使用.</p>
+<blockquote>
+<p>ranlib 命令也可以为静态库创建索引. 所以上面的命令可以等效为下面的两个命令.</p>
+</blockquote>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line">ar r libperson.a person.o sleep.o play.o eat.o</span><br><span class="line">ranlib libperson.a</span><br></pre></td></tr></table></figure>
+
+<h2 id="写头文件"><a href="#写头文件" class="headerlink" title="写头文件"></a>写头文件</h2><p>写一个 person.h 文件, 便于调用者查看库如何使用.</p>
+<p>person.h</p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br></pre></td><td class="code"><pre><span class="line">#ifndef _PERSON_H</span><br><span class="line">#define _PERSON_H</span><br><span class="line">extern void init(int pUid);</span><br><span class="line">extern void eat();</span><br><span class="line">extern void play();</span><br><span class="line">extern void sleep();</span><br><span class="line">#endif</span><br></pre></td></tr></table></figure>
+
+<p>使用静态库</p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">gcc main.c -L. -lperson -Ilibs -o main</span><br></pre></td></tr></table></figure>
+
+<p>-L 选项: 告诉编译器去哪里找库文件, 这里的 _L. 表示在当前目录.<br>如果不用 -L 选项, 即使库文件在当前目录, 编译器也不会去找, 所以该选项不能少.</p>
+<p>报错信息如下:</p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line">ld: library not found for -lperson</span><br><span class="line">clang: error: linker command failed with exit code 1 (use -v to see invocation)</span><br></pre></td></tr></table></figure>
+
+<p>-lperson: 告诉编译器要链接 libperson.a 库.</p>
+<p>-I: 告诉编译器到哪里找头文件.<br>如果不指定头文件的查找目录, 也会报错:</p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><span class="line">main.c:2:10: fatal error: &#x27;person.h&#x27; file not found</span><br><span class="line">#include &quot;person.h&quot;</span><br><span class="line">         ^~~~~~~~~~</span><br><span class="line">1 error generated.</span><br></pre></td></tr></table></figure>
+
+<p>此时的目录结构:<br><img class="lazy" src="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAABGdBTUEAALGPC/xhBQAAADhlWElmTU0AKgAAAAgAAYdpAAQAAAABAAAAGgAAAAAAAqACAAQAAAABAAAAAaADAAQAAAABAAAAAQAAAADa6r/EAAAAC0lEQVQIHWNgAAIAAAUAAY27m/MAAAAASUVORK5CYII=" data-src="/upload/images/2017/10/08/2.jpg" alt="1"></p>
+<p>链接成功后, 可以执行生成的 main (可执行)文件.</p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">./main</span><br></pre></td></tr></table></figure>
+
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line">uid: 101 eating</span><br><span class="line">uid: 101 playing</span><br><span class="line">uid: 101 has sleep</span><br></pre></td></tr></table></figure>
+
+<h2 id="有趣的实验"><a href="#有趣的实验" class="headerlink" title="有趣的实验"></a>有趣的实验</h2><p>猜想一下如果有两个库一个是共享库, 一个是静态库, 而且二者除了后缀不一样, 名字都一样如 libperson.a 和 libperson.so, 那么调用方如何来选择对应的库文件呢?</p>
+<p>我们把 GCC: 共享库 里面生成的共享库 libperson.so 放到当前的目录, 重新编译链接 main.c 文件.</p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">gcc main.c -L. -lperson -Ilibs -o main</span><br></pre></td></tr></table></figure>
+
+<p>再次执行 .&#x2F;main, 得到结果是这样的:</p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line">From sharedlib.uid: 101 eating</span><br><span class="line">From sharedlib.uid: 101 playing</span><br><span class="line">From sharedlib.uid: 101 has sleep</span><br></pre></td></tr></table></figure>
+
+<p>以上的结果, 说明链接器会优先选择共享库其次才是静态库.</p>
+<blockquote>
+<p>Linux(MacOS 也一样) 的 GCC 默认链接动态库，只有当动态库不存在时，才去链接静态库.<br>若是需要强制指定静态库需要指定选项 -static.但是在 MacOS 上面不支持该选项.</p>
+</blockquote>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">gcc -static main.c -L. -lperson -Ilibs -o main</span><br></pre></td></tr></table></figure>
+
+<h2 id="附录"><a href="#附录" class="headerlink" title="附录"></a>附录</h2><p>示例完整代码</p>
+<blockquote>
+<p>main.c</p>
+</blockquote>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br></pre></td><td class="code"><pre><span class="line">#include &lt;stdio.h&gt;</span><br><span class="line">#include &quot;person.h&quot;</span><br><span class="line">int main() &#123;</span><br><span class="line">    init(101);</span><br><span class="line">    eat();</span><br><span class="line">    play();</span><br><span class="line">    sleep();</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<blockquote>
+<p>person.h</p>
+</blockquote>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br></pre></td><td class="code"><pre><span class="line">#ifndef _PERSON_H</span><br><span class="line">#define _PERSON_H</span><br><span class="line">extern void init(int pUid);</span><br><span class="line">extern void eat();</span><br><span class="line">extern void play();</span><br><span class="line">extern void sleep();</span><br><span class="line">#endif</span><br></pre></td></tr></table></figure>
+
+<blockquote>
+<p>person.c</p>
+</blockquote>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><span class="line">int uid;</span><br><span class="line">void init(int pUid) &#123;</span><br><span class="line">    uid = pUid;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<blockquote>
+<p>eat.c</p>
+</blockquote>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br></pre></td><td class="code"><pre><span class="line">#include &lt;stdio.h&gt;</span><br><span class="line">extern int uid;</span><br><span class="line">void eat() &#123;</span><br><span class="line">    printf(&quot;uid: %i eating\n&quot;, uid);</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<blockquote>
+<p>play.c</p>
+</blockquote>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br></pre></td><td class="code"><pre><span class="line">#include &lt;stdio.h&gt;</span><br><span class="line">extern int uid;</span><br><span class="line">void play() &#123;</span><br><span class="line">    printf(&quot;uid: %i playing\n&quot;, uid);</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<blockquote>
+<p>sleep.c</p>
+</blockquote>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br></pre></td><td class="code"><pre><span class="line">#include &lt;stdio.h&gt;</span><br><span class="line">extern int uid;</span><br><span class="line">void sleep() &#123;</span><br><span class="line">    printf(&quot;uid: %i has sleep\n&quot;, uid);</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<h2 id="GCC-系列博文"><a href="#GCC-系列博文" class="headerlink" title="GCC 系列博文"></a>GCC 系列博文</h2><p><a target="_blank" rel="noopener" href="http://www.veryitman.com/2017/10/03/GCC-%E7%BC%96%E8%AF%91C%E8%AF%AD%E8%A8%80%E7%9A%84%E6%B5%81%E7%A8%8B/">GCC: 编译 C 语言的流程</a></p>
+<p><a target="_blank" rel="noopener" href="http://www.veryitman.com/2017/10/07/GCC-Homebrew-%E5%AE%89%E8%A3%85-GCC-%E5%92%8C-Binutils/">GCC: Homebrew 安装 GCC 和 Binutils</a></p>
+<p><a target="_blank" rel="noopener" href="http://www.veryitman.com/2017/10/07/GCC-%E5%85%B1%E4%BA%AB%E5%BA%93/">GCC: 共享库</a></p>
+<p><a target="_blank" rel="noopener" href="http://www.veryitman.com/2017/10/08/GCC-%E9%9D%99%E6%80%81%E5%BA%93/">GCC: 静态库</a></p>
+
+
+
+
+</article>
+
+<div class="related-wrap reveal" id="read-next"><section class="header cap theme"><span>接下来阅读</span></section><section class="body fs14"><a id="next" href="/2017/10/07/GCC-%E5%85%B1%E4%BA%AB%E5%BA%93/">GCC: 共享库<span class="note">较早</span></a><div class="line"></div><a id="prev" href="/2018/02/02/Hi-2018-%E6%88%91%E5%8F%88%E6%9D%A5%E4%BA%86/">Hi 2018, 我又来了<span class="note">较新</span></a></section></div>
+
+
+
+
+
+
+  <div class='related-wrap md reveal' id="comments">
+    <div class='cmt-title cap theme'>
+      快来参与讨论吧
+    </div>
+    <div class='cmt-body valine'>
+      
+
+<div id="valine_container" class="valine_thread"><svg class="loading" style="vertical-align: middle;fill: currentColor;overflow: hidden;" viewBox="0 0 1024 1024" version="1.1" xmlns="http://www.w3.org/2000/svg" p-id="2709"><path d="M832 512c0-176-144-320-320-320V128c211.2 0 384 172.8 384 384h-64zM192 512c0 176 144 320 320 320v64C300.8 896 128 723.2 128 512h64z" p-id="2710"></path></svg></div>
+
+    </div>
+  </div>
+
+
+
+      
+<footer class="page-footer reveal fs12"><hr><div class="text"><p>本博客所有文章除特别声明外，均采用 <a target="_blank" rel="noopener" href="https://creativecommons.org/licenses/by-nc-sa/4.0/">CC BY-NC-SA 4.0</a> 许可协议，转载请注明出处。</p>
+<p>veryitman</p>
+</div></footer>
+
+      <div class='float-panel mobile-only blur' style='display:none'>
+  <button type='button' class='sidebar-toggle mobile' onclick='sidebar.toggle()'>
+    <svg class="icon" style="width: 1em; height: 1em;vertical-align: middle;fill: currentColor;overflow: hidden;" viewBox="0 0 1024 1024" version="1.1" xmlns="http://www.w3.org/2000/svg" p-id="15301"><path d="M566.407 808.3c26.9-0.1 49.3-20.8 51.6-47.6-1.9-27.7-23.9-49.7-51.6-51.6h-412.6c-28.2-1.4-52.6 19.5-55.5 47.6 2.3 26.8 24.6 47.5 51.6 47.6h416.5v4z m309.3-249.9c26.9-0.1 49.3-20.8 51.6-47.6-2.2-26.8-24.6-47.5-51.6-47.6h-721.9c-27.7-2.8-52.5 17.4-55.3 45.1-0.1 0.8-0.1 1.7-0.2 2.5 0.9 27.2 23.6 48.5 50.7 47.6H875.707z m-103.1-245.9c26.9-0.1 49.3-20.8 51.6-47.6-0.4-28.3-23.2-51.1-51.5-51.6h-618.9c-29.5-1.1-54.3 21.9-55.5 51.4v0.2c1.4 27.8 25.2 49.2 53 47.8 0.8 0 1.7-0.1 2.5-0.2h618.8z" p-id="15302"></path><path d="M566.407 808.3c26.9-0.1 49.3-20.8 51.6-47.6-1.9-27.7-23.9-49.7-51.6-51.6h-412.6c-28.2-1.4-52.6 19.5-55.5 47.6 1.9 27.7 23.9 49.7 51.6 51.6h416.5z m309.3-249.9c26.9-0.1 49.3-20.8 51.6-47.6-2.2-26.8-24.6-47.5-51.6-47.6h-721.9c-27.7-2.8-52.5 17.4-55.3 45.1-0.1 0.8-0.1 1.7-0.2 2.5 0.9 27.2 23.6 48.5 50.7 47.6H875.707z m-103.1-245.9c26.9-0.1 49.3-20.8 51.6-47.6-0.4-28.3-23.2-51.1-51.5-51.6h-618.9c-29.5-1.1-54.3 21.9-55.5 51.4v0.2c1.4 27.8 25.2 49.2 53 47.8 0.8 0 1.7-0.1 2.5-0.2h618.8z" p-id="15303"></path></svg>
+  </button>
+</div>
+
+    </div>
+  </div>
+  <div class='scripts'>
+    <script type="text/javascript">
+  stellar = {
+    // 懒加载 css https://github.com/filamentgroup/loadCSS
+    loadCSS: (href, before, media, attributes) => {
+      var doc = window.document;
+      var ss = doc.createElement("link");
+      var ref;
+      if (before) {
+        ref = before;
+      } else {
+        var refs = (doc.body || doc.getElementsByTagName("head")[0]).childNodes;
+        ref = refs[refs.length - 1];
+      }
+      var sheets = doc.styleSheets;
+      if (attributes) {
+        for (var attributeName in attributes) {
+          if (attributes.hasOwnProperty(attributeName)) {
+            ss.setAttribute(attributeName, attributes[attributeName]);
+          }
+        }
+      }
+      ss.rel = "stylesheet";
+      ss.href = href;
+      ss.media = "only x";
+      function ready(cb) {
+        if (doc.body) {
+          return cb();
+        }
+        setTimeout(function () {
+          ready(cb);
+        });
+      }
+      ready(function () {
+        ref.parentNode.insertBefore(ss, before ? ref : ref.nextSibling);
+      });
+      var onloadcssdefined = function (cb) {
+        var resolvedHref = ss.href;
+        var i = sheets.length;
+        while (i--) {
+          if (sheets[i].href === resolvedHref) {
+            return cb();
+          }
+        }
+        setTimeout(function () {
+          onloadcssdefined(cb);
+        });
+      };
+      function loadCB() {
+        if (ss.addEventListener) {
+          ss.removeEventListener("load", loadCB);
+        }
+        ss.media = media || "all";
+      }
+      if (ss.addEventListener) {
+        ss.addEventListener("load", loadCB);
+      }
+      ss.onloadcssdefined = onloadcssdefined;
+      onloadcssdefined(loadCB);
+      return ss;
+    },
+
+    // 从 butterfly 和 volantis 获得灵感
+    loadScript: (src, opt) => new Promise((resolve, reject) => {
+      var script = document.createElement('script');
+      script.src = src;
+      if (opt) {
+        for (let key of Object.keys(opt)) {
+          script[key] = opt[key]
+        }
+      } else {
+        // 默认异步，如果需要同步，第二个参数传入 {} 即可
+        script.async = true
+      }
+      script.onerror = reject
+      script.onload = script.onreadystatechange = function() {
+        const loadState = this.readyState
+        if (loadState && loadState !== 'loaded' && loadState !== 'complete') return
+        script.onload = script.onreadystatechange = null
+        resolve()
+      }
+      document.head.appendChild(script)
+    }),
+
+    // https://github.com/jerryc127/hexo-theme-butterfly
+    jQuery: (fn) => {
+      if (typeof jQuery === 'undefined') {
+        stellar.loadScript(stellar.plugins.jQuery).then(fn)
+      } else {
+        fn()
+      }
+    }
+  };
+  stellar.github = 'https://github.com/xaoxuu/hexo-theme-stellar/tree/1.6.1';
+  stellar.config = {
+    date_suffix: {
+      just: '刚刚',
+      min: '分钟前',
+      hour: '小时前',
+      day: '天前',
+      month: '个月前',
+    },
+  };
+
+  // required plugins (only load if needs)
+  stellar.plugins = {
+    jQuery: 'https://cdn.jsdelivr.net/npm/jquery@3.5.1/dist/jquery.min.js',
+    sitesjs: '/js/plugins/sites.js',
+    friendsjs: '/js/plugins/friends.js',
+  };
+
+  // optional plugins
+  if ('true' == 'true') {
+    stellar.plugins.lazyload = Object.assign({"enable":true,"js":"https://cdn.jsdelivr.net/npm/vanilla-lazyload@17.3.1/dist/lazyload.min.js","transition":"blur"});
+  }
+  if ('true' == 'true') {
+    stellar.plugins.swiper = Object.assign({"enable":true,"css":"https://unpkg.com/swiper@6/swiper-bundle.min.css","js":"https://unpkg.com/swiper@6/swiper-bundle.min.js"});
+  }
+  if ('' == 'true') {
+    stellar.plugins.scrollreveal = Object.assign({"enable":null,"js":"https://cdn.jsdelivr.net/npm/scrollreveal@4.0.9/dist/scrollreveal.min.js","distance":"8px","duration":500,"interval":100,"scale":1});
+  }
+  if ('true' == 'true') {
+    stellar.plugins.preload = Object.assign({"enable":true,"service":"flying_pages","instant_page":"https://cdn.jsdelivr.net/gh/volantis-x/cdn-volantis@4.1.2/js/instant_page.js","flying_pages":"https://cdn.jsdelivr.net/gh/gijo-varghese/flying-pages@2.1.2/flying-pages.min.js"});
+  }
+</script>
+
+<!-- required -->
+
+  
+<script src="/js/main.js" async></script>
+
+
+
+<!-- optional -->
+
+  <script>
+  function getEmojiMaps() {
+    function emoji(path, idx, ext) {
+      return path + "/" + path + "-" + idx + "." + ext;
+    }
+    var emojiMaps = {};
+    for (var i = 1; i <= 54; i++) {
+      emojiMaps['tieba-' + i] = emoji('tieba', i, 'png');
+    }
+    for (var i = 1; i <= 101; i++) {
+      emojiMaps['qq-' + i] = emoji('qq', i, 'gif');
+    }
+    for (var i = 1; i <= 116; i++) {
+      emojiMaps['aru-' + i] = emoji('aru', i, 'gif');
+    }
+    for (var i = 1; i <= 125; i++) {
+      emojiMaps['twemoji-' + i] = emoji('twemoji', i, 'png');
+    }
+    for (var i = 1; i <= 4; i++) {
+      emojiMaps['weibo-' + i] = emoji('weibo', i, 'png');
+    }
+    return emojiMaps;
+  }
+  function load_comment(){
+    if(!document.getElementById("valine_container"))return;
+    stellar.loadScript('https://cdn.jsdelivr.net/gh/XuxuGood/simple-blog-cdn@main/js/Valine.min.js', {defer:true}).then(function () {
+      const el = document.getElementById("valine_container");
+      var path = el.getAttribute('comment_id');
+      const placeholder = "欢迎您留言~";
+      if (!path) {
+        path = decodeURI(window.location.pathname);
+      }
+      var valine = new Valine();
+      valine.init(Object.assign({"js":"https://cdn.jsdelivr.net/gh/XuxuGood/simple-blog-cdn@main/js/Valine.min.js","appId":"FY2C9UCttYNaE1j8umenqdCE-gzGzoHsz","appKey":"4i7xMwkfSEGmEDhi6SceKFxz","placeholder":"欢迎您留言~","requiredFields":["nick","mail"],"enableQQ":true,"recordIP":false,"avatar":"robohash","pageSize":10,"lang":"zh-cn","highlight":true,"mathJax":false,"tagMeta":["博主","小伙伴","访客"],"metaPlaceholder":{"nick":"昵称/QQ号(必填)","mail":"邮箱（必填，完全保密）"},"master":["6783037F2DF30EAB99F9FC256157D875"],"friends":["6783037F2DF30EAB99F9FC256157D875"],"comment_count":true}, {
+        el: '#valine_container',
+        path: path,
+        placeholder: placeholder,
+        emojiCDN: 'https://cdn.jsdelivr.net/gh/volantis-x/cdn-emoji/valine/',
+        emojiMaps: getEmojiMaps(),
+      }));
+    });
+  }
+  window.addEventListener('DOMContentLoaded', (event) => {
+    console.log('DOM fully loaded and parsed');
+    load_comment();
+  });
+
+</script>
+
+
+
+
+<!-- inject -->
+
+
+  </div>
+</body>
+</html>

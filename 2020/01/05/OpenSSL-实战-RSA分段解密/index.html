@@ -1,0 +1,407 @@
+<!DOCTYPE html>
+<html lang='zh-CN'>
+
+<head>
+  <meta name="generator" content="Hexo 6.0.0">
+  <meta charset="utf-8">
+  
+
+  <meta http-equiv='x-dns-prefetch-control' content='on' />
+  <link rel='dns-prefetch' href='https://cdn.jsdelivr.net'>
+  <link rel="preconnect" href="https://cdn.jsdelivr.net" crossorigin>
+
+  <meta name="renderer" content="webkit">
+  <meta name="force-rendering" content="webkit">
+  <meta http-equiv="X-UA-Compatible" content="IE=Edge,chrome=1">
+  <meta name="HandheldFriendly" content="True" >
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1">
+  <meta name="theme-color" content="#f8f8f8">
+  <title>OpenSSL: 实战-RSA分段解密 - Veryitman</title>
+
+  
+    <meta name="description" content="简介本篇是继 OpenSSL: 简单易上手的RSA加解密 后的补充篇，实战篇。 在实际项目中，并没有像上篇文章写的那么简单，实际情况要复杂的多。万变不离其宗，抽丝剥茧，复杂事务的背后一定是有其本质原因和原理的存在，而我们就是挖掘原理，探索本质的福尔摩斯。 今天这篇文章，带领大家参与到实际项目中运用RSA加解密，在阅读下面内容之前，期望大家可以下载 openssl 的源码，或者下载我 上篇文中 的代">
+<meta property="og:type" content="article">
+<meta property="og:title" content="OpenSSL: 实战-RSA分段解密">
+<meta property="og:url" content="http://example.com/2020/01/05/OpenSSL-%E5%AE%9E%E6%88%98-RSA%E5%88%86%E6%AE%B5%E8%A7%A3%E5%AF%86/index.html">
+<meta property="og:site_name" content="Veryitman">
+<meta property="og:description" content="简介本篇是继 OpenSSL: 简单易上手的RSA加解密 后的补充篇，实战篇。 在实际项目中，并没有像上篇文章写的那么简单，实际情况要复杂的多。万变不离其宗，抽丝剥茧，复杂事务的背后一定是有其本质原因和原理的存在，而我们就是挖掘原理，探索本质的福尔摩斯。 今天这篇文章，带领大家参与到实际项目中运用RSA加解密，在阅读下面内容之前，期望大家可以下载 openssl 的源码，或者下载我 上篇文中 的代">
+<meta property="og:locale" content="zh_CN">
+<meta property="og:image" content="http://example.com/upload/images/2020/01/05/1.png">
+<meta property="og:image" content="http://example.com/upload/images/2020/01/05/2.png">
+<meta property="og:image" content="http://example.com/upload/me/qrcode_wx.jpg">
+<meta property="article:published_time" content="2020-01-05T09:44:21.000Z">
+<meta property="article:modified_time" content="2022-03-09T14:53:24.333Z">
+<meta property="article:author" content="veryitman">
+<meta property="article:tag" content="OpenSSL VS2017 RSA">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:image" content="http://example.com/upload/images/2020/01/05/1.png">
+  
+  
+
+  <!-- feed -->
+  
+
+  
+    
+<link rel="stylesheet" href="/css/main.css">
+
+  
+
+  
+
+  
+</head>
+
+<body>
+  
+
+
+  <div class='l_body' id='start'>
+    <aside class='l_left' layout='post'>
+    
+
+
+<header class="header">
+
+<div class="logo-wrap"><a class="title" href="/"><div class="main">Veryitman</div></a></div>
+<nav class="menu dis-select"></nav></header>
+
+<div class="widgets">
+
+<div class="widget-wrap single" id="toc"><div class="widget-header cap dis-select"><span class="name">本文目录</span></div><div class="widget-body fs14"><div class="doc-tree active"><ol class="toc"><li class="toc-item toc-level-2"><a class="toc-link" href="#%E7%AE%80%E4%BB%8B"><span class="toc-text">简介</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#%E9%A1%B9%E7%9B%AE%E6%A6%82%E8%BF%B0"><span class="toc-text">项目概述</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#%E8%A7%A3%E4%B8%AA%E5%B0%8F%E6%83%91"><span class="toc-text">解个小惑</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#%E5%BC%80%E6%88%98"><span class="toc-text">开战</span></a></li></ol></div></div></div>
+
+
+</div>
+
+
+    </aside>
+    <div class='l_main'>
+      
+
+      
+
+
+<div class="bread-nav fs12"><div id="breadcrumb"><a class="cap breadcrumb" href="/">主页</a><span class="sep"></span><a class="cap breadcrumb" href="/">文章</a><span class="sep"></span><a class="cap breadcrumb-link" href="/categories/C-C/">C/C++</a></div><div id="post-meta">发布于&nbsp;<time datetime="2020-01-05T09:44:21.000Z">2020-01-05</time></div></div>
+
+<article class='content md post'>
+<h1 class="article-title"><span>OpenSSL: 实战-RSA分段解密</span></h1>
+<h2 id="简介"><a href="#简介" class="headerlink" title="简介"></a>简介</h2><p>本篇是继 <a target="_blank" rel="noopener" href="http://www.veryitman.com/2019/12/29/OpenSSL-%E7%AE%80%E5%8D%95%E6%98%93%E4%B8%8A%E6%89%8B%E7%9A%84RSA%E5%8A%A0%E8%A7%A3%E5%AF%86/">OpenSSL: 简单易上手的RSA加解密</a> 后的补充篇，实战篇。</p>
+<p>在实际项目中，并没有像上篇文章写的那么简单，实际情况要复杂的多。万变不离其宗，抽丝剥茧，复杂事务的背后一定是有其本质原因和原理的存在，而我们就是挖掘原理，探索本质的福尔摩斯。</p>
+<p>今天这篇文章，带领大家参与到实际项目中运用RSA加解密，在阅读下面内容之前，期望大家可以下载 <code>openssl</code> 的源码，或者下载我 <a target="_blank" rel="noopener" href="http://www.veryitman.com/2019/12/29/OpenSSL-%E7%AE%80%E5%8D%95%E6%98%93%E4%B8%8A%E6%89%8B%E7%9A%84RSA%E5%8A%A0%E8%A7%A3%E5%AF%86/">上篇文中</a> 的代码示例。</p>
+<p>我下载的是 <a target="_blank" rel="noopener" href="https://github.com/openssl/openssl/releases/tag/OpenSSL_1_1_0f">openssl-source-1.1.0f</a> 这个版本的源码，正好对应我从 <a target="_blank" rel="noopener" href="https://www.npcglib.org/~stathis/blog/precompiled-openssl/">precompiled-openssl</a> 下载的编译版本。</p>
+<p><img class="lazy" src="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAABGdBTUEAALGPC/xhBQAAADhlWElmTU0AKgAAAAgAAYdpAAQAAAABAAAAGgAAAAAAAqACAAQAAAABAAAAAaADAAQAAAABAAAAAQAAAADa6r/EAAAAC0lEQVQIHWNgAAIAAAUAAY27m/MAAAAASUVORK5CYII=" data-src="/upload/images/2020/01/05/1.png" alt="1"></p>
+<h2 id="项目概述"><a href="#项目概述" class="headerlink" title="项目概述"></a>项目概述</h2><p>该项目的开发语言仍然采用C语言来实现，我们借助 <code>openssl</code> 来模拟实际项目中的案例。</p>
+<p>服务端使用 RSA 加密原始数据，然后采用 Base64 编码该加密数据经过 HTTP 传输给到客户端；</p>
+<p>客户端接收到该数据，先使用 Base64 解码数据，然后再使用 RSA 解密数据，最终得到原始数据。</p>
+<p><strong>这里特别注意，客户端收到的数据大小可能会大于 128 字节，我们知道 RSA 加密明文最大长度 117 字节，而解密的最大值是 128 字节，所以超过该大小需要分段解密数据。</strong></p>
+<p>大概流程图如下：</p>
+<p><img class="lazy" src="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAABGdBTUEAALGPC/xhBQAAADhlWElmTU0AKgAAAAgAAYdpAAQAAAABAAAAGgAAAAAAAqACAAQAAAABAAAAAaADAAQAAAABAAAAAQAAAADa6r/EAAAAC0lEQVQIHWNgAAIAAAUAAY27m/MAAAAASUVORK5CYII=" data-src="/upload/images/2020/01/05/2.png" alt="1"></p>
+<p>很简单的一个项目，对吧，接着往下看吧 :)-</p>
+<h2 id="解个小惑"><a href="#解个小惑" class="headerlink" title="解个小惑"></a>解个小惑</h2><p>也许有些朋友会问，为毛 RSA 加密的明文大小是 117 字节，而解密的最大字节数是 128 字节，两者一样不是更好吗，至少好理解呀？</p>
+<p>得出上面结论的前提是我们RSA密钥长度是 1024 位即 128 字节（1024&#x2F;8&#x3D;128），同理如果是 512 位的密钥，那么最大的 RSA 解密字节长度应该是（512&#x2F;8）64 字节，最大加密的明文长度是（64-11）53 字节。</p>
+<p>在 openssl 源码中，我们可以看到如下代码：</p>
+<figure class="highlight c++"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line"><span class="meta"># <span class="keyword">define</span> RSA_PKCS1_PADDING_SIZE  11</span></span><br></pre></td></tr></table></figure>
+
+<p>在 <code>rsa_sign.c</code> 文件中可以看到 RSA_sign 函数：</p>
+<figure class="highlight c"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br><span class="line">39</span><br><span class="line">40</span><br><span class="line">41</span><br><span class="line">42</span><br><span class="line">43</span><br><span class="line">44</span><br><span class="line">45</span><br><span class="line">46</span><br></pre></td><td class="code"><pre><span class="line"><span class="type">int</span> <span class="title function_">RSA_sign</span><span class="params">(<span class="type">int</span> type, <span class="type">const</span> <span class="type">unsigned</span> <span class="type">char</span> *m, <span class="type">unsigned</span> <span class="type">int</span> m_len,</span></span><br><span class="line"><span class="params">             <span class="type">unsigned</span> <span class="type">char</span> *sigret, <span class="type">unsigned</span> <span class="type">int</span> *siglen, RSA *rsa)</span></span><br><span class="line">&#123;</span><br><span class="line">    <span class="type">int</span> encrypt_len, encoded_len = <span class="number">0</span>, ret = <span class="number">0</span>;</span><br><span class="line">    <span class="type">unsigned</span> <span class="type">char</span> *tmps = <span class="literal">NULL</span>;</span><br><span class="line">    <span class="type">const</span> <span class="type">unsigned</span> <span class="type">char</span> *encoded = <span class="literal">NULL</span>;</span><br><span class="line"></span><br><span class="line">    <span class="keyword">if</span> (rsa-&gt;meth-&gt;rsa_sign) &#123;</span><br><span class="line">        <span class="keyword">return</span> rsa-&gt;meth-&gt;rsa_sign(type, m, m_len, sigret, siglen, rsa);</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    <span class="comment">/* Compute the encoded digest. */</span></span><br><span class="line">    <span class="keyword">if</span> (type == NID_md5_sha1) &#123;</span><br><span class="line">        <span class="comment">/*</span></span><br><span class="line"><span class="comment">         * NID_md5_sha1 corresponds to the MD5/SHA1 combination in TLS 1.1 and</span></span><br><span class="line"><span class="comment">         * earlier. It has no DigestInfo wrapper but otherwise is</span></span><br><span class="line"><span class="comment">         * RSASSA-PKCS1-v1_5.</span></span><br><span class="line"><span class="comment">         */</span></span><br><span class="line">        <span class="keyword">if</span> (m_len != SSL_SIG_LENGTH) &#123;</span><br><span class="line">            RSAerr(RSA_F_RSA_SIGN, RSA_R_INVALID_MESSAGE_LENGTH);</span><br><span class="line">            <span class="keyword">return</span> <span class="number">0</span>;</span><br><span class="line">        &#125;</span><br><span class="line">        encoded_len = SSL_SIG_LENGTH;</span><br><span class="line">        encoded = m;</span><br><span class="line">    &#125; <span class="keyword">else</span> &#123;</span><br><span class="line">        <span class="keyword">if</span> (!encode_pkcs1(&amp;tmps, &amp;encoded_len, type, m, m_len))</span><br><span class="line">            <span class="keyword">goto</span> err;</span><br><span class="line">        encoded = tmps;</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    <span class="keyword">if</span> (encoded_len &gt; RSA_size(rsa) - RSA_PKCS1_PADDING_SIZE) &#123;</span><br><span class="line">        RSAerr(RSA_F_RSA_SIGN, RSA_R_DIGEST_TOO_BIG_FOR_RSA_KEY);</span><br><span class="line">        <span class="keyword">goto</span> err;</span><br><span class="line">    &#125;</span><br><span class="line">    encrypt_len = RSA_private_encrypt(encoded_len, encoded, sigret, rsa,</span><br><span class="line">                                      RSA_PKCS1_PADDING);</span><br><span class="line">    <span class="keyword">if</span> (encrypt_len &lt;= <span class="number">0</span>)</span><br><span class="line">        <span class="keyword">goto</span> err;</span><br><span class="line"></span><br><span class="line">    *siglen = encrypt_len;</span><br><span class="line">    ret = <span class="number">1</span>;</span><br><span class="line"></span><br><span class="line">err:</span><br><span class="line">    OPENSSL_clear_free(tmps, (<span class="type">size_t</span>)encoded_len);</span><br><span class="line">    <span class="keyword">return</span> ret;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<p>可以看出，<code>RSA_PKCS1_PADDING</code> 这种填充模式是占用了 11 个字节的，那么 127+11 正好也是 128 字节。</p>
+<p>每次RSA加密的明文的长度是受RSA填充模式限制的，如下表：</p>
+<table>
+<thead>
+<tr>
+<th>填充方式</th>
+<th>输入</th>
+<th>输出</th>
+<th>备注</th>
+</tr>
+</thead>
+<tbody><tr>
+<td>RSA_PKCS1_PADDING</td>
+<td>必须比RSA钥模长(modulus) 短至少11个字节, 也就是RSA_size(rsa) – 11，对于1024bit的密钥，RSA_size(rsa)&#x3D;128字节，即明文为128-11&#x3D;117字节；如果输入的明文过长，必须切割，然后填充。</td>
+<td>和modulus一样长</td>
+<td>最常用的填充方式</td>
+</tr>
+<tr>
+<td>RSA_PKCS1_OAEP_PADDING</td>
+<td>RSA_size(rsa) – 41</td>
+<td>和modulus一样长</td>
+<td>最优非对称填充OAEP，安全性是最高的</td>
+</tr>
+<tr>
+<td>RSA_NO_PADDING</td>
+<td>可以和RSA钥模长一样长，如果输入的明文过长，必须切割，然后填充。</td>
+<td>和modulus一样长</td>
+<td>-</td>
+</tr>
+</tbody></table>
+<p>这里注意下面结论：</p>
+<ul>
+<li>在不同的padding模式下，使用相同长度的密钥可以加密的数据最大长度不同；</li>
+<li>在不同密钥长度下，使用相同的padding模式可以加密的数据最大长度也不同；</li>
+</ul>
+<p>可以阅读 <a target="_blank" rel="noopener" href="https://tools.ietf.org/html/rfc2313">rfc2313</a> 中关于 <code>PKCS #1: RSA Encryption Version 1.5</code> 的部分。</p>
+<h2 id="开战"><a href="#开战" class="headerlink" title="开战"></a>开战</h2><blockquote>
+<p>实战代码主要在 <code>main.c</code> 文件中的 <code>example_rsa3()</code> 函数中。</p>
+</blockquote>
+<p>原始数据是字符串 <code>www.veryitman.com</code>，如下还包括了公私钥。</p>
+<figure class="highlight c"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment">// 原始数据为字符串：www.veryitman.com</span></span><br><span class="line">	<span class="type">unsigned</span> <span class="type">char</span> plainText[] = <span class="string">&quot;www.veryitman.com&quot;</span>;</span><br><span class="line"></span><br><span class="line">	<span class="type">unsigned</span> <span class="type">char</span> publicKey[] = <span class="string">&quot;-----BEGIN PUBLIC KEY-----\n&quot;</span></span><br><span class="line">		<span class="string">&quot;MIGfMA0GCSqGSIb3DQEBAQUAA4GNADCBiQKBgQCrPgCMJW17JN2DW7tZFk/FB6pU\n&quot;</span></span><br><span class="line">		<span class="string">&quot;pLvLOo6G/EuND8XZptffXbyiY2VscMRhP+kKVeaLO9HuEYR3Zl78x8oR6prytstc\n&quot;</span></span><br><span class="line">		<span class="string">&quot;/MueersWDxh4iGSHsZXGxA41hXrXLRElrSTRc43ea18o0zMxZoVZiR2JFt7QcgM+\n&quot;</span></span><br><span class="line">		<span class="string">&quot;T6eOrvj59MhXv9O46QIDAQAB\n&quot;</span></span><br><span class="line">		<span class="string">&quot;-----END PUBLIC KEY-----\n&quot;</span>;</span><br><span class="line"></span><br><span class="line">	<span class="type">unsigned</span> <span class="type">char</span> privateKey[] = <span class="string">&quot;-----BEGIN RSA PRIVATE KEY-----\n&quot;</span></span><br><span class="line">		<span class="string">&quot;MIICdgIBADANBgkqhkiG9w0BAQEFAASCAmAwggJcAgEAAoGBAKs+AIwlbXsk3YNb\n&quot;</span></span><br><span class="line">		<span class="string">&quot;u1kWT8UHqlSku8s6job8S40Pxdmm199dvKJjZWxwxGE/6QpV5os70e4RhHdmXvzH\n&quot;</span></span><br><span class="line">		<span class="string">&quot;yhHqmvK2y1z8y556uxYPGHiIZIexlcbEDjWFetctESWtJNFzjd5rXyjTMzFmhVmJ\n&quot;</span></span><br><span class="line">		<span class="string">&quot;HYkW3tByAz5Pp46u+Pn0yFe/07jpAgMBAAECgYBj1YH8MtXhNVzveEuBZMCc3hsv\n&quot;</span></span><br><span class="line">		<span class="string">&quot;vdq+YSU3DV/+nXN7sQmp77xJ8CjxT80t5VS38dy2z+lUImJYOhamyNPGHkC2y84V\n&quot;</span></span><br><span class="line">		<span class="string">&quot;7i5+e6ScQve1gnwHqRKGBjtSCaYOqm9rTDECCTT1oMU26sfYznWlJqMrkJp1jWn7\n&quot;</span></span><br><span class="line">		<span class="string">&quot;aAwr+3FcX2XhD74ZAQJBAN34Y6fmHLRPv21MsdgGqUjKgyFvJfLUmtFFgb6sLEWc\n&quot;</span></span><br><span class="line">		<span class="string">&quot;k22J3BAFAcNCTLYHFZwMhL/nwaw9/7rIUJD+lcl6n3cCQQDFfrN14qKC3GJfoBZ8\n&quot;</span></span><br><span class="line">		<span class="string">&quot;k9S6F7Ss514DDPzIuenbafhoUjZDVcjLw9EmYZQjpfsQ3WdNICUKRrDHZay1Pz+s\n&quot;</span></span><br><span class="line">		<span class="string">&quot;YkKfAkB+OKfaquS5t/t/2LPsxuTuipIEqiKnMjSTOfYsidVnBEFlcZZc2awF76aV\n&quot;</span></span><br><span class="line">		<span class="string">&quot;f/PO1+OJCO2910ebXBtMSCi++GbDAkEAmc7zNPwsVH4OnyquWJdJNSUBMSd/sCCN\n&quot;</span></span><br><span class="line">		<span class="string">&quot;PkaMOrVtINHmMMq+dvMqEBoupRS/U4Ma0JYYQsiLJL+qof2AOWDNQQJAcquLGHLT\n&quot;</span></span><br><span class="line">		<span class="string">&quot;eGDDLluHo+kkIGwZi4aK/fDoylZ0NCEtYyMtShQ3JmllST9kmb9NJX2gMsejsirc\n&quot;</span></span><br><span class="line">		<span class="string">&quot;H6ObxqZPbka6UA==\n&quot;</span></span><br><span class="line">		<span class="string">&quot;-----END RSA PRIVATE KEY-----\n&quot;</span>;</span><br></pre></td></tr></table></figure>
+
+<p>对数据进行私钥加密，示例如下：</p>
+<figure class="highlight c"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment">// 私钥加密</span></span><br><span class="line"><span class="type">int</span> encrypted_length = private_key_encrypt(plainText, len, privateKey, encrypted_str);</span><br><span class="line"><span class="keyword">if</span> (<span class="number">-1</span> == encrypted_length)</span><br><span class="line">&#123;</span><br><span class="line">	<span class="built_in">printf</span>(<span class="string">&quot;Private Encrypt failed\n&quot;</span>);</span><br><span class="line">	<span class="built_in">exit</span>(<span class="number">0</span>);</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<p>私钥加密之后，进行 Base64 编码：</p>
+<figure class="highlight c"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br></pre></td><td class="code"><pre><span class="line"><span class="type">char</span> *base64_content;</span><br><span class="line"><span class="type">size_t</span> encrypted_str_length = <span class="built_in">strlen</span>(encrypted_str);</span><br><span class="line"><span class="type">int</span> encode_res = mzc_base64_encode(encrypted_str, encrypted_str_length, &amp;base64_content);</span><br><span class="line"><span class="keyword">if</span> (<span class="number">0</span> != encode_res)</span><br><span class="line">&#123;</span><br><span class="line">	<span class="built_in">printf</span>(<span class="string">&quot;Base64 encode failed\n&quot;</span>);</span><br><span class="line">	<span class="built_in">exit</span>(<span class="number">0</span>);</span><br><span class="line">&#125;</span><br><span class="line"><span class="built_in">printf</span>(<span class="string">&quot;Base64 encode content: %s\n\n&quot;</span>, base64_content);</span><br><span class="line"><span class="built_in">printf</span>(<span class="string">&quot;Base64 encode content&#x27;s length: %i\n\n&quot;</span>, <span class="built_in">strlen</span>(base64_content));</span><br></pre></td></tr></table></figure>
+
+<p>至此，上面两个步骤就模拟完成了服务端加密的过程。下面我们来继续模拟客户端解密的过程。</p>
+<p>首先，对 Base64 编码之后的数据进行 Base64 解码。</p>
+<figure class="highlight c"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br></pre></td><td class="code"><pre><span class="line"><span class="type">char</span> *base64DecodeOutput;</span><br><span class="line"><span class="type">size_t</span> decode_output_length;</span><br><span class="line"><span class="type">int</span> decode_res = mzc_base64_decode(base64_content, &amp;base64DecodeOutput, &amp;decode_output_length);</span><br><span class="line"><span class="built_in">printf</span>(<span class="string">&quot;base64 decode content: %s\n\n&quot;</span>, base64DecodeOutput);</span><br><span class="line"><span class="built_in">printf</span>(<span class="string">&quot;base64 decode content&#x27;s length: %i\n\n&quot;</span>, decode_output_length);</span><br><span class="line"><span class="keyword">if</span> (<span class="number">0</span> != decode_res)</span><br><span class="line">&#123;</span><br><span class="line">    <span class="built_in">printf</span>(<span class="string">&quot;Base64 decode failed\n&quot;</span>);</span><br><span class="line">    <span class="built_in">exit</span>(<span class="number">0</span>);</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<p>看一下打印结果：</p>
+<figure class="highlight c"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">base64 decode content<span class="number">&#x27;</span>s length: <span class="number">160</span></span><br></pre></td></tr></table></figure>
+
+<p>很明显，长度要大于 128，需要进行分段处理。</p>
+<figure class="highlight c"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment">// 最大解密长度</span></span><br><span class="line"><span class="meta">#<span class="keyword">define</span> RSA_MAX_DECRYPT_SIZE 128</span></span><br><span class="line"></span><br><span class="line"><span class="comment">// 每段解密的长度</span></span><br><span class="line"><span class="type">int</span> chunk = <span class="number">0</span>;</span><br><span class="line"><span class="type">unsigned</span> <span class="type">char</span> tmp_dstr[RSA_MAX_DECRYPT_SIZE];</span><br><span class="line"><span class="built_in">memset</span>(tmp_dstr, <span class="string">&#x27;\0&#x27;</span>, <span class="keyword">sizeof</span>(tmp_dstr));</span><br><span class="line"></span><br><span class="line"><span class="comment">// （数据被）分段解密（公钥解密）</span></span><br><span class="line"><span class="keyword">while</span> (chunk &lt;= decode_output_length)</span><br><span class="line">&#123;</span><br><span class="line">    <span class="type">int</span> decrypted_length = public_key_decrypt(base64DecodeOutput, RSA_MAX_DECRYPT_SIZE, publicKey, tmp_dstr);</span><br><span class="line">    <span class="built_in">memcpy</span>(decrypted_str, tmp_dstr, decrypted_length);</span><br><span class="line">    <span class="built_in">printf</span>(<span class="string">&quot;Current decrypted content length =%d\n&quot;</span>, decrypted_length);</span><br><span class="line">    <span class="keyword">if</span> (<span class="number">-1</span> == decrypted_length)</span><br><span class="line">    &#123;</span><br><span class="line">        <span class="built_in">printf</span>(<span class="string">&quot;Public Decrypt failed\n&quot;</span>);</span><br><span class="line">        <span class="built_in">exit</span>(<span class="number">0</span>);</span><br><span class="line">    &#125;</span><br><span class="line">    chunk += decrypted_length;</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line"><span class="built_in">printf</span>(<span class="string">&quot;......\n\n&quot;</span>);</span><br><span class="line"><span class="built_in">printf</span>(<span class="string">&quot;Final decrypted string =%s\n&quot;</span>, decrypted_str);</span><br></pre></td></tr></table></figure>
+
+<p>输出结果：</p>
+<figure class="highlight c"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line">......</span><br><span class="line"></span><br><span class="line">Final decrypted <span class="built_in">string</span> =www.veryitman.com</span><br></pre></td></tr></table></figure>
+
+<p>至此整个过程简单模拟结束。</p>
+<p>大家如果感兴趣的话，可以实现分段加密的过程。我就不再演示这个过程了，后续加入到源代码中去。</p>
+<hr>
+<p><strong>问君能有几多愁，恰似一江春水向东流。</strong></p>
+<p><img class="lazy" src="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAABGdBTUEAALGPC/xhBQAAADhlWElmTU0AKgAAAAgAAYdpAAQAAAABAAAAGgAAAAAAAqACAAQAAAABAAAAAaADAAQAAAABAAAAAQAAAADa6r/EAAAAC0lEQVQIHWNgAAIAAAUAAY27m/MAAAAASUVORK5CYII=" data-src="/upload/me/qrcode_wx.jpg"></p>
+
+
+
+
+</article>
+
+<div class="related-wrap reveal" id="read-next"><section class="header cap theme"><span>接下来阅读</span></section><section class="body fs14"><a id="next" href="/2019/12/29/OpenSSL-%E7%AE%80%E5%8D%95%E6%98%93%E4%B8%8A%E6%89%8B%E7%9A%84RSA%E5%8A%A0%E8%A7%A3%E5%AF%86/">OpenSSL: 简单易上手的RSA加解密<span class="note">较早</span></a><div class="line"></div><a id="prev" href="/2020/02/27/OC%E5%9D%91%E9%9B%86%E4%B9%8Bblock%E4%BD%9C%E4%B8%BA%E5%87%BD%E6%95%B0%E5%8F%82%E6%95%B0/">OC坑集之block作为函数参数<span class="note">较新</span></a></section></div>
+
+
+
+
+
+
+  <div class='related-wrap md reveal' id="comments">
+    <div class='cmt-title cap theme'>
+      快来参与讨论吧
+    </div>
+    <div class='cmt-body valine'>
+      
+
+<div id="valine_container" class="valine_thread"><svg class="loading" style="vertical-align: middle;fill: currentColor;overflow: hidden;" viewBox="0 0 1024 1024" version="1.1" xmlns="http://www.w3.org/2000/svg" p-id="2709"><path d="M832 512c0-176-144-320-320-320V128c211.2 0 384 172.8 384 384h-64zM192 512c0 176 144 320 320 320v64C300.8 896 128 723.2 128 512h64z" p-id="2710"></path></svg></div>
+
+    </div>
+  </div>
+
+
+
+      
+<footer class="page-footer reveal fs12"><hr><div class="text"><p>本博客所有文章除特别声明外，均采用 <a target="_blank" rel="noopener" href="https://creativecommons.org/licenses/by-nc-sa/4.0/">CC BY-NC-SA 4.0</a> 许可协议，转载请注明出处。</p>
+<p>veryitman</p>
+</div></footer>
+
+      <div class='float-panel mobile-only blur' style='display:none'>
+  <button type='button' class='sidebar-toggle mobile' onclick='sidebar.toggle()'>
+    <svg class="icon" style="width: 1em; height: 1em;vertical-align: middle;fill: currentColor;overflow: hidden;" viewBox="0 0 1024 1024" version="1.1" xmlns="http://www.w3.org/2000/svg" p-id="15301"><path d="M566.407 808.3c26.9-0.1 49.3-20.8 51.6-47.6-1.9-27.7-23.9-49.7-51.6-51.6h-412.6c-28.2-1.4-52.6 19.5-55.5 47.6 2.3 26.8 24.6 47.5 51.6 47.6h416.5v4z m309.3-249.9c26.9-0.1 49.3-20.8 51.6-47.6-2.2-26.8-24.6-47.5-51.6-47.6h-721.9c-27.7-2.8-52.5 17.4-55.3 45.1-0.1 0.8-0.1 1.7-0.2 2.5 0.9 27.2 23.6 48.5 50.7 47.6H875.707z m-103.1-245.9c26.9-0.1 49.3-20.8 51.6-47.6-0.4-28.3-23.2-51.1-51.5-51.6h-618.9c-29.5-1.1-54.3 21.9-55.5 51.4v0.2c1.4 27.8 25.2 49.2 53 47.8 0.8 0 1.7-0.1 2.5-0.2h618.8z" p-id="15302"></path><path d="M566.407 808.3c26.9-0.1 49.3-20.8 51.6-47.6-1.9-27.7-23.9-49.7-51.6-51.6h-412.6c-28.2-1.4-52.6 19.5-55.5 47.6 1.9 27.7 23.9 49.7 51.6 51.6h416.5z m309.3-249.9c26.9-0.1 49.3-20.8 51.6-47.6-2.2-26.8-24.6-47.5-51.6-47.6h-721.9c-27.7-2.8-52.5 17.4-55.3 45.1-0.1 0.8-0.1 1.7-0.2 2.5 0.9 27.2 23.6 48.5 50.7 47.6H875.707z m-103.1-245.9c26.9-0.1 49.3-20.8 51.6-47.6-0.4-28.3-23.2-51.1-51.5-51.6h-618.9c-29.5-1.1-54.3 21.9-55.5 51.4v0.2c1.4 27.8 25.2 49.2 53 47.8 0.8 0 1.7-0.1 2.5-0.2h618.8z" p-id="15303"></path></svg>
+  </button>
+</div>
+
+    </div>
+  </div>
+  <div class='scripts'>
+    <script type="text/javascript">
+  stellar = {
+    // 懒加载 css https://github.com/filamentgroup/loadCSS
+    loadCSS: (href, before, media, attributes) => {
+      var doc = window.document;
+      var ss = doc.createElement("link");
+      var ref;
+      if (before) {
+        ref = before;
+      } else {
+        var refs = (doc.body || doc.getElementsByTagName("head")[0]).childNodes;
+        ref = refs[refs.length - 1];
+      }
+      var sheets = doc.styleSheets;
+      if (attributes) {
+        for (var attributeName in attributes) {
+          if (attributes.hasOwnProperty(attributeName)) {
+            ss.setAttribute(attributeName, attributes[attributeName]);
+          }
+        }
+      }
+      ss.rel = "stylesheet";
+      ss.href = href;
+      ss.media = "only x";
+      function ready(cb) {
+        if (doc.body) {
+          return cb();
+        }
+        setTimeout(function () {
+          ready(cb);
+        });
+      }
+      ready(function () {
+        ref.parentNode.insertBefore(ss, before ? ref : ref.nextSibling);
+      });
+      var onloadcssdefined = function (cb) {
+        var resolvedHref = ss.href;
+        var i = sheets.length;
+        while (i--) {
+          if (sheets[i].href === resolvedHref) {
+            return cb();
+          }
+        }
+        setTimeout(function () {
+          onloadcssdefined(cb);
+        });
+      };
+      function loadCB() {
+        if (ss.addEventListener) {
+          ss.removeEventListener("load", loadCB);
+        }
+        ss.media = media || "all";
+      }
+      if (ss.addEventListener) {
+        ss.addEventListener("load", loadCB);
+      }
+      ss.onloadcssdefined = onloadcssdefined;
+      onloadcssdefined(loadCB);
+      return ss;
+    },
+
+    // 从 butterfly 和 volantis 获得灵感
+    loadScript: (src, opt) => new Promise((resolve, reject) => {
+      var script = document.createElement('script');
+      script.src = src;
+      if (opt) {
+        for (let key of Object.keys(opt)) {
+          script[key] = opt[key]
+        }
+      } else {
+        // 默认异步，如果需要同步，第二个参数传入 {} 即可
+        script.async = true
+      }
+      script.onerror = reject
+      script.onload = script.onreadystatechange = function() {
+        const loadState = this.readyState
+        if (loadState && loadState !== 'loaded' && loadState !== 'complete') return
+        script.onload = script.onreadystatechange = null
+        resolve()
+      }
+      document.head.appendChild(script)
+    }),
+
+    // https://github.com/jerryc127/hexo-theme-butterfly
+    jQuery: (fn) => {
+      if (typeof jQuery === 'undefined') {
+        stellar.loadScript(stellar.plugins.jQuery).then(fn)
+      } else {
+        fn()
+      }
+    }
+  };
+  stellar.github = 'https://github.com/xaoxuu/hexo-theme-stellar/tree/1.6.1';
+  stellar.config = {
+    date_suffix: {
+      just: '刚刚',
+      min: '分钟前',
+      hour: '小时前',
+      day: '天前',
+      month: '个月前',
+    },
+  };
+
+  // required plugins (only load if needs)
+  stellar.plugins = {
+    jQuery: 'https://cdn.jsdelivr.net/npm/jquery@3.5.1/dist/jquery.min.js',
+    sitesjs: '/js/plugins/sites.js',
+    friendsjs: '/js/plugins/friends.js',
+  };
+
+  // optional plugins
+  if ('true' == 'true') {
+    stellar.plugins.lazyload = Object.assign({"enable":true,"js":"https://cdn.jsdelivr.net/npm/vanilla-lazyload@17.3.1/dist/lazyload.min.js","transition":"blur"});
+  }
+  if ('true' == 'true') {
+    stellar.plugins.swiper = Object.assign({"enable":true,"css":"https://unpkg.com/swiper@6/swiper-bundle.min.css","js":"https://unpkg.com/swiper@6/swiper-bundle.min.js"});
+  }
+  if ('' == 'true') {
+    stellar.plugins.scrollreveal = Object.assign({"enable":null,"js":"https://cdn.jsdelivr.net/npm/scrollreveal@4.0.9/dist/scrollreveal.min.js","distance":"8px","duration":500,"interval":100,"scale":1});
+  }
+  if ('true' == 'true') {
+    stellar.plugins.preload = Object.assign({"enable":true,"service":"flying_pages","instant_page":"https://cdn.jsdelivr.net/gh/volantis-x/cdn-volantis@4.1.2/js/instant_page.js","flying_pages":"https://cdn.jsdelivr.net/gh/gijo-varghese/flying-pages@2.1.2/flying-pages.min.js"});
+  }
+</script>
+
+<!-- required -->
+
+  
+<script src="/js/main.js" async></script>
+
+
+
+<!-- optional -->
+
+  <script>
+  function getEmojiMaps() {
+    function emoji(path, idx, ext) {
+      return path + "/" + path + "-" + idx + "." + ext;
+    }
+    var emojiMaps = {};
+    for (var i = 1; i <= 54; i++) {
+      emojiMaps['tieba-' + i] = emoji('tieba', i, 'png');
+    }
+    for (var i = 1; i <= 101; i++) {
+      emojiMaps['qq-' + i] = emoji('qq', i, 'gif');
+    }
+    for (var i = 1; i <= 116; i++) {
+      emojiMaps['aru-' + i] = emoji('aru', i, 'gif');
+    }
+    for (var i = 1; i <= 125; i++) {
+      emojiMaps['twemoji-' + i] = emoji('twemoji', i, 'png');
+    }
+    for (var i = 1; i <= 4; i++) {
+      emojiMaps['weibo-' + i] = emoji('weibo', i, 'png');
+    }
+    return emojiMaps;
+  }
+  function load_comment(){
+    if(!document.getElementById("valine_container"))return;
+    stellar.loadScript('https://cdn.jsdelivr.net/gh/XuxuGood/simple-blog-cdn@main/js/Valine.min.js', {defer:true}).then(function () {
+      const el = document.getElementById("valine_container");
+      var path = el.getAttribute('comment_id');
+      const placeholder = "欢迎您留言~";
+      if (!path) {
+        path = decodeURI(window.location.pathname);
+      }
+      var valine = new Valine();
+      valine.init(Object.assign({"js":"https://cdn.jsdelivr.net/gh/XuxuGood/simple-blog-cdn@main/js/Valine.min.js","appId":"FY2C9UCttYNaE1j8umenqdCE-gzGzoHsz","appKey":"4i7xMwkfSEGmEDhi6SceKFxz","placeholder":"欢迎您留言~","requiredFields":["nick","mail"],"enableQQ":true,"recordIP":false,"avatar":"robohash","pageSize":10,"lang":"zh-cn","highlight":true,"mathJax":false,"tagMeta":["博主","小伙伴","访客"],"metaPlaceholder":{"nick":"昵称/QQ号(必填)","mail":"邮箱（必填，完全保密）"},"master":["6783037F2DF30EAB99F9FC256157D875"],"friends":["6783037F2DF30EAB99F9FC256157D875"],"comment_count":true}, {
+        el: '#valine_container',
+        path: path,
+        placeholder: placeholder,
+        emojiCDN: 'https://cdn.jsdelivr.net/gh/volantis-x/cdn-emoji/valine/',
+        emojiMaps: getEmojiMaps(),
+      }));
+    });
+  }
+  window.addEventListener('DOMContentLoaded', (event) => {
+    console.log('DOM fully loaded and parsed');
+    load_comment();
+  });
+
+</script>
+
+
+
+
+<!-- inject -->
+
+
+  </div>
+</body>
+</html>

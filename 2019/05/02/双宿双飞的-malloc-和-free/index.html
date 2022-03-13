@@ -1,0 +1,493 @@
+<!DOCTYPE html>
+<html lang='zh-CN'>
+
+<head>
+  <meta name="generator" content="Hexo 6.0.0">
+  <meta charset="utf-8">
+  
+
+  <meta http-equiv='x-dns-prefetch-control' content='on' />
+  <link rel='dns-prefetch' href='https://cdn.jsdelivr.net'>
+  <link rel="preconnect" href="https://cdn.jsdelivr.net" crossorigin>
+
+  <meta name="renderer" content="webkit">
+  <meta name="force-rendering" content="webkit">
+  <meta http-equiv="X-UA-Compatible" content="IE=Edge,chrome=1">
+  <meta name="HandheldFriendly" content="True" >
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1">
+  <meta name="theme-color" content="#f8f8f8">
+  <title>双宿双飞的 malloc 和 free - Veryitman</title>
+
+  
+    <meta name="description" content="最近在看人工智能相关的知识，无意中发现了一个巨牛的 人工智能教程，分享一下给大家。 教程不仅是零基础，通俗易懂，而且非常风趣幽默，像看小说一样！觉得太牛了，所以分享给大家。点 这里 可以直接看教程。  简介函数 malloc 和 free 是一对好朋友，几乎是形影不离。有 malloc 的地方就应该有 free 的存在。 今天跟大家聊聊 malloc 和 free 这对好基友，这两个函数都是对堆内">
+<meta property="og:type" content="article">
+<meta property="og:title" content="双宿双飞的 malloc 和 free">
+<meta property="og:url" content="http://example.com/2019/05/02/%E5%8F%8C%E5%AE%BF%E5%8F%8C%E9%A3%9E%E7%9A%84-malloc-%E5%92%8C-free/index.html">
+<meta property="og:site_name" content="Veryitman">
+<meta property="og:description" content="最近在看人工智能相关的知识，无意中发现了一个巨牛的 人工智能教程，分享一下给大家。 教程不仅是零基础，通俗易懂，而且非常风趣幽默，像看小说一样！觉得太牛了，所以分享给大家。点 这里 可以直接看教程。  简介函数 malloc 和 free 是一对好朋友，几乎是形影不离。有 malloc 的地方就应该有 free 的存在。 今天跟大家聊聊 malloc 和 free 这对好基友，这两个函数都是对堆内">
+<meta property="og:locale" content="zh_CN">
+<meta property="og:image" content="http://example.com/upload/me/qrcode_wx.jpg">
+<meta property="article:published_time" content="2019-05-02T14:19:55.000Z">
+<meta property="article:modified_time" content="2022-03-09T14:53:24.311Z">
+<meta property="article:author" content="veryitman">
+<meta property="article:tag" content="malloc free">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:image" content="http://example.com/upload/me/qrcode_wx.jpg">
+  
+  
+
+  <!-- feed -->
+  
+
+  
+    
+<link rel="stylesheet" href="/css/main.css">
+
+  
+
+  
+
+  
+</head>
+
+<body>
+  
+
+
+  <div class='l_body' id='start'>
+    <aside class='l_left' layout='post'>
+    
+
+
+<header class="header">
+
+<div class="logo-wrap"><a class="title" href="/"><div class="main">Veryitman</div></a></div>
+<nav class="menu dis-select"></nav></header>
+
+<div class="widgets">
+
+<div class="widget-wrap single" id="toc"><div class="widget-header cap dis-select"><span class="name">本文目录</span></div><div class="widget-body fs14"><div class="doc-tree active"><ol class="toc"><li class="toc-item toc-level-2"><a class="toc-link" href="#%E7%AE%80%E4%BB%8B"><span class="toc-text">简介</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#void"><span class="toc-text">void *</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#malloc"><span class="toc-text">malloc</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#free"><span class="toc-text">free</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#malloc%E3%80%81free-%E5%B0%8F%E7%BB%93"><span class="toc-text">malloc、free 小结</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#calloc%E3%80%81realloc%E3%80%81reallocf%E3%80%81valloc"><span class="toc-text">calloc、realloc、reallocf、valloc</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#glibc-%E4%B8%8E-libc"><span class="toc-text">glibc 与 libc</span></a></li></ol></div></div></div>
+
+
+</div>
+
+
+    </aside>
+    <div class='l_main'>
+      
+
+      
+
+
+<div class="bread-nav fs12"><div id="breadcrumb"><a class="cap breadcrumb" href="/">主页</a><span class="sep"></span><a class="cap breadcrumb" href="/">文章</a><span class="sep"></span><a class="cap breadcrumb-link" href="/categories/C-C/">C/C++</a></div><div id="post-meta">发布于&nbsp;<time datetime="2019-05-02T14:19:55.000Z">2019-05-02</time></div></div>
+
+<article class='content md post'>
+<h1 class="article-title"><span>双宿双飞的 malloc 和 free</span></h1>
+<p>最近在看人工智能相关的知识，无意中发现了一个巨牛的 <a target="_blank" rel="noopener" href="https://www.cbedai.net/androidbluetooth">人工智能教程</a>，分享一下给大家。</p>
+<p>教程不仅是零基础，通俗易懂，而且非常风趣幽默，像看小说一样！觉得太牛了，所以分享给大家。点 <a target="_blank" rel="noopener" href="https://www.cbedai.net/androidbluetooth">这里</a> 可以直接看教程。</p>
+<hr>
+<h2 id="简介"><a href="#简介" class="headerlink" title="简介"></a>简介</h2><p>函数 <code>malloc</code> 和 <code>free</code> 是一对好朋友，几乎是形影不离。有 <code>malloc</code> 的地方就应该有 <code>free</code> 的存在。</p>
+<p>今天跟大家聊聊 <code>malloc</code> 和 <code>free</code> 这对好基友，这两个函数都是对堆内存进行管理的函数，另外还有 <code>calloc</code>、<code>realloc</code>、<code>reallocf</code>、<code>valloc</code> 等堆内存管理函数。</p>
+<h2 id="void"><a href="#void" class="headerlink" title="void *"></a>void *</h2><p>在进行下面话题之前，我们先回忆一下 <code>void *</code> 是什么？</p>
+<p><code>void *</code> 表示未确定类型的指针。C&#x2F;C++规定，<code>void *</code> 类型可以强制转换为任何其它类型的指针。</p>
+<p><code>void *</code> 也被称之为无类型指针，<code>void *</code> 可以指向任意类型的数据，就是说可以用任意类型的指针对 <code>void *</code> 赋值，如下示例：</p>
+<figure class="highlight c"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line"><span class="type">void</span> *p1;</span><br><span class="line"><span class="type">int</span> *p2;</span><br><span class="line">p1 = p2;</span><br></pre></td></tr></table></figure>
+
+<p>但一般不会反过来使用，如下示例在有些编译器上面可以编译通过，有些就不行：</p>
+<figure class="highlight c"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line"><span class="type">void</span> *p1;</span><br><span class="line"><span class="type">int</span> *p2;</span><br><span class="line">p2 = p1;</span><br></pre></td></tr></table></figure>
+
+<p>可以修改一下代码，将 <code>void *</code> 转换为对应的指针类型再进行赋值，如下示例：</p>
+<figure class="highlight c"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line"><span class="type">void</span> *p1;</span><br><span class="line"><span class="type">int</span> *p2;</span><br><span class="line">p2 = (<span class="type">char</span> *)p1;</span><br></pre></td></tr></table></figure>
+
+<p>由于 GNU 和 ANSI 对 <code>void *</code> 类型指针参与运算的规定不一样，所以为了兼容二者并且让程序有更好的兼容性，最好还是将 <code>void *</code> 转换为有明确类型的指针再参与运算，如下示例。</p>
+<figure class="highlight c"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><span class="line"><span class="type">void</span> *pd;</span><br><span class="line"><span class="type">char</span> *pc = (<span class="type">char</span> *)pd;</span><br><span class="line">pc ++;</span><br><span class="line">pc += <span class="number">1</span>;</span><br></pre></td></tr></table></figure>
+
+<h2 id="malloc"><a href="#malloc" class="headerlink" title="malloc"></a>malloc</h2><p>函数原型：</p>
+<figure class="highlight c"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line"><span class="type">void</span> * <span class="title function_">malloc</span><span class="params">(<span class="type">size_t</span> size)</span>;</span><br></pre></td></tr></table></figure>
+
+<p><code>malloc</code> 向系统申请分配指定 <code>size</code> 个字节的内存空间，即 <code>malloc</code> 函数用来从堆空间中申请指定的 <code>size</code> 个字节的内存大小，返回类型是 <code>void *</code> 类型，如果成功，就会返回指向申请分配的内存，否则返回空指针，所以 <code>malloc</code> 不保证一定成功。</p>
+<p>查看函数手册或者直接在Linux、macOS等Unix系统上面直接 <code>man malloc</code> 会显示对应的函数信息：</p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><span class="line">The malloc() function allocates size bytes of memory and returns a pointer to the allocated memory.</span><br><span class="line"></span><br><span class="line">If successful, malloc() function return a pointer to allocated memory.  </span><br><span class="line">If there is an error, they return a NULL pointer and set errno to ENOMEM.</span><br></pre></td></tr></table></figure>
+
+<p>另外需要注意一个问题，使用 <code>malloc</code> 函数分配内存空间成功后，<code>malloc</code> 不会对数据进行初始化，里边数据是随机的垃圾数据，所以一般结合 <code>memset</code> 函数和 <code>malloc</code> 函数 一起使用。</p>
+<figure class="highlight c"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br></pre></td><td class="code"><pre><span class="line"><span class="type">int</span> *arr;</span><br><span class="line">arr = (<span class="type">int</span> *)<span class="built_in">malloc</span>(<span class="number">10</span> * <span class="keyword">sizeof</span>(<span class="type">int</span>));</span><br><span class="line"><span class="keyword">if</span> (<span class="literal">NULL</span> != arr) &#123;</span><br><span class="line">    <span class="built_in">memset</span>(arr, <span class="number">0</span>, <span class="number">10</span> * <span class="keyword">sizeof</span>(<span class="type">int</span>));</span><br><span class="line">    <span class="built_in">printf</span>(<span class="string">&quot;arr: %p\n&quot;</span>, arr);</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<figure class="highlight c"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br></pre></td><td class="code"><pre><span class="line"><span class="type">char</span> *arr;</span><br><span class="line">arr = (<span class="type">char</span> *)<span class="built_in">malloc</span>(<span class="number">10</span> * <span class="keyword">sizeof</span>(<span class="type">char</span>));</span><br><span class="line"><span class="keyword">if</span> (<span class="literal">NULL</span> != arr) &#123;</span><br><span class="line">    <span class="built_in">memset</span>(arr, <span class="string">&#x27;\0&#x27;</span>, <span class="number">10</span> * <span class="keyword">sizeof</span>(<span class="type">char</span>));</span><br><span class="line">    <span class="built_in">printf</span>(<span class="string">&quot;arr string: %s\n&quot;</span>, arr);</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<p>为了安全起见，建议可以考虑使用 <code>calloc()</code> 函数，后面会提到它。</p>
+<p>函数 <code>free</code>、<code>malloc</code>、<code>calloc()</code> 都被包含在 <code>stdlib.h</code> 头文件中，当然了 <code>malloc.h</code> 头文件也有对应的函数声明，实现在 <code>malloc.c</code> 文件中。</p>
+<p>关于 <code>malloc</code> 函数中的 <code>size</code> 参数务必要大于指针本身的数值，在32位操作系统上，指针占用4字节的大小；在64位操作系统上，指针占用8字节的大小。</p>
+<h2 id="free"><a href="#free" class="headerlink" title="free"></a>free</h2><p>函数原型：</p>
+<figure class="highlight c"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line"><span class="type">void</span> <span class="title function_">free</span><span class="params">(<span class="type">void</span> *ptr)</span>;</span><br></pre></td></tr></table></figure>
+
+<p>我们知道在 C 语言中， 堆上的内存空间不会自动释放（Java 有自动回收机制，而 C 语言没有），直到调用 <code>free</code> 函数，才会释放堆上的存储空间，即 <code>free</code> 函数会释放指针指向的内存分配空间。</p>
+<p>下面是函数手册查到关于 <code>free</code> 函数的资料：</p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line">The free() function deallocates the memory allocation pointed to by ptr.</span><br><span class="line">If ptr is a NULL pointer, no operation is performed.</span><br></pre></td></tr></table></figure>
+
+<p>对于 <code>free</code> 函数我们要走出一个误区，不要以为调用了 <code>free</code> 函数，变量就变为 <code>NULL</code> 值了。本质是 <code>free</code> 函数只是割断了指针所指的申请的那块内存之间的关系，并没有改变所指的地址（本身保存的地址并没有改变）。如下示例：</p>
+<figure class="highlight c"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br></pre></td><td class="code"><pre><span class="line"><span class="type">char</span> *pchar = (<span class="type">char</span> *)<span class="built_in">malloc</span>(<span class="number">10</span> * <span class="keyword">sizeof</span>(<span class="type">char</span>));</span><br><span class="line">        </span><br><span class="line"><span class="keyword">if</span> (<span class="literal">NULL</span> != pchar) &#123;</span><br><span class="line">    <span class="built_in">strcpy</span>(pchar, <span class="string">&quot;blog&quot;</span>);</span><br><span class="line">    <span class="comment">/* pchar所指的内存被释放，但是pchar所指的地址仍然不变 */</span></span><br><span class="line">    <span class="built_in">free</span>(pchar);</span><br><span class="line">    </span><br><span class="line">    <span class="comment">/* 该判断没有起到防错作用，此时 pchar 并不为 NULL */</span></span><br><span class="line">    <span class="keyword">if</span> (<span class="literal">NULL</span> != pchar) &#123;</span><br><span class="line">        <span class="built_in">strcpy</span>(pchar, <span class="string">&quot;it&quot;</span>);</span><br><span class="line">        <span class="built_in">printf</span>(<span class="string">&quot;pchar: %s&quot;</span>, pchar);</span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<p>正确且安全的做法是对指针变量先进行 <code>free</code> 然后再将其值置为 <code>NULL</code>，如下下面示例：</p>
+<figure class="highlight c"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br></pre></td><td class="code"><pre><span class="line"><span class="type">char</span> *pchar = (<span class="type">char</span> *)<span class="built_in">malloc</span>(<span class="number">10</span> * <span class="keyword">sizeof</span>(<span class="type">char</span>));</span><br><span class="line">        </span><br><span class="line"><span class="keyword">if</span> (<span class="literal">NULL</span> != pchar) &#123;</span><br><span class="line">    <span class="built_in">strcpy</span>(pchar, <span class="string">&quot;blog&quot;</span>);</span><br><span class="line">    <span class="comment">/* pchar所指的内存被释放，但是pchar所指的地址仍然不变 */</span></span><br><span class="line">    <span class="built_in">free</span>(pchar);</span><br><span class="line">    <span class="comment">/* 将其置为 NULL 值 */</span></span><br><span class="line">    pchar = <span class="literal">NULL</span>;</span><br><span class="line">    </span><br><span class="line">    <span class="comment">/* 该判断没有起到防错作用，此时 pchar 并不为 NULL */</span></span><br><span class="line">    <span class="keyword">if</span> (<span class="literal">NULL</span> != pchar) &#123;</span><br><span class="line">        <span class="built_in">strcpy</span>(pchar, <span class="string">&quot;it&quot;</span>);</span><br><span class="line">        <span class="built_in">printf</span>(<span class="string">&quot;pchar: %s&quot;</span>, pchar);</span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<p>函数 <code>free</code> 只能释放alloc的内存空间，对于其他非alloc的指针变量使用free会出现错误，如下面的例子：</p>
+<figure class="highlight c"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><span class="line"><span class="type">int</span> a = <span class="number">0x2010</span>;</span><br><span class="line"><span class="type">int</span> *p;</span><br><span class="line">p = &amp;a;</span><br><span class="line"><span class="built_in">free</span>(p);</span><br></pre></td></tr></table></figure>
+
+<p>运行后直接跪了，报类似下面的错误信息：</p>
+<figure class="highlight shell"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">pointer being freed was not allocated.</span><br></pre></td></tr></table></figure>
+
+<p>另外，告诉大家一个秘密，<code>free</code> 一个空指针没问题。如下例子：</p>
+<figure class="highlight c"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line"><span class="type">int</span> *p;</span><br><span class="line">p = <span class="literal">NULL</span>;</span><br><span class="line"><span class="built_in">free</span>(p);</span><br></pre></td></tr></table></figure>
+
+<p>代码可以正常运行，在 <code>free</code> 函数源码为证：</p>
+<figure class="highlight c"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment">/* free(0) has no effect */</span></span><br><span class="line"><span class="keyword">if</span> (mem == <span class="number">0</span>)&#123;</span><br><span class="line">	<span class="keyword">return</span>;   </span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<p>而 <code>NULL</code> 在源码（在 <code>morecore.c</code> 文件中）中定义就是0，如下：</p>
+<figure class="highlight c"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line"><span class="meta">#<span class="keyword">ifndef</span> NULL</span></span><br><span class="line"><span class="meta"># <span class="keyword">define</span> NULL 0</span></span><br><span class="line"><span class="meta">#<span class="keyword">endif</span></span></span><br></pre></td></tr></table></figure>
+
+<h2 id="malloc、free-小结"><a href="#malloc、free-小结" class="headerlink" title="malloc、free 小结"></a>malloc、free 小结</h2><p><strong>1、连续内存块</strong></p>
+<p><code>malloc</code> 函数申请的是连续的一块内存，如果所申请的内存块大于目前堆上剩余内存块，则内存分配会失败，函数返回 <code>NULL</code> 值。</p>
+<p><strong>注意：上面说的 <code>堆上剩余内存块</code> 不是所有剩余内存块之和，而是连续的内存。</strong></p>
+<p><strong>2、双宿双飞才好</strong></p>
+<p>调用 <code>malloc</code> 函数多余 <code>free</code> 函数会发生内存泄漏，这个很好理解，因为申请过的内存没有被释放完。调用 <code>malloc</code> 函数少于<code>free</code> 函数，肯定会出错。换句话说，在程序中 <code>malloc</code> 的使用次数务必要和 <code>free</code> 相等，否则必有隐患或者发生错误。</p>
+<p>如下面的例子 <code>free</code> 两次指针变量就会在运行时报错： <code>malloc: *** error for object 0x10071be90: pointer being freed was not allocated</code>，也称之为 <code>double free</code>。</p>
+<figure class="highlight c"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line"><span class="type">char</span> *pchar = (<span class="type">char</span> *)<span class="built_in">malloc</span>(<span class="number">10</span> * <span class="keyword">sizeof</span>(<span class="type">char</span>));</span><br><span class="line"><span class="built_in">free</span>(pchar);</span><br><span class="line"><span class="built_in">free</span>(pchar);</span><br></pre></td></tr></table></figure>
+
+<p>对指针变量进行 <code>free</code> 之后，一定要记得对其赋值为 <code>NULL</code>，否则该指针就是一个野指针，这个在上面已经说明。</p>
+<p><strong>3、0字节的内存有毒</strong></p>
+<p>使用 <code>malloc</code> 函数也可以申请0字节的内存，该函数的返回值并不是 <code>NULL</code>，而是返回一个正常的内存地址，所以如果使用这种方式申请的内存很危险，如下面的例子，指针 <code>pchar</code> 是一个使用 <code>malloc</code> 函数创建的占用0字节的内存空间的一个指针变量，<code>if (NULL == pchar)</code> 并没有生效，而是执行了 <code>else</code> 语句中的代码。</p>
+<figure class="highlight c"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br></pre></td><td class="code"><pre><span class="line"><span class="type">char</span> *pchar = (<span class="type">char</span> *)<span class="built_in">malloc</span>(<span class="number">0</span>);</span><br><span class="line"><span class="keyword">if</span> (<span class="literal">NULL</span> == pchar) &#123;</span><br><span class="line">    <span class="built_in">printf</span>(<span class="string">&quot;malloc 0 byte memory failed.\n&quot;</span>);</span><br><span class="line">&#125; <span class="keyword">else</span> &#123;</span><br><span class="line">    <span class="built_in">printf</span>(<span class="string">&quot;malloc 0 byte successfully and pchar: %s.\n&quot;</span>, pchar);</span><br><span class="line">    <span class="built_in">printf</span>(<span class="string">&quot;pchar: %s.\n&quot;</span>, pchar);</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<p>这中方式的指针类似于一个野指针，可以使用但有风险，不知道这个指针后面的内存空间被谁使用着，要是被核心进程使用，会造成相应程序的崩溃。</p>
+<p><strong>4、调皮的free</strong></p>
+<p>使用非alloc方式创建的内存，使用 <code>free</code> 函数会报错，这个要注意。另外，<code>free</code> 空指针没有影响。</p>
+<h2 id="calloc、realloc、reallocf、valloc"><a href="#calloc、realloc、reallocf、valloc" class="headerlink" title="calloc、realloc、reallocf、valloc"></a>calloc、realloc、reallocf、valloc</h2><p><strong>1、calloc 函数</strong></p>
+<figure class="highlight c"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line"><span class="type">void</span> * <span class="title function_">calloc</span><span class="params">(<span class="type">size_t</span> count, <span class="type">size_t</span> size)</span>;</span><br></pre></td></tr></table></figure>
+
+<p>在堆上，分配 <code>n*size</code> 个字节，并初始化为0，返回 <code>void *</code>类型，返回值情况跟 <code>malloc</code> 一致。</p>
+<p>函数 <code>malloc()</code> 和函数 <code>calloc()</code> 的主要区别是前者不能初始化所分配的内存空间，而后者能。如果由 <code>malloc()</code> 函数分配的内存空间原来没有被使用过，则其中的每一位可能都是0；反之，如果这部分内存曾经被分配过，则其中可能遗留有各种各样的数据。也就是说，使用 <code>malloc()</code> 函数的程序开始时(内存空间还没有被重新分配)能正常进行，但经过一段时间(内存空间还已经被重新分配)可能会出现问题。 </p>
+<p>函数 <code>calloc()</code> 会将所分配的内存空间中的每一位都初始化为零，也就是说，如果你是为字符类型或整数类型的元素分配内存，那么这些元素将保证会被初始化为0；如果你是为指针类型的元素分配内存，那么这些元素通常会被初始化为空指针；如果你为实型数据分配内存，则这些元素会被初始化为浮点型的零。 </p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line">The calloc() function contiguously allocates enough space for count objects that are size bytes of memory each and returns a pointer to the allocated memory.</span><br><span class="line"></span><br><span class="line">The allocated memory is filled with bytes of value zero.</span><br></pre></td></tr></table></figure>
+
+<p><strong>2、realloc() 函数</strong></p>
+<figure class="highlight c"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line"><span class="type">void</span> * <span class="title function_">realloc</span><span class="params">(<span class="type">void</span> *ptr, <span class="type">size_t</span> size)</span>;</span><br></pre></td></tr></table></figure>
+
+<p><code>realloc()</code> 会将 <code>ptr</code> 所指向的内存块的大小修改为 <code>size</code>，并将新的内存指针返回。假设之前内存块的大小为 n，如果 size &lt;&#x3D; n，那么截取的内容不会发生变化，如果 size &gt; n，那么新分配的内存不会被初始化。</p>
+<p>对于上面说的新的内存指针地址可能变也可能不变，假如原来alloc的内存后面还有足够多剩余内存的话，realloc后的内存&#x3D;原来的内存+剩余内存，realloc还是返回原来内存的地址即不会创建新的内存。假如原来alloc的内存后面没有足够多剩余内存的话，realloc将申请新的内存，然后把原来的内存数据拷贝到新内存里，原来的内存将被free掉，realloc返回新内存的地址。</p>
+<p>另外要注意，如果 ptr &#x3D; NULL，那么相当于调用 malloc(size)；如果 ptr !&#x3D; NULL且size &#x3D; 0，那么相当于调用 free(ptr)。</p>
+<p>当调用 <code>realloc</code> 失败的时候，返回NULL，并且原来的内存不改变，不会释放也不会移动。</p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br></pre></td><td class="code"><pre><span class="line">The realloc() function tries to change the size of the allocation pointed to by ptr to size, and returns ptr. </span><br><span class="line"></span><br><span class="line">If there is not enough room to enlarge the memory allocation pointed to by ptr, realloc() creates a new allocation, copies as much of the old data pointed to by ptr as will fit to the new allocation, frees the old allocation, and returns a pointer to the allocated memory.  </span><br><span class="line"></span><br><span class="line">If ptr is NULL, realloc() is identical to a call to malloc() for size bytes.  </span><br><span class="line"></span><br><span class="line">If size is zero and ptr is not NULL, a new, minimum sized object is allocated and the original object is freed.  </span><br><span class="line"></span><br><span class="line">When extending a region allocated with calloc(3), realloc(3) does not guarantee that the additional memory is also zero-filled.</span><br></pre></td></tr></table></figure>
+
+<p>看一下源码的关键部分，如下：</p>
+<figure class="highlight c"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br></pre></td><td class="code"><pre><span class="line"><span class="type">void</span> * __libc_realloc (<span class="type">void</span> *oldmem, <span class="type">size_t</span> bytes)</span><br><span class="line">&#123;</span><br><span class="line">	<span class="comment">// 省略... </span></span><br><span class="line">	</span><br><span class="line"><span class="meta">#<span class="keyword">if</span> REALLOC_ZERO_BYTES_FREES</span></span><br><span class="line">  	<span class="keyword">if</span> (bytes == <span class="number">0</span> &amp;&amp; oldmem != <span class="literal">NULL</span>) &#123;</span><br><span class="line">    	__libc_free (oldmem); <span class="keyword">return</span> <span class="number">0</span>;</span><br><span class="line">    &#125;</span><br><span class="line"><span class="meta">#<span class="keyword">endif</span></span></span><br><span class="line"></span><br><span class="line">	<span class="comment">// 省略...</span></span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<p>这里可以看出，如果 <code>oldmem</code> 不为NULL且 <code>bytes</code> 为0的情况下，会自动进行 <code>free</code> 操作。如下面的例子运行后会报错。</p>
+<figure class="highlight c"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br></pre></td><td class="code"><pre><span class="line"><span class="meta">#<span class="keyword">include</span> <span class="string">&lt;stdlib.h&gt;</span></span></span><br><span class="line"><span class="meta">#<span class="keyword">include</span> <span class="string">&lt;stdio.h&gt;</span> </span></span><br><span class="line"></span><br><span class="line"><span class="type">int</span> <span class="title function_">main</span><span class="params">()</span></span><br><span class="line">&#123;</span><br><span class="line">    <span class="type">char</span> *pre_ptr = (<span class="type">char</span> *)<span class="built_in">malloc</span>(<span class="number">20</span>);</span><br><span class="line">    <span class="type">int</span> bytes = <span class="number">0</span>;</span><br><span class="line">    <span class="keyword">if</span>(<span class="literal">NULL</span> != pre_ptr) &#123;</span><br><span class="line">        <span class="type">void</span> *ptr = <span class="built_in">realloc</span>(pre_ptr, bytes);</span><br><span class="line">        <span class="comment">// 对pre_ptr进行了double free，这种条件下源码中会进行一次free</span></span><br><span class="line">        <span class="built_in">free</span>(pre_ptr);</span><br><span class="line">    &#125;</span><br><span class="line">	</span><br><span class="line">    <span class="keyword">return</span> <span class="number">0</span>;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<p>所以为了保险起见，要对 <code>bytes</code> 进行判断再做处理。</p>
+<p>传递给 <code>realloc</code> 的指针变量必须是先前通过 <code>malloc()</code>、 <code>calloc()</code> 或 <code>realloc()</code> 等alloc分配的，否则会报 <code>pointer being realloc&#39;d was not allocated.</code> 错误。如下例子（运行直接报错）：</p>
+<figure class="highlight c"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line"><span class="type">char</span> *p = <span class="string">&quot;&quot;</span>;</span><br><span class="line"><span class="type">void</span> *newP = <span class="built_in">realloc</span>(p, <span class="number">10</span>);</span><br></pre></td></tr></table></figure>
+
+<p><strong>3、reallocf() 函数</strong></p>
+<figure class="highlight c"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line"><span class="type">void</span> * <span class="title function_">reallocf</span><span class="params">(<span class="type">void</span> *ptr, <span class="type">size_t</span> size)</span>;</span><br></pre></td></tr></table></figure>
+
+<p><code>reallocf()</code> 函数是由 FreeBSD 实现的，它会在任何情况下释放输入的指针（即使是再分配失败之后）。<code>reallocf()</code> 一样会调用 <code>realloc</code> 函数，但是只有我们在获得空的指针之后才会调用 <code>free</code> 函数。</p>
+<p>下面是 <code>reallocf</code> 函数具体的实现部分：</p>
+<figure class="highlight c"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br></pre></td><td class="code"><pre><span class="line"><span class="type">void</span> * <span class="title function_">reallocf</span><span class="params">(<span class="type">void</span> *p, <span class="type">size_t</span> size)</span> </span><br><span class="line">&#123;</span><br><span class="line">    <span class="type">void</span> *ptr = <span class="built_in">realloc</span>(p, size);</span><br><span class="line">    <span class="keyword">if</span> (!p) &#123;</span><br><span class="line">        <span class="built_in">free</span>(p);</span><br><span class="line">    &#125;</span><br><span class="line">    <span class="keyword">return</span> ptr;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line">The reallocf() function is identical to the realloc() function, except that it will free the passed pointer when the requested memory cannot be allocated.</span><br><span class="line"></span><br><span class="line">This is a FreeBSD specific API designed to ease the problems with traditional coding styles for realloc causing memory leaks in libraries.</span><br></pre></td></tr></table></figure>
+
+<p><strong>4、valloc() 函数</strong></p>
+<figure class="highlight c"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line"><span class="type">void</span> * <span class="title function_">valloc</span><span class="params">(<span class="type">size_t</span> size)</span>;</span><br></pre></td></tr></table></figure>
+
+<p>这个函数是最少见也是最少用的一个函数。</p>
+<p><code>malloc</code> 或 <code>realloc</code> 返回的是以8字节对齐的内存地址，在64bits上是16字节对齐。然而 <code>memalign</code> 或 <code>valloc</code> 可以更大的粒度进行字节对齐。</p>
+<p><code>valloc</code> 是一个废弃的函数，分配 <code>size</code> 大小的字节，返回已分配的内存地址指针，其内存地址将是页大小(page size)的倍数，如果分配失败返回 <code>NULL</code>。</p>
+<figure class="highlight shell"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line">The valloc() function allocates size bytes of memory and returns a pointer to the allocated memory. </span><br><span class="line"></span><br><span class="line">The allocated memory is aligned on a page boundary.</span><br></pre></td></tr></table></figure>
+
+<p>说了这么多，接下来我们看一下例子，如下代码示例：</p>
+<figure class="highlight c"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment">// 对其分配内存，这个时候pchar值是随机的垃圾值</span></span><br><span class="line"><span class="type">char</span> *pchar = (<span class="type">char</span> *)<span class="built_in">malloc</span>(<span class="number">16</span>);</span><br><span class="line"><span class="comment">// 手动初始化pchar的值，下面的方法则不需要</span></span><br><span class="line"><span class="built_in">memset</span>(pchar, <span class="number">0</span>, <span class="number">16</span>);</span><br><span class="line"></span><br><span class="line"><span class="comment">// calloc分配内存，会自动设置为0，不需要memset</span></span><br><span class="line"><span class="type">char</span> *pchar_orig = (<span class="type">char</span> *)<span class="built_in">calloc</span>(<span class="number">12</span>, <span class="keyword">sizeof</span>(<span class="type">char</span>));</span><br><span class="line"></span><br><span class="line"><span class="comment">// 在原内存基础上，在堆内存空间中连续增加内存</span></span><br><span class="line"><span class="comment">// 如果原内存没有连续空间可拓展，realloc会新分配一个空间，将原有内存copy到新空间，然后释放原内存  </span></span><br><span class="line"><span class="comment">// 注意：realloc和malloc，只分配内存不进行赋值操作</span></span><br><span class="line"><span class="type">char</span> *pchar_dest = (<span class="type">char</span> *)<span class="built_in">realloc</span>(pchar_orig, <span class="number">10</span>);</span><br><span class="line">  </span><br><span class="line"><span class="comment">// 相当于 malloc(60)</span></span><br><span class="line"><span class="type">char</span> *pchar_ini = (<span class="type">char</span> *)<span class="built_in">realloc</span>(<span class="literal">NULL</span>, <span class="number">60</span>);</span><br><span class="line"></span><br><span class="line"><span class="built_in">free</span>(pchar);</span><br><span class="line">pchar = <span class="literal">NULL</span>;</span><br><span class="line"></span><br><span class="line"><span class="built_in">free</span>(pchar_orig);</span><br><span class="line">pchar_orig = <span class="literal">NULL</span>;</span><br><span class="line"></span><br><span class="line"><span class="built_in">free</span>(pchar_dest);</span><br><span class="line">pchar_dest = <span class="literal">NULL</span>;</span><br><span class="line"></span><br><span class="line"><span class="built_in">free</span>(pchar_ini);</span><br><span class="line">pchar_ini = <span class="literal">NULL</span>;</span><br></pre></td></tr></table></figure>
+
+<h2 id="glibc-与-libc"><a href="#glibc-与-libc" class="headerlink" title="glibc 与 libc"></a>glibc 与 libc</h2><p>上面说过这些内存管理函数都在头文件 <code>stdlib.h</code> 中，函数实现都在 <code>malloc.c</code> 文件中，这些都可以在 <code>glibc</code> 中找到对应的代码，我下载的 <code>glibc</code> 是 <code>2.29</code> 这个版本。</p>
+<p>libc 是 <code>Stantard C Library</code> 的简称，它是符合ANSI C标准的一个标准函数库。libc库提供C语言中所使用的宏，类型的定义，字符串操作符，数学计算函数以及输入输出函数等。正如ANSI C是C语言的标准一样，libc只是一个函数库标准，每个操作系统都会按照该标准对标准库进行具体实现。通常我们所说的libc是特指某个操作系统的标准库，比如：在Linux操作系统下所说的libc即glibc。glibc是类Unix操作系统中使用最广泛的libc库，它的全称是GNU C Library.</p>
+<p><code>glibc</code>是 Linux 下的 C 函数库。<code>libc</code> 库是Linux下的ANSI C的函数库也泛指一切符合C规范的库，<code>glibc</code> 是Linux下的GNU C函数库，是一种 <code>libc</code> 的实现。<code>glibc</code> 本身是GNU旗下的C标准库，后来逐渐成为了Linux的标准C库。Linux下面的标准C库不仅有这一个，如 <a target="_blank" rel="noopener" href="https://www.uclibc.org/">uclibc</a>、klibc，但是 <code>glibc</code> 无疑是用得最多的，用 <code>glibc</code> 作为系统的C函式库，是GNU&#x2F;Linux演进的一个重要里程碑，可以查看 <a target="_blank" rel="noopener" href="https://en.wikipedia.org/wiki/GNU_C_Library">维基百科</a> 对 <code>glibc</code> 的介绍。</p>
+<p>还有比如Android的Bionic库也是一种libc的实现，只是在Android上面使用罢了。Bionic是Google为Android操作系统提供的BSD标准C库的衍生库，专门为移动计算而精心设计的，针对移动设备上有限的CPU周期和可用内存进行了裁剪以提高工作效率。</p>
+<p>这里也说一下基本的C语言函数库，这个库可以根据头文件划分为 15 个部分，其中包括：</p>
+<ul>
+<li><p>文件 <a target="_blank" rel="noopener" href="https://www.runoob.com/cprogramming/c-standard-library-assert-h.html">assert.h</a>：包含宏和信息，用于进行诊断，帮助程序调试；</p>
+</li>
+<li><p>文件 <a target="_blank" rel="noopener" href="https://www.runoob.com/cprogramming/c-standard-library-ctype-h.html">ctype.h</a>：包含用来测试某个特征字符的函数的函数原型，以及用来转换大小写字母的函数原型；</p>
+</li>
+<li><p>文件 <a target="_blank" rel="noopener" href="https://www.runoob.com/cprogramming/c-standard-library-errno-h.html">errno.h</a>：定义用来报告错误条件的宏；</p>
+</li>
+<li><p>文件 <a target="_blank" rel="noopener" href="https://www.runoob.com/cprogramming/c-standard-library-float-h.html">float.h</a>：包含系统的浮点数大小限制；</p>
+</li>
+<li><p>文件 <a target="_blank" rel="noopener" href="https://www.runoob.com/cprogramming/c-standard-library-math-h.html">math.h</a>：包含数学库函数的函数原型；</p>
+</li>
+<li><p>文件 <a target="_blank" rel="noopener" href="https://www.runoob.com/cprogramming/c-standard-library-stddef-h.html">stddef.h</a>：包含执行某些计算 C 所用的常见的函数定义；</p>
+</li>
+<li><p>文件 <a target="_blank" rel="noopener" href="https://www.runoob.com/cprogramming/c-standard-library-stdio-h.html">stdio.h</a>：包含标准输入输出库函数的函数原型，以及他们所用的信息；</p>
+</li>
+<li><p>文件 <a target="_blank" rel="noopener" href="https://www.runoob.com/cprogramming/c-standard-library-stdlib-h.html">stdlib.h</a>：包含数字转换到文本，以及文本转换到数字的函数原型，还有内存分配、随机数字以及其他实用函数的函数原型；</p>
+</li>
+<li><p>文件 <a target="_blank" rel="noopener" href="https://www.runoob.com/cprogramming/c-standard-library-string-h.html">string.h</a>：包含字符串处理函数的函数原型；</p>
+</li>
+<li><p>文件 <a target="_blank" rel="noopener" href="https://www.runoob.com/cprogramming/c-standard-library-time-h.html">time.h</a>：包含时间和日期操作的函数原型和类型；</p>
+</li>
+<li><p>文件 <a target="_blank" rel="noopener" href="https://www.runoob.com/cprogramming/c-standard-library-stdarg-h.html">stdarg.h</a>：包含函数原型和宏，用于处理未知数值和类型的函数的参数列表；</p>
+</li>
+<li><p>文件 <a target="_blank" rel="noopener" href="https://www.runoob.com/cprogramming/c-standard-library-signal-h.html">signal.h</a>：包含函数原型和宏，用于处理程序执行期间可能出现的各种条件；</p>
+</li>
+<li><p>文件 <a target="_blank" rel="noopener" href="https://www.runoob.com/cprogramming/c-standard-library-setjmp-h.html">setjmp.h</a>：包含可以绕过一般函数调用并返回序列的函数的原型，即非局部跳转；</p>
+</li>
+<li><p>文件 <a target="_blank" rel="noopener" href="https://www.runoob.com/cprogramming/c-standard-library-locale-h.html">locale.h</a>：包含函数原型和其他信息，使程序可以针对所运行的地区进行修改。地区的表示方法可以使计算机系统处理不同的数据表达约定，如全世界的日期、时间、美元数和大数字；</p>
+</li>
+<li><p>文件 <a target="_blank" rel="noopener" href="https://www.runoob.com/cprogramming/c-standard-library-limits-h.html">limits.h</a>：决定了各种变量类型的各种属性。定义在该头文件中的宏限制了各种变量类型（比如 char、int 和 long）的值；</p>
+</li>
+</ul>
+<p>在 <code>glibc</code> 库中可以找到 <code>malloc.c</code> 文件(路径是 <code>glibc-2.29/malloc/malloc.c</code> )，从中可以看到如下别名的定义：</p>
+<figure class="highlight c"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br></pre></td><td class="code"><pre><span class="line">strong_alias (__libc_calloc, __calloc) weak_alias (__libc_calloc, <span class="built_in">calloc</span>)</span><br><span class="line">strong_alias (__libc_free, __free) strong_alias (__libc_free, <span class="built_in">free</span>)</span><br><span class="line">strong_alias (__libc_malloc, __malloc) strong_alias (__libc_malloc, <span class="built_in">malloc</span>)</span><br><span class="line">strong_alias (__libc_memalign, __memalign)</span><br><span class="line">weak_alias (__libc_memalign, memalign)</span><br><span class="line">strong_alias (__libc_realloc, __realloc) strong_alias (__libc_realloc, <span class="built_in">realloc</span>)</span><br><span class="line">strong_alias (__libc_valloc, __valloc) weak_alias (__libc_valloc, valloc)</span><br><span class="line">strong_alias (__libc_pvalloc, __pvalloc) weak_alias (__libc_pvalloc, pvalloc)</span><br><span class="line">strong_alias (__libc_mallinfo, __mallinfo)</span><br><span class="line">weak_alias (__libc_mallinfo, mallinfo)</span><br><span class="line">strong_alias (__libc_mallopt, __mallopt) weak_alias (__libc_mallopt, mallopt)</span><br></pre></td></tr></table></figure>
+
+<p> <code>__malloc</code> 是  <code>__libc_malloc</code> 的别名，<code>malloc</code> 也是  <code>__libc_malloc</code> 的别名。其他以此类推。</p>
+<p>所以看 <code>malloc</code> 函数的源码，直接看 <code>__libc_realloc</code> 函数实现即可，看 <code>free</code> 的源码可以看 <code>__libc_free</code> 的实现。</p>
+<figure class="highlight c"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line"><span class="type">void</span> *</span><br><span class="line">__libc_realloc (<span class="type">void</span> *oldmem, <span class="type">size_t</span> bytes)</span><br></pre></td></tr></table></figure>
+
+<p>也可以在线查看 <code>glibc</code> 的源码，点击 <a target="_blank" rel="noopener" href="https://code.woboq.org/userspace/glibc/">这里</a> 前往欣赏！</p>
+<p>以后要是有人问你在哪里可以下载libc的源码，你就可以告诉他libc只是一个标准，不同的平台上面有不同的libc实现，比如glibc，bionic等。</p>
+<hr>
+<p><strong>锄禾日当午，汗滴禾下土，五一节快乐~</strong></p>
+<p><img class="lazy" src="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAABGdBTUEAALGPC/xhBQAAADhlWElmTU0AKgAAAAgAAYdpAAQAAAABAAAAGgAAAAAAAqACAAQAAAABAAAAAaADAAQAAAABAAAAAQAAAADa6r/EAAAAC0lEQVQIHWNgAAIAAAUAAY27m/MAAAAASUVORK5CYII=" data-src="/upload/me/qrcode_wx.jpg"></p>
+
+
+
+
+</article>
+
+<div class="related-wrap reveal" id="read-next"><section class="header cap theme"><span>接下来阅读</span></section><section class="body fs14"><a id="next" href="/2019/04/21/%E7%94%A8Objective-C%E5%AE%9E%E7%8E%B0%E6%8A%BD%E8%B1%A1%E7%B1%BB/">用Objective-C实现抽象类<span class="note">较早</span></a><div class="line"></div><a id="prev" href="/2019/05/10/C%E5%87%BD%E6%95%B0%E4%B8%AD%E8%BF%94%E5%9B%9E%E5%AD%97%E7%AC%A6%E6%95%B0%E7%BB%84/">C函数中返回字符数组<span class="note">较新</span></a></section></div>
+
+
+
+
+
+
+  <div class='related-wrap md reveal' id="comments">
+    <div class='cmt-title cap theme'>
+      快来参与讨论吧
+    </div>
+    <div class='cmt-body valine'>
+      
+
+<div id="valine_container" class="valine_thread"><svg class="loading" style="vertical-align: middle;fill: currentColor;overflow: hidden;" viewBox="0 0 1024 1024" version="1.1" xmlns="http://www.w3.org/2000/svg" p-id="2709"><path d="M832 512c0-176-144-320-320-320V128c211.2 0 384 172.8 384 384h-64zM192 512c0 176 144 320 320 320v64C300.8 896 128 723.2 128 512h64z" p-id="2710"></path></svg></div>
+
+    </div>
+  </div>
+
+
+
+      
+<footer class="page-footer reveal fs12"><hr><div class="text"><p>本博客所有文章除特别声明外，均采用 <a target="_blank" rel="noopener" href="https://creativecommons.org/licenses/by-nc-sa/4.0/">CC BY-NC-SA 4.0</a> 许可协议，转载请注明出处。</p>
+<p>veryitman</p>
+</div></footer>
+
+      <div class='float-panel mobile-only blur' style='display:none'>
+  <button type='button' class='sidebar-toggle mobile' onclick='sidebar.toggle()'>
+    <svg class="icon" style="width: 1em; height: 1em;vertical-align: middle;fill: currentColor;overflow: hidden;" viewBox="0 0 1024 1024" version="1.1" xmlns="http://www.w3.org/2000/svg" p-id="15301"><path d="M566.407 808.3c26.9-0.1 49.3-20.8 51.6-47.6-1.9-27.7-23.9-49.7-51.6-51.6h-412.6c-28.2-1.4-52.6 19.5-55.5 47.6 2.3 26.8 24.6 47.5 51.6 47.6h416.5v4z m309.3-249.9c26.9-0.1 49.3-20.8 51.6-47.6-2.2-26.8-24.6-47.5-51.6-47.6h-721.9c-27.7-2.8-52.5 17.4-55.3 45.1-0.1 0.8-0.1 1.7-0.2 2.5 0.9 27.2 23.6 48.5 50.7 47.6H875.707z m-103.1-245.9c26.9-0.1 49.3-20.8 51.6-47.6-0.4-28.3-23.2-51.1-51.5-51.6h-618.9c-29.5-1.1-54.3 21.9-55.5 51.4v0.2c1.4 27.8 25.2 49.2 53 47.8 0.8 0 1.7-0.1 2.5-0.2h618.8z" p-id="15302"></path><path d="M566.407 808.3c26.9-0.1 49.3-20.8 51.6-47.6-1.9-27.7-23.9-49.7-51.6-51.6h-412.6c-28.2-1.4-52.6 19.5-55.5 47.6 1.9 27.7 23.9 49.7 51.6 51.6h416.5z m309.3-249.9c26.9-0.1 49.3-20.8 51.6-47.6-2.2-26.8-24.6-47.5-51.6-47.6h-721.9c-27.7-2.8-52.5 17.4-55.3 45.1-0.1 0.8-0.1 1.7-0.2 2.5 0.9 27.2 23.6 48.5 50.7 47.6H875.707z m-103.1-245.9c26.9-0.1 49.3-20.8 51.6-47.6-0.4-28.3-23.2-51.1-51.5-51.6h-618.9c-29.5-1.1-54.3 21.9-55.5 51.4v0.2c1.4 27.8 25.2 49.2 53 47.8 0.8 0 1.7-0.1 2.5-0.2h618.8z" p-id="15303"></path></svg>
+  </button>
+</div>
+
+    </div>
+  </div>
+  <div class='scripts'>
+    <script type="text/javascript">
+  stellar = {
+    // 懒加载 css https://github.com/filamentgroup/loadCSS
+    loadCSS: (href, before, media, attributes) => {
+      var doc = window.document;
+      var ss = doc.createElement("link");
+      var ref;
+      if (before) {
+        ref = before;
+      } else {
+        var refs = (doc.body || doc.getElementsByTagName("head")[0]).childNodes;
+        ref = refs[refs.length - 1];
+      }
+      var sheets = doc.styleSheets;
+      if (attributes) {
+        for (var attributeName in attributes) {
+          if (attributes.hasOwnProperty(attributeName)) {
+            ss.setAttribute(attributeName, attributes[attributeName]);
+          }
+        }
+      }
+      ss.rel = "stylesheet";
+      ss.href = href;
+      ss.media = "only x";
+      function ready(cb) {
+        if (doc.body) {
+          return cb();
+        }
+        setTimeout(function () {
+          ready(cb);
+        });
+      }
+      ready(function () {
+        ref.parentNode.insertBefore(ss, before ? ref : ref.nextSibling);
+      });
+      var onloadcssdefined = function (cb) {
+        var resolvedHref = ss.href;
+        var i = sheets.length;
+        while (i--) {
+          if (sheets[i].href === resolvedHref) {
+            return cb();
+          }
+        }
+        setTimeout(function () {
+          onloadcssdefined(cb);
+        });
+      };
+      function loadCB() {
+        if (ss.addEventListener) {
+          ss.removeEventListener("load", loadCB);
+        }
+        ss.media = media || "all";
+      }
+      if (ss.addEventListener) {
+        ss.addEventListener("load", loadCB);
+      }
+      ss.onloadcssdefined = onloadcssdefined;
+      onloadcssdefined(loadCB);
+      return ss;
+    },
+
+    // 从 butterfly 和 volantis 获得灵感
+    loadScript: (src, opt) => new Promise((resolve, reject) => {
+      var script = document.createElement('script');
+      script.src = src;
+      if (opt) {
+        for (let key of Object.keys(opt)) {
+          script[key] = opt[key]
+        }
+      } else {
+        // 默认异步，如果需要同步，第二个参数传入 {} 即可
+        script.async = true
+      }
+      script.onerror = reject
+      script.onload = script.onreadystatechange = function() {
+        const loadState = this.readyState
+        if (loadState && loadState !== 'loaded' && loadState !== 'complete') return
+        script.onload = script.onreadystatechange = null
+        resolve()
+      }
+      document.head.appendChild(script)
+    }),
+
+    // https://github.com/jerryc127/hexo-theme-butterfly
+    jQuery: (fn) => {
+      if (typeof jQuery === 'undefined') {
+        stellar.loadScript(stellar.plugins.jQuery).then(fn)
+      } else {
+        fn()
+      }
+    }
+  };
+  stellar.github = 'https://github.com/xaoxuu/hexo-theme-stellar/tree/1.6.1';
+  stellar.config = {
+    date_suffix: {
+      just: '刚刚',
+      min: '分钟前',
+      hour: '小时前',
+      day: '天前',
+      month: '个月前',
+    },
+  };
+
+  // required plugins (only load if needs)
+  stellar.plugins = {
+    jQuery: 'https://cdn.jsdelivr.net/npm/jquery@3.5.1/dist/jquery.min.js',
+    sitesjs: '/js/plugins/sites.js',
+    friendsjs: '/js/plugins/friends.js',
+  };
+
+  // optional plugins
+  if ('true' == 'true') {
+    stellar.plugins.lazyload = Object.assign({"enable":true,"js":"https://cdn.jsdelivr.net/npm/vanilla-lazyload@17.3.1/dist/lazyload.min.js","transition":"blur"});
+  }
+  if ('true' == 'true') {
+    stellar.plugins.swiper = Object.assign({"enable":true,"css":"https://unpkg.com/swiper@6/swiper-bundle.min.css","js":"https://unpkg.com/swiper@6/swiper-bundle.min.js"});
+  }
+  if ('' == 'true') {
+    stellar.plugins.scrollreveal = Object.assign({"enable":null,"js":"https://cdn.jsdelivr.net/npm/scrollreveal@4.0.9/dist/scrollreveal.min.js","distance":"8px","duration":500,"interval":100,"scale":1});
+  }
+  if ('true' == 'true') {
+    stellar.plugins.preload = Object.assign({"enable":true,"service":"flying_pages","instant_page":"https://cdn.jsdelivr.net/gh/volantis-x/cdn-volantis@4.1.2/js/instant_page.js","flying_pages":"https://cdn.jsdelivr.net/gh/gijo-varghese/flying-pages@2.1.2/flying-pages.min.js"});
+  }
+</script>
+
+<!-- required -->
+
+  
+<script src="/js/main.js" async></script>
+
+
+
+<!-- optional -->
+
+  <script>
+  function getEmojiMaps() {
+    function emoji(path, idx, ext) {
+      return path + "/" + path + "-" + idx + "." + ext;
+    }
+    var emojiMaps = {};
+    for (var i = 1; i <= 54; i++) {
+      emojiMaps['tieba-' + i] = emoji('tieba', i, 'png');
+    }
+    for (var i = 1; i <= 101; i++) {
+      emojiMaps['qq-' + i] = emoji('qq', i, 'gif');
+    }
+    for (var i = 1; i <= 116; i++) {
+      emojiMaps['aru-' + i] = emoji('aru', i, 'gif');
+    }
+    for (var i = 1; i <= 125; i++) {
+      emojiMaps['twemoji-' + i] = emoji('twemoji', i, 'png');
+    }
+    for (var i = 1; i <= 4; i++) {
+      emojiMaps['weibo-' + i] = emoji('weibo', i, 'png');
+    }
+    return emojiMaps;
+  }
+  function load_comment(){
+    if(!document.getElementById("valine_container"))return;
+    stellar.loadScript('https://cdn.jsdelivr.net/gh/XuxuGood/simple-blog-cdn@main/js/Valine.min.js', {defer:true}).then(function () {
+      const el = document.getElementById("valine_container");
+      var path = el.getAttribute('comment_id');
+      const placeholder = "欢迎您留言~";
+      if (!path) {
+        path = decodeURI(window.location.pathname);
+      }
+      var valine = new Valine();
+      valine.init(Object.assign({"js":"https://cdn.jsdelivr.net/gh/XuxuGood/simple-blog-cdn@main/js/Valine.min.js","appId":"FY2C9UCttYNaE1j8umenqdCE-gzGzoHsz","appKey":"4i7xMwkfSEGmEDhi6SceKFxz","placeholder":"欢迎您留言~","requiredFields":["nick","mail"],"enableQQ":true,"recordIP":false,"avatar":"robohash","pageSize":10,"lang":"zh-cn","highlight":true,"mathJax":false,"tagMeta":["博主","小伙伴","访客"],"metaPlaceholder":{"nick":"昵称/QQ号(必填)","mail":"邮箱（必填，完全保密）"},"master":["6783037F2DF30EAB99F9FC256157D875"],"friends":["6783037F2DF30EAB99F9FC256157D875"],"comment_count":true}, {
+        el: '#valine_container',
+        path: path,
+        placeholder: placeholder,
+        emojiCDN: 'https://cdn.jsdelivr.net/gh/volantis-x/cdn-emoji/valine/',
+        emojiMaps: getEmojiMaps(),
+      }));
+    });
+  }
+  window.addEventListener('DOMContentLoaded', (event) => {
+    console.log('DOM fully loaded and parsed');
+    load_comment();
+  });
+
+</script>
+
+
+
+
+<!-- inject -->
+
+
+  </div>
+</body>
+</html>

@@ -1,0 +1,445 @@
+<!DOCTYPE html>
+<html lang='zh-CN'>
+
+<head>
+  <meta name="generator" content="Hexo 6.0.0">
+  <meta charset="utf-8">
+  
+
+  <meta http-equiv='x-dns-prefetch-control' content='on' />
+  <link rel='dns-prefetch' href='https://cdn.jsdelivr.net'>
+  <link rel="preconnect" href="https://cdn.jsdelivr.net" crossorigin>
+
+  <meta name="renderer" content="webkit">
+  <meta name="force-rendering" content="webkit">
+  <meta http-equiv="X-UA-Compatible" content="IE=Edge,chrome=1">
+  <meta name="HandheldFriendly" content="True" >
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1">
+  <meta name="theme-color" content="#f8f8f8">
+  <title>iOS 逆向: dumpdecrypted 砸壳记 - Veryitman</title>
+
+  
+    <meta name="description" content="今天是一个特别的日子, 高考的第一天, 祝各位莘莘学子金榜题名. 最近在看人工智能相关的知识，无意中发现了一个巨牛的 人工智能教程，分享一下给大家。 教程不仅是零基础，通俗易懂，而且非常风趣幽默，像看小说一样！觉得太牛了，所以分享给大家。点 这里 可以直接看教程。  iOS 逆向: 砸壳 介绍了如何使用工具 Clutch 对 iOS 的应用进行砸壳操作, 今天继续给大家分享使用另外一个工具 dum">
+<meta property="og:type" content="article">
+<meta property="og:title" content="iOS 逆向: dumpdecrypted 砸壳记">
+<meta property="og:url" content="http://example.com/2018/06/07/iOS-%E9%80%86%E5%90%91-dumpdecrypted-%E7%A0%B8%E5%A3%B3%E8%AE%B0/index.html">
+<meta property="og:site_name" content="Veryitman">
+<meta property="og:description" content="今天是一个特别的日子, 高考的第一天, 祝各位莘莘学子金榜题名. 最近在看人工智能相关的知识，无意中发现了一个巨牛的 人工智能教程，分享一下给大家。 教程不仅是零基础，通俗易懂，而且非常风趣幽默，像看小说一样！觉得太牛了，所以分享给大家。点 这里 可以直接看教程。  iOS 逆向: 砸壳 介绍了如何使用工具 Clutch 对 iOS 的应用进行砸壳操作, 今天继续给大家分享使用另外一个工具 dum">
+<meta property="og:locale" content="zh_CN">
+<meta property="og:image" content="http://example.com/upload/images/2018/06/07/1.jpg">
+<meta property="og:image" content="http://example.com/upload/images/2018/06/07/2.jpg">
+<meta property="og:image" content="http://example.com/upload/images/2018/06/07/3.jpg">
+<meta property="og:image" content="http://example.com/upload/images/2018/06/07/4.jpg">
+<meta property="og:image" content="http://example.com/upload/images/2018/06/07/5.jpg">
+<meta property="og:image" content="http://example.com/upload/images/2018/06/07/6.jpg">
+<meta property="og:image" content="http://example.com/upload/me/qrcode_wx.jpg">
+<meta property="article:published_time" content="2018-06-07T15:07:09.000Z">
+<meta property="article:modified_time" content="2022-03-09T14:53:24.348Z">
+<meta property="article:author" content="veryitman">
+<meta property="article:tag" content="iOS安全 越狱 jailbreak">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:image" content="http://example.com/upload/images/2018/06/07/1.jpg">
+  
+  
+
+  <!-- feed -->
+  
+
+  
+    
+<link rel="stylesheet" href="/css/main.css">
+
+  
+
+  
+
+  
+</head>
+
+<body>
+  
+
+
+  <div class='l_body' id='start'>
+    <aside class='l_left' layout='post'>
+    
+
+
+<header class="header">
+
+<div class="logo-wrap"><a class="title" href="/"><div class="main">Veryitman</div></a></div>
+<nav class="menu dis-select"></nav></header>
+
+<div class="widgets">
+
+<div class="widget-wrap single" id="toc"><div class="widget-header cap dis-select"><span class="name">本文目录</span></div><div class="widget-body fs14"><div class="doc-tree active"><ol class="toc"><li class="toc-item toc-level-2"><a class="toc-link" href="#%E6%A6%82%E8%A6%81"><span class="toc-text">概要</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#%E5%87%86%E5%A4%87%E5%B7%A5%E4%BD%9C"><span class="toc-text">准备工作</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#%E7%BC%96%E8%AF%91-dumpdecrypted"><span class="toc-text">编译 dumpdecrypted</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#%E5%AF%B9-dumpecrypted-dylib-%E7%AD%BE%E5%90%8D"><span class="toc-text">对 dumpecrypted.dylib 签名</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#SSH-%E8%BF%9E%E6%8E%A5%E6%89%8B%E6%9C%BA"><span class="toc-text">SSH 连接手机</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#%E6%9F%A5%E6%89%BE%E7%9B%AE%E6%A0%87-App-%E6%89%80%E5%9C%A8%E8%BF%9B%E7%A8%8B"><span class="toc-text">查找目标 App 所在进程</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#%E7%A0%B8%E5%A3%B3"><span class="toc-text">砸壳</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#%E8%B6%8A%E7%8B%B1%E7%B3%BB%E5%88%97%E6%96%87%E7%AB%A0"><span class="toc-text">越狱系列文章</span></a></li></ol></div></div></div>
+
+
+</div>
+
+
+    </aside>
+    <div class='l_main'>
+      
+
+      
+
+
+<div class="bread-nav fs12"><div id="breadcrumb"><a class="cap breadcrumb" href="/">主页</a><span class="sep"></span><a class="cap breadcrumb" href="/">文章</a><span class="sep"></span><a class="cap breadcrumb-link" href="/categories/iOS/">iOS</a></div><div id="post-meta">发布于&nbsp;<time datetime="2018-06-07T15:07:09.000Z">2018-06-07</time></div></div>
+
+<article class='content md post'>
+<h1 class="article-title"><span>iOS 逆向: dumpdecrypted 砸壳记</span></h1>
+<p>今天是一个特别的日子, 高考的第一天, 祝各位莘莘学子金榜题名.</p>
+<p>最近在看人工智能相关的知识，无意中发现了一个巨牛的 <a target="_blank" rel="noopener" href="https://www.cbedai.net/androidbluetooth">人工智能教程</a>，分享一下给大家。</p>
+<p>教程不仅是零基础，通俗易懂，而且非常风趣幽默，像看小说一样！觉得太牛了，所以分享给大家。点 <a target="_blank" rel="noopener" href="https://www.cbedai.net/androidbluetooth">这里</a> 可以直接看教程。</p>
+<hr>
+<p><a target="_blank" rel="noopener" href="http://www.veryitman.com/2018/05/13/iOS-%E9%80%86%E5%90%91-%E7%A0%B8%E5%A3%B3/">iOS 逆向: 砸壳</a> 介绍了如何使用工具 <code>Clutch</code> 对 iOS 的应用进行砸壳操作, 今天继续给大家分享使用另外一个工具 <code>dumpdecrypted</code> 对 APP 进行砸壳.</p>
+<h2 id="概要"><a href="#概要" class="headerlink" title="概要"></a>概要</h2><p>有些朋友就会问了, 既然 <code>Clutch</code> 已经很牛B了, 为什么还需要 <code>dumpdecrypted</code> 这个工具呢? </p>
+<p>刚开始的时候, 我也很排斥使用 <code>dumpdecrypted</code> 这个工具的, 使用起来比较复杂, 并且套路不熟的情况下还很容易出错. </p>
+<p>之前说过 <code>Clutch</code> 并不是万能的, 从 App Store 下载的 App(比如 WeChat)有些并不能使用 <code>Clutch</code> 来进行砸壳, 换句话说, 使用 <code>Clutch</code> 工具来进行砸壳会失败, 那么, <code>dumpdecrypted</code> 就登场了.</p>
+<p>本次砸壳的系统依然是 <code>iOS10.3.x</code>, 工具使用 <code>dumpdecrypted</code>, 砸壳的对象是 WeChat 这个 App.</p>
+<h2 id="准备工作"><a href="#准备工作" class="headerlink" title="准备工作"></a>准备工作</h2><ul>
+<li>MacOS PC</li>
+<li>越狱手机一台(我用的是iPhone6SPlus 10.3.1)</li>
+<li>dumpdecrypted</li>
+<li>class-dump</li>
+<li>在 Cydia 中安装 cycript, 可以先不用管 cycript 是什么, 下载安装即可.</li>
+<li>iFunBox 或者其他助手工具</li>
+</ul>
+<h2 id="编译-dumpdecrypted"><a href="#编译-dumpdecrypted" class="headerlink" title="编译 dumpdecrypted"></a>编译 dumpdecrypted</h2><p>去 <a target="_blank" rel="noopener" href="https://github.com/stefanesser/dumpdecrypted">Github</a> 下载 <code>dumpdecrypted</code> 源码, 源码就一个 C 源文件.</p>
+<p>下载 zip 包之后, 解压, 如图:<br><img class="lazy" src="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAABGdBTUEAALGPC/xhBQAAADhlWElmTU0AKgAAAAgAAYdpAAQAAAABAAAAGgAAAAAAAqACAAQAAAABAAAAAaADAAQAAAABAAAAAQAAAADa6r/EAAAAC0lEQVQIHWNgAAIAAAUAAY27m/MAAAAASUVORK5CYII=" data-src="/upload/images/2018/06/07/1.jpg"></p>
+<p>在当前目录, 执行 <code>make</code> 即可完成编译, 如图所示:<br><img class="lazy" src="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAABGdBTUEAALGPC/xhBQAAADhlWElmTU0AKgAAAAgAAYdpAAQAAAABAAAAGgAAAAAAAqACAAQAAAABAAAAAaADAAQAAAABAAAAAQAAAADa6r/EAAAAC0lEQVQIHWNgAAIAAAUAAY27m/MAAAAASUVORK5CYII=" data-src="/upload/images/2018/06/07/2.jpg"></p>
+<p>编译成功后生成 <code>dumpdecrypted.dylib</code> 文件.</p>
+<p>这里有个小插曲, 编译 <code>dumpdecrypted</code> 的时候报错了, 错误信息如下:</p>
+<figure class="highlight sh"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><span class="line">xcrun: error: SDK <span class="string">&quot;iphoneos&quot;</span> cannot be located</span><br><span class="line">xcrun: error: unable to lookup item <span class="string">&#x27;Path&#x27;</span> <span class="keyword">in</span> SDK <span class="string">&#x27;iphoneos&#x27;</span></span><br><span class="line">clang: warning: no such sysroot directory: <span class="string">&#x27;-F/System/Library/Frameworks&#x27;</span> [-Wmissing-sysroot]</span><br><span class="line">dumpdecrypted.c:27:10: fatal error: <span class="string">&#x27;stdio.h&#x27;</span> file not found</span><br></pre></td></tr></table></figure>
+
+<p>无法找到对应的 <code>SDK</code> 和 <code>stdio.h</code> 文件, 这种问题大多数是 Xcode 路径造成的.</p>
+<p>使用下面的命令看一下系统指向的 Xcode 路径:</p>
+<figure class="highlight sh"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">xcode-select -p</span><br></pre></td></tr></table></figure>
+
+<p>控制台输出:</p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">/Library/Developer/CommandLineTools</span><br></pre></td></tr></table></figure>
+
+<p>显然不是 Xcode 的路径, 那只能重新切换一下其路径即指向正确的<code> Xcode</code> 路径即可.</p>
+<p>命令如下:</p>
+<figure class="highlight sh"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">sudo xcode-select --switch /Applications/Xcode.app</span><br></pre></td></tr></table></figure>
+
+<p>再次编译 <code>dumpdecrypted</code> 即可成功完成.</p>
+<h2 id="对-dumpecrypted-dylib-签名"><a href="#对-dumpecrypted-dylib-签名" class="headerlink" title="对 dumpecrypted.dylib 签名"></a>对 dumpecrypted.dylib 签名</h2><blockquote>
+<p>如果不对该文件进行签名, 后续砸壳的操作会失败.</p>
+</blockquote>
+<p>先找到已经在电脑上面安装的苹果开发者证书, 操作如下:</p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line">## 列出可签名证书, 找到 mac 上面已经安装的证书</span><br><span class="line">security find-identity -v -p codesigning</span><br></pre></td></tr></table></figure>
+
+<p>为 dumpecrypted.dylib 签名, 命令如下:</p>
+<figure class="highlight sh"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">codesign --force --verify --verbose --sign <span class="string">&quot;iPhone Developer: xxx xxxx (xxxxxxxxxx)&quot;</span> dumpdecrypted.dylib</span><br></pre></td></tr></table></figure>
+
+<p>其中, <code>&quot;iPhone Developer: xxx xxxx (xxxxxxxxxx)&quot;</code> 为你自己本机安装的开发者证书名称.</p>
+<h2 id="SSH-连接手机"><a href="#SSH-连接手机" class="headerlink" title="SSH 连接手机"></a>SSH 连接手机</h2><p>使用 OpenSSH 让 Mac 和手机连接起来 这样可以很方便的在 Mac 终端使用 shell 命令来操作手机的目录了.</p>
+<p>关于 OpenSSH 的使用请参考我之前的博文 <a target="_blank" rel="noopener" href="http://www.veryitman.com/2018/05/12/iOS-%E9%80%86%E5%90%91-%E8%B6%8A%E7%8B%B1%E4%BD%BF%E7%94%A8-SSH/">iOS 逆向: 越狱使用 SSH</a>.</p>
+<h2 id="查找目标-App-所在进程"><a href="#查找目标-App-所在进程" class="headerlink" title="查找目标 App 所在进程"></a>查找目标 App 所在进程</h2><ul>
+<li>双击 Home 按键后, 手动杀掉 iPhone 上面所有在后台的 App.</li>
+<li>Home 到手机桌面.</li>
+<li>打开目标 App 即WeChat, 这里称之为 TargetApp.</li>
+<li>Home 到手机桌面.</li>
+<li>查看当前运行的所有进程, 命令如下:</li>
+</ul>
+<figure class="highlight sh"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">ps -e</span><br></pre></td></tr></table></figure>
+
+<p>看到这个货:<br><img class="lazy" src="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAABGdBTUEAALGPC/xhBQAAADhlWElmTU0AKgAAAAgAAYdpAAQAAAABAAAAGgAAAAAAAqACAAQAAAABAAAAAaADAAQAAAABAAAAAQAAAADa6r/EAAAAC0lEQVQIHWNgAAIAAAUAAY27m/MAAAAASUVORK5CYII=" data-src="/upload/images/2018/06/07/3.jpg"></p>
+<p>在如下目录:</p>
+<figure class="highlight sh"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">/var/containers/Bundle/Application/2837EC87-7C28-45C5-9309-24FACD3A97C9/WeChat.app/WeChat</span><br></pre></td></tr></table></figure>
+
+<p><code>WeChat.app</code> 就是我们要找的 TargetApp.</p>
+<p>连接 SSH 成功后, 在 MacOS 终端 <code>ls</code> 一下该目录, 可以发现 <code>WeChat.app</code> 躺在那里.<br><img class="lazy" src="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAABGdBTUEAALGPC/xhBQAAADhlWElmTU0AKgAAAAgAAYdpAAQAAAABAAAAGgAAAAAAAqACAAQAAAABAAAAAaADAAQAAAABAAAAAQAAAADa6r/EAAAAC0lEQVQIHWNgAAIAAAUAAY27m/MAAAAASUVORK5CYII=" data-src="/upload/images/2018/06/07/4.jpg"></p>
+<h2 id="砸壳"><a href="#砸壳" class="headerlink" title="砸壳"></a>砸壳</h2><p><strong>1. 查找 Documents 目录</strong></p>
+<p><code>WeChat</code> 为当前的进程目标执行文件名称, 从上面的图可以看出, 其对应的进程 id 是 <code>18983</code>.</p>
+<p>在命令行中通过 cycript 执行如下操作:</p>
+<figure class="highlight sh"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">cycript -p 18983</span><br></pre></td></tr></table></figure>
+
+<p>再执行 OC 的方法, 如下:</p>
+<figure class="highlight objc"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">[[<span class="built_in">NSFileManager</span> defaultManager] URLsForDirectory:<span class="built_in">NSDocumentDirectory</span> inDomains:<span class="built_in">NSUserDomainMask</span>][<span class="number">0</span>]</span><br></pre></td></tr></table></figure>
+
+<p>可以看到对应的输出, 如下图所示, 这就是对应的 Documents 目录.<br><img class="lazy" src="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAABGdBTUEAALGPC/xhBQAAADhlWElmTU0AKgAAAAgAAYdpAAQAAAABAAAAGgAAAAAAAqACAAQAAAABAAAAAaADAAQAAAABAAAAAQAAAADa6r/EAAAAC0lEQVQIHWNgAAIAAAUAAY27m/MAAAAASUVORK5CYII=" data-src="/upload/images/2018/06/07/5.jpg"></p>
+<blockquote>
+<p>注意: 执行过程中, 在 iPhone 上面打开运行一下 App, 不然上面的执行一直卡在那里不动.</p>
+</blockquote>
+<p>找到目录如下:</p>
+<figure class="highlight sh"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">/var/mobile/Containers/Data/Application/2EFA08B6-DD7B-41A6-92C9-C6115CA6DDA1/Documents/</span><br></pre></td></tr></table></figure>
+
+<p>同理, 你也可以使用 iFunBox 查看该目录.</p>
+<p><strong>2. 拷贝 dumpdecrypted.dylib</strong>.</p>
+<p>拷贝 <code>dumpdecrypted.dylib</code> 这个之前编译签名好的文件到iPhone 上面该 APP 的 Documents 目录有两种方法.</p>
+<p>第一种方法, 直接在 mac 上面拖拽 <code>dumpdecrypted.dylib</code> 到 iFunBox 显示的这个目录中, 这种方法比较简单且快.</p>
+<p>第二种方法, 使用 <code>scp</code> 命令进行操作.</p>
+<figure class="highlight sh"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">scp ~/dumpdecrypted.dylib root@192.168.99.231:/var/mobile/Containers/Data/Application/2EFA08B6-DD7B-41A6-92C9-C6115CA6DDA1/Documents/</span><br></pre></td></tr></table></figure>
+
+<p><code>192.168.99.231</code> 是 iPhone 设备的 ip 地址.</p>
+<p><strong>3. 退出 cycript, 回到命令行模式</strong></p>
+<figure class="highlight sh"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">ctrl + d</span><br></pre></td></tr></table></figure>
+
+<p><strong>4. cd 到 Documents 目录</strong></p>
+<figure class="highlight sh"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line"><span class="built_in">cd</span> /var/mobile/Containers/Data/Application/2EFA08B6-DD7B-41A6-92C9-C6115CA6DDA1/Documents/</span><br></pre></td></tr></table></figure>
+
+<p><strong>5. 砸壳</strong></p>
+<p>终端在 Documents 目录下面, 执行下面命令即可:</p>
+<figure class="highlight sh"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">DYLD_INSERT_LIBRARIES=dumpdecrypted.dylib /var/containers/Bundle/Application/2837EC87-7C28-45C5-9309-24FACD3A97C9/WeChat.app/WeChat</span><br></pre></td></tr></table></figure>
+
+<p>执行过程显示如下:<br><img class="lazy" src="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAABGdBTUEAALGPC/xhBQAAADhlWElmTU0AKgAAAAgAAYdpAAQAAAABAAAAGgAAAAAAAqACAAQAAAABAAAAAaADAAQAAAABAAAAAQAAAADa6r/EAAAAC0lEQVQIHWNgAAIAAAUAAY27m/MAAAAASUVORK5CYII=" data-src="/upload/images/2018/06/07/6.jpg"></p>
+<p>最后生成了 <code>WeChat.decrypted</code> 文件, 如下:</p>
+<figure class="highlight sh"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br></pre></td><td class="code"><pre><span class="line">-rw-r--r--  1 root   mobile 74513728 Jun  7 15:20 WeChat.decrypted</span><br><span class="line">drwxr-xr-x 14 mobile mobile      448 Jun  7 15:20 .</span><br><span class="line">-rw-r--r--  1 root   mobile   207760 Jun  7 15:15 dumpdecrypted.dylib</span><br><span class="line">-rw-r--r--  1 mobile mobile        8 Jun  7 13:22 db.globalconfig</span><br><span class="line">-rw-r--r--  1 mobile mobile       15 Jun  7 11:35 SafeMode.dat</span><br><span class="line">drwxr-xr-x 26 mobile mobile      832 Jun  7 11:35 MMappedKV</span><br><span class="line">drwxr-xr-x  3 mobile mobile       96 Jun  7 11:35 CrashReport</span><br><span class="line">-rw-r--r--  1 mobile mobile     1011 Jun  7 11:35 LocalInfo.lst</span><br><span class="line">drwxr-xr-x  5 mobile mobile      160 Jun  7 11:35 MemoryStat</span><br><span class="line">drwxr-xr-x  6 mobile mobile      192 Jun  7 11:35 00000000000000000000000000000000</span><br><span class="line">drwxr-xr-x 15 mobile mobile      480 Jun  5 13:43 MMResourceMgr</span><br><span class="line">-rw-r--r--  1 mobile mobile      592 Jun  5 13:43 heavy_user_id_mapping.dat</span><br><span class="line">drwxr-xr-x  2 mobile mobile       64 Jun  5 10:07 OpenImResource</span><br></pre></td></tr></table></figure>
+
+<p>使用 <code>iFunBox</code> 或者 <code>scp</code> 命令将 <code>WeChat.decrypted</code> 文件导出到 mac 的任意目录即可.</p>
+<p>后续会跟大家分享如何使用砸壳后的文件, 敬请期待.</p>
+<h2 id="越狱系列文章"><a href="#越狱系列文章" class="headerlink" title="越狱系列文章"></a>越狱系列文章</h2><blockquote>
+<p>基于 iOS10.3.1 进行的实践。</p>
+</blockquote>
+<ul>
+<li><p><a target="_blank" rel="noopener" href="http://www.veryitman.com/2018/06/07/iOS-%E9%80%86%E5%90%91-dumpdecrypted-%E7%A0%B8%E5%A3%B3%E8%AE%B0/">iOS 逆向: dumpdecrypted 砸壳记</a></p>
+</li>
+<li><p><a target="_blank" rel="noopener" href="http://www.veryitman.com/2018/05/13/iOS-%E9%80%86%E5%90%91-%E7%A0%B8%E5%A3%B3/">iOS 逆向: 砸壳</a></p>
+</li>
+<li><p><a target="_blank" rel="noopener" href="http://www.veryitman.com/2018/05/13/iOS-%E9%80%86%E5%90%91-%E6%9F%A5%E7%9C%8B%E7%B3%BB%E7%BB%9F%E6%96%87%E4%BB%B6%E7%9B%AE%E5%BD%95%E5%92%8C%E7%BB%93%E6%9E%84/">iOS 逆向: 查看系统文件目录和结构</a></p>
+</li>
+<li><p><a target="_blank" rel="noopener" href="http://www.veryitman.com/2018/05/12/iOS-%E9%80%86%E5%90%91-%E8%B6%8A%E7%8B%B1%E4%BD%BF%E7%94%A8-SSH/">iOS 逆向: 越狱使用 SSH</a></p>
+</li>
+<li><p><a target="_blank" rel="noopener" href="http://www.veryitman.com/2019/04/07/dumpdecrypted-%E7%A0%B8%E5%A3%B3%EF%BC%9A%E5%AF%BC%E5%87%BA%E5%A4%B4%E6%96%87%E4%BB%B6/">dumpdecrypted 砸壳：导出头文件</a></p>
+</li>
+</ul>
+<hr>
+<p><strong>总有一天，你一定会感激正在努力的自己~</strong></p>
+<p><img class="lazy" src="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAABGdBTUEAALGPC/xhBQAAADhlWElmTU0AKgAAAAgAAYdpAAQAAAABAAAAGgAAAAAAAqACAAQAAAABAAAAAaADAAQAAAABAAAAAQAAAADa6r/EAAAAC0lEQVQIHWNgAAIAAAUAAY27m/MAAAAASUVORK5CYII=" data-src="/upload/me/qrcode_wx.jpg"></p>
+
+
+
+
+</article>
+
+<div class="related-wrap reveal" id="read-next"><section class="header cap theme"><span>接下来阅读</span></section><section class="body fs14"><a id="next" href="/2018/05/13/iOS-%E9%80%86%E5%90%91-%E7%A0%B8%E5%A3%B3/">iOS 逆向: 砸壳<span class="note">较早</span></a><div class="line"></div><a id="prev" href="/2018/07/01/RunLoop-%E7%A7%BB%E9%99%A4%E5%B8%B8%E9%A9%BB%E7%BA%BF%E7%A8%8B/">RunLoop: 移除常驻线程<span class="note">较新</span></a></section></div>
+
+
+
+
+
+
+  <div class='related-wrap md reveal' id="comments">
+    <div class='cmt-title cap theme'>
+      快来参与讨论吧
+    </div>
+    <div class='cmt-body valine'>
+      
+
+<div id="valine_container" class="valine_thread"><svg class="loading" style="vertical-align: middle;fill: currentColor;overflow: hidden;" viewBox="0 0 1024 1024" version="1.1" xmlns="http://www.w3.org/2000/svg" p-id="2709"><path d="M832 512c0-176-144-320-320-320V128c211.2 0 384 172.8 384 384h-64zM192 512c0 176 144 320 320 320v64C300.8 896 128 723.2 128 512h64z" p-id="2710"></path></svg></div>
+
+    </div>
+  </div>
+
+
+
+      
+<footer class="page-footer reveal fs12"><hr><div class="text"><p>本博客所有文章除特别声明外，均采用 <a target="_blank" rel="noopener" href="https://creativecommons.org/licenses/by-nc-sa/4.0/">CC BY-NC-SA 4.0</a> 许可协议，转载请注明出处。</p>
+<p>veryitman</p>
+</div></footer>
+
+      <div class='float-panel mobile-only blur' style='display:none'>
+  <button type='button' class='sidebar-toggle mobile' onclick='sidebar.toggle()'>
+    <svg class="icon" style="width: 1em; height: 1em;vertical-align: middle;fill: currentColor;overflow: hidden;" viewBox="0 0 1024 1024" version="1.1" xmlns="http://www.w3.org/2000/svg" p-id="15301"><path d="M566.407 808.3c26.9-0.1 49.3-20.8 51.6-47.6-1.9-27.7-23.9-49.7-51.6-51.6h-412.6c-28.2-1.4-52.6 19.5-55.5 47.6 2.3 26.8 24.6 47.5 51.6 47.6h416.5v4z m309.3-249.9c26.9-0.1 49.3-20.8 51.6-47.6-2.2-26.8-24.6-47.5-51.6-47.6h-721.9c-27.7-2.8-52.5 17.4-55.3 45.1-0.1 0.8-0.1 1.7-0.2 2.5 0.9 27.2 23.6 48.5 50.7 47.6H875.707z m-103.1-245.9c26.9-0.1 49.3-20.8 51.6-47.6-0.4-28.3-23.2-51.1-51.5-51.6h-618.9c-29.5-1.1-54.3 21.9-55.5 51.4v0.2c1.4 27.8 25.2 49.2 53 47.8 0.8 0 1.7-0.1 2.5-0.2h618.8z" p-id="15302"></path><path d="M566.407 808.3c26.9-0.1 49.3-20.8 51.6-47.6-1.9-27.7-23.9-49.7-51.6-51.6h-412.6c-28.2-1.4-52.6 19.5-55.5 47.6 1.9 27.7 23.9 49.7 51.6 51.6h416.5z m309.3-249.9c26.9-0.1 49.3-20.8 51.6-47.6-2.2-26.8-24.6-47.5-51.6-47.6h-721.9c-27.7-2.8-52.5 17.4-55.3 45.1-0.1 0.8-0.1 1.7-0.2 2.5 0.9 27.2 23.6 48.5 50.7 47.6H875.707z m-103.1-245.9c26.9-0.1 49.3-20.8 51.6-47.6-0.4-28.3-23.2-51.1-51.5-51.6h-618.9c-29.5-1.1-54.3 21.9-55.5 51.4v0.2c1.4 27.8 25.2 49.2 53 47.8 0.8 0 1.7-0.1 2.5-0.2h618.8z" p-id="15303"></path></svg>
+  </button>
+</div>
+
+    </div>
+  </div>
+  <div class='scripts'>
+    <script type="text/javascript">
+  stellar = {
+    // 懒加载 css https://github.com/filamentgroup/loadCSS
+    loadCSS: (href, before, media, attributes) => {
+      var doc = window.document;
+      var ss = doc.createElement("link");
+      var ref;
+      if (before) {
+        ref = before;
+      } else {
+        var refs = (doc.body || doc.getElementsByTagName("head")[0]).childNodes;
+        ref = refs[refs.length - 1];
+      }
+      var sheets = doc.styleSheets;
+      if (attributes) {
+        for (var attributeName in attributes) {
+          if (attributes.hasOwnProperty(attributeName)) {
+            ss.setAttribute(attributeName, attributes[attributeName]);
+          }
+        }
+      }
+      ss.rel = "stylesheet";
+      ss.href = href;
+      ss.media = "only x";
+      function ready(cb) {
+        if (doc.body) {
+          return cb();
+        }
+        setTimeout(function () {
+          ready(cb);
+        });
+      }
+      ready(function () {
+        ref.parentNode.insertBefore(ss, before ? ref : ref.nextSibling);
+      });
+      var onloadcssdefined = function (cb) {
+        var resolvedHref = ss.href;
+        var i = sheets.length;
+        while (i--) {
+          if (sheets[i].href === resolvedHref) {
+            return cb();
+          }
+        }
+        setTimeout(function () {
+          onloadcssdefined(cb);
+        });
+      };
+      function loadCB() {
+        if (ss.addEventListener) {
+          ss.removeEventListener("load", loadCB);
+        }
+        ss.media = media || "all";
+      }
+      if (ss.addEventListener) {
+        ss.addEventListener("load", loadCB);
+      }
+      ss.onloadcssdefined = onloadcssdefined;
+      onloadcssdefined(loadCB);
+      return ss;
+    },
+
+    // 从 butterfly 和 volantis 获得灵感
+    loadScript: (src, opt) => new Promise((resolve, reject) => {
+      var script = document.createElement('script');
+      script.src = src;
+      if (opt) {
+        for (let key of Object.keys(opt)) {
+          script[key] = opt[key]
+        }
+      } else {
+        // 默认异步，如果需要同步，第二个参数传入 {} 即可
+        script.async = true
+      }
+      script.onerror = reject
+      script.onload = script.onreadystatechange = function() {
+        const loadState = this.readyState
+        if (loadState && loadState !== 'loaded' && loadState !== 'complete') return
+        script.onload = script.onreadystatechange = null
+        resolve()
+      }
+      document.head.appendChild(script)
+    }),
+
+    // https://github.com/jerryc127/hexo-theme-butterfly
+    jQuery: (fn) => {
+      if (typeof jQuery === 'undefined') {
+        stellar.loadScript(stellar.plugins.jQuery).then(fn)
+      } else {
+        fn()
+      }
+    }
+  };
+  stellar.github = 'https://github.com/xaoxuu/hexo-theme-stellar/tree/1.6.1';
+  stellar.config = {
+    date_suffix: {
+      just: '刚刚',
+      min: '分钟前',
+      hour: '小时前',
+      day: '天前',
+      month: '个月前',
+    },
+  };
+
+  // required plugins (only load if needs)
+  stellar.plugins = {
+    jQuery: 'https://cdn.jsdelivr.net/npm/jquery@3.5.1/dist/jquery.min.js',
+    sitesjs: '/js/plugins/sites.js',
+    friendsjs: '/js/plugins/friends.js',
+  };
+
+  // optional plugins
+  if ('true' == 'true') {
+    stellar.plugins.lazyload = Object.assign({"enable":true,"js":"https://cdn.jsdelivr.net/npm/vanilla-lazyload@17.3.1/dist/lazyload.min.js","transition":"blur"});
+  }
+  if ('true' == 'true') {
+    stellar.plugins.swiper = Object.assign({"enable":true,"css":"https://unpkg.com/swiper@6/swiper-bundle.min.css","js":"https://unpkg.com/swiper@6/swiper-bundle.min.js"});
+  }
+  if ('' == 'true') {
+    stellar.plugins.scrollreveal = Object.assign({"enable":null,"js":"https://cdn.jsdelivr.net/npm/scrollreveal@4.0.9/dist/scrollreveal.min.js","distance":"8px","duration":500,"interval":100,"scale":1});
+  }
+  if ('true' == 'true') {
+    stellar.plugins.preload = Object.assign({"enable":true,"service":"flying_pages","instant_page":"https://cdn.jsdelivr.net/gh/volantis-x/cdn-volantis@4.1.2/js/instant_page.js","flying_pages":"https://cdn.jsdelivr.net/gh/gijo-varghese/flying-pages@2.1.2/flying-pages.min.js"});
+  }
+</script>
+
+<!-- required -->
+
+  
+<script src="/js/main.js" async></script>
+
+
+
+<!-- optional -->
+
+  <script>
+  function getEmojiMaps() {
+    function emoji(path, idx, ext) {
+      return path + "/" + path + "-" + idx + "." + ext;
+    }
+    var emojiMaps = {};
+    for (var i = 1; i <= 54; i++) {
+      emojiMaps['tieba-' + i] = emoji('tieba', i, 'png');
+    }
+    for (var i = 1; i <= 101; i++) {
+      emojiMaps['qq-' + i] = emoji('qq', i, 'gif');
+    }
+    for (var i = 1; i <= 116; i++) {
+      emojiMaps['aru-' + i] = emoji('aru', i, 'gif');
+    }
+    for (var i = 1; i <= 125; i++) {
+      emojiMaps['twemoji-' + i] = emoji('twemoji', i, 'png');
+    }
+    for (var i = 1; i <= 4; i++) {
+      emojiMaps['weibo-' + i] = emoji('weibo', i, 'png');
+    }
+    return emojiMaps;
+  }
+  function load_comment(){
+    if(!document.getElementById("valine_container"))return;
+    stellar.loadScript('https://cdn.jsdelivr.net/gh/XuxuGood/simple-blog-cdn@main/js/Valine.min.js', {defer:true}).then(function () {
+      const el = document.getElementById("valine_container");
+      var path = el.getAttribute('comment_id');
+      const placeholder = "欢迎您留言~";
+      if (!path) {
+        path = decodeURI(window.location.pathname);
+      }
+      var valine = new Valine();
+      valine.init(Object.assign({"js":"https://cdn.jsdelivr.net/gh/XuxuGood/simple-blog-cdn@main/js/Valine.min.js","appId":"FY2C9UCttYNaE1j8umenqdCE-gzGzoHsz","appKey":"4i7xMwkfSEGmEDhi6SceKFxz","placeholder":"欢迎您留言~","requiredFields":["nick","mail"],"enableQQ":true,"recordIP":false,"avatar":"robohash","pageSize":10,"lang":"zh-cn","highlight":true,"mathJax":false,"tagMeta":["博主","小伙伴","访客"],"metaPlaceholder":{"nick":"昵称/QQ号(必填)","mail":"邮箱（必填，完全保密）"},"master":["6783037F2DF30EAB99F9FC256157D875"],"friends":["6783037F2DF30EAB99F9FC256157D875"],"comment_count":true}, {
+        el: '#valine_container',
+        path: path,
+        placeholder: placeholder,
+        emojiCDN: 'https://cdn.jsdelivr.net/gh/volantis-x/cdn-emoji/valine/',
+        emojiMaps: getEmojiMaps(),
+      }));
+    });
+  }
+  window.addEventListener('DOMContentLoaded', (event) => {
+    console.log('DOM fully loaded and parsed');
+    load_comment();
+  });
+
+</script>
+
+
+
+
+<!-- inject -->
+
+
+  </div>
+</body>
+</html>

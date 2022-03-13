@@ -1,0 +1,433 @@
+<!DOCTYPE html>
+<html lang='zh-CN'>
+
+<head>
+  <meta name="generator" content="Hexo 6.0.0">
+  <meta charset="utf-8">
+  
+
+  <meta http-equiv='x-dns-prefetch-control' content='on' />
+  <link rel='dns-prefetch' href='https://cdn.jsdelivr.net'>
+  <link rel="preconnect" href="https://cdn.jsdelivr.net" crossorigin>
+
+  <meta name="renderer" content="webkit">
+  <meta name="force-rendering" content="webkit">
+  <meta http-equiv="X-UA-Compatible" content="IE=Edge,chrome=1">
+  <meta name="HandheldFriendly" content="True" >
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1">
+  <meta name="theme-color" content="#f8f8f8">
+  <title>Cocoapods 管理开源项目 - Veryitman</title>
+
+  
+    <meta name="description" content="准备工作在进行下面工作之前，请确保你做了下面三件事情： 1. 创建或者已经有了 github 账号.2. 了解和熟悉如何在 github 上面创建 Repository.3. MacOS 上面安装了 Cocoapods. 如果你还没有使用 Cocoapods, 建议看看 Mac OSX 10.11.1+ 安装 Cocoapods 这篇博客. 在博客 iOS 项目: 打造本地 pod 库 里面有介绍">
+<meta property="og:type" content="article">
+<meta property="og:title" content="Cocoapods 管理开源项目">
+<meta property="og:url" content="http://example.com/2016/11/01/Cocoapods-%E7%AE%A1%E7%90%86%E5%BC%80%E6%BA%90%E9%A1%B9%E7%9B%AE/index.html">
+<meta property="og:site_name" content="Veryitman">
+<meta property="og:description" content="准备工作在进行下面工作之前，请确保你做了下面三件事情： 1. 创建或者已经有了 github 账号.2. 了解和熟悉如何在 github 上面创建 Repository.3. MacOS 上面安装了 Cocoapods. 如果你还没有使用 Cocoapods, 建议看看 Mac OSX 10.11.1+ 安装 Cocoapods 这篇博客. 在博客 iOS 项目: 打造本地 pod 库 里面有介绍">
+<meta property="og:locale" content="zh_CN">
+<meta property="og:image" content="http://example.com/upload/images/2016/11/1/1.jpg">
+<meta property="og:image" content="http://example.com/upload/images/2016/11/1/2.jpg">
+<meta property="og:image" content="http://example.com/upload/images/2016/11/1/3.jpg">
+<meta property="og:image" content="http://example.com/upload/images/2016/11/1/4.png">
+<meta property="og:image" content="http://example.com/upload/me/qrcode_wx.jpg">
+<meta property="article:published_time" content="2016-11-01T14:33:21.000Z">
+<meta property="article:modified_time" content="2022-03-09T14:53:24.351Z">
+<meta property="article:author" content="veryitman">
+<meta property="article:tag" content="iOS cocoapods">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:image" content="http://example.com/upload/images/2016/11/1/1.jpg">
+  
+  
+
+  <!-- feed -->
+  
+
+  
+    
+<link rel="stylesheet" href="/css/main.css">
+
+  
+
+  
+
+  
+</head>
+
+<body>
+  
+
+
+  <div class='l_body' id='start'>
+    <aside class='l_left' layout='post'>
+    
+
+
+<header class="header">
+
+<div class="logo-wrap"><a class="title" href="/"><div class="main">Veryitman</div></a></div>
+<nav class="menu dis-select"></nav></header>
+
+<div class="widgets">
+
+<div class="widget-wrap single" id="toc"><div class="widget-header cap dis-select"><span class="name">本文目录</span></div><div class="widget-body fs14"><div class="doc-tree active"><ol class="toc"><li class="toc-item toc-level-2"><a class="toc-link" href="#%E5%87%86%E5%A4%87%E5%B7%A5%E4%BD%9C"><span class="toc-text">准备工作</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#%E5%88%9B%E5%BB%BA-Repository-%E5%B9%B6%E5%AE%8C%E5%96%84%E9%A1%B9%E7%9B%AE"><span class="toc-text">创建 Repository 并完善项目</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#%E9%A1%B9%E7%9B%AE%E6%A3%80%E6%B5%8B"><span class="toc-text">项目检测</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#%E6%B7%BB%E5%8A%A0%E9%A1%B9%E7%9B%AE%E5%88%B0-Github-Repository"><span class="toc-text">添加项目到  Github Repository</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#%E6%8E%A8%E9%80%81%E5%88%B0-cocoapods"><span class="toc-text">推送到 cocoapods</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#%E9%AA%8C%E8%AF%81%E4%BD%BF%E7%94%A8"><span class="toc-text">验证使用</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#%E5%8F%AF%E8%83%BD%E9%81%87%E5%88%B0%E7%9A%84%E9%BA%BB%E7%83%A6"><span class="toc-text">可能遇到的麻烦</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#Git-%E5%91%BD%E4%BB%A4%E8%A1%8C%E6%93%8D%E4%BD%9C"><span class="toc-text">Git 命令行操作</span></a></li></ol></div></div></div>
+
+
+</div>
+
+
+    </aside>
+    <div class='l_main'>
+      
+
+      
+
+
+<div class="bread-nav fs12"><div id="breadcrumb"><a class="cap breadcrumb" href="/">主页</a><span class="sep"></span><a class="cap breadcrumb" href="/">文章</a><span class="sep"></span><a class="cap breadcrumb-link" href="/categories/iOS/">iOS</a></div><div id="post-meta">发布于&nbsp;<time datetime="2016-11-01T14:33:21.000Z">2016-11-01</time></div></div>
+
+<article class='content md post'>
+<h1 class="article-title"><span>Cocoapods 管理开源项目</span></h1>
+<h2 id="准备工作"><a href="#准备工作" class="headerlink" title="准备工作"></a>准备工作</h2><p>在进行下面工作之前，请确保你做了下面三件事情：</p>
+<p><strong>1. 创建或者已经有了 github 账号.</strong><br><strong>2. 了解和熟悉如何在 github 上面创建 Repository.</strong><br><strong>3. MacOS 上面安装了 Cocoapods.</strong></p>
+<p>如果你还没有使用 Cocoapods, 建议看看 <a target="_blank" rel="noopener" href="http://www.veryitman.com/2016/11/08/Mac-install-Cocoapods/">Mac OSX 10.11.1+ 安装 Cocoapods</a> 这篇博客.</p>
+<p>在博客 <a target="_blank" rel="noopener" href="http://www.veryitman.com/2016/09/25/iOS-%E9%A1%B9%E7%9B%AE-%E6%89%93%E9%80%A0%E6%9C%AC%E5%9C%B0-pod-%E5%BA%93/">iOS 项目: 打造本地 pod 库</a> 里面有介绍如何打造本地的 pod 库，不需要借助任何仓库就可以完成，操作简单，适合项目组内使用。</p>
+<p>今天给大家分享如何将代码开源并放到 pod 库中，供别人使用。这种方式属于打造公共（Public repo）仓库， 任何人都可以搜索到你贡献的库并使用你的库。后面会跟大家分享如何打造私有（Private repo），敬请期待。</p>
+<p>这篇博客是基于一个实际例子 <a target="_blank" rel="noopener" href="https://github.com/veryitman/MZInsetLabel">MZInsetLabel</a> 来说明的，期待与优秀的你交流讨论。</p>
+<h2 id="创建-Repository-并完善项目"><a href="#创建-Repository-并完善项目" class="headerlink" title="创建 Repository 并完善项目"></a>创建 Repository 并完善项目</h2><p><strong>1. 在 Github 上面创建 Repository，取名为 MZInsetLabel.</strong></p>
+<p><strong>2. 将该工程 clone 到本地磁盘.</strong></p>
+<p><strong>3. 写代码，这里我只写了 MZInsetLabel.h | .m 文件.</strong></p>
+<p><strong>4. 创建 podspec 文件.</strong></p>
+<p>使用下面命令，即可产生该文件。</p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">pod spec create MZInsetLabel</span><br></pre></td></tr></table></figure>
+
+<p>在当前目录会生成 <code>MZInsetLabel.podspec</code> 文件。按照文件规范和实际情况填写即可，如果不知道怎么填写，可以在 Github 上面找一个开源项目参考即可。</p>
+<blockquote>
+<p>注意: Tag 版本号不要错误.</p>
+</blockquote>
+<p>最终内容如下:</p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br></pre></td><td class="code"><pre><span class="line">Pod::Spec.new do |s|</span><br><span class="line">  s.name         = &quot;MZInsetLabel&quot;</span><br><span class="line">  s.version      = &quot;0.2.0&quot;</span><br><span class="line">  s.summary      = &quot;MZInsetLabel is subClass of UILabel.&quot;</span><br><span class="line">  s.description  = &lt;&lt;-DESC</span><br><span class="line">                        MZInsetLabel is a sub class of UILabel that can be set insets.</span><br><span class="line">                   DESC</span><br><span class="line">  s.homepage     = &quot;http://www.veryitman.com&quot;</span><br><span class="line">  s.license      = &quot;MIT&quot;</span><br><span class="line">  s.author       = &#123; &quot;veryitman&quot; =&gt; &quot;veryitman@126.com&quot; &#125;</span><br><span class="line">  s.platform     = :ios, &quot;7.0&quot;</span><br><span class="line">  s.source = &#123; :git =&gt; &quot;https://github.com/veryitman/MZInsetLabel.git&quot;, :tag =&gt; &quot;#&#123;s.version&#125;&quot; &#125;</span><br><span class="line">  s.source_files  = &quot;*.&#123;h,m&#125;&quot;</span><br><span class="line">  s.framework  = &quot;UIKit&quot;</span><br><span class="line">  s.requires_arc = true</span><br><span class="line">end</span><br></pre></td></tr></table></figure>
+
+<h2 id="项目检测"><a href="#项目检测" class="headerlink" title="项目检测"></a>项目检测</h2><p>检查该 podspec 文件，执行下面命令</p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">pod lib lint MZInsetLabel.podspec</span><br></pre></td></tr></table></figure>
+
+<blockquote>
+<p>–verbose 可以输出更加详细的内容</p>
+</blockquote>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">pod lib lint MZInsetLabel.podspec --verbose</span><br></pre></td></tr></table></figure>
+
+<p>正确的话, 你可以看到下图如所示的内容：<br><img class="lazy" src="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAABGdBTUEAALGPC/xhBQAAADhlWElmTU0AKgAAAAgAAYdpAAQAAAABAAAAGgAAAAAAAqACAAQAAAABAAAAAaADAAQAAAABAAAAAQAAAADa6r/EAAAAC0lEQVQIHWNgAAIAAAUAAY27m/MAAAAASUVORK5CYII=" data-src="/upload/images/2016/11/1/1.jpg" alt="1"></p>
+<p>在检测的过程中，如果有一些警告导致无法验证通过，可以使用 <code>--allow-warnings</code> 参数规避这些 warning，但我还是建议大家尽量将 warning 修改好。</p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">pod lib lint --allow-warnings</span><br></pre></td></tr></table></figure>
+
+<p><code>pod lib lint *.podspec</code> 是只从本地验证你的 pod 能否通过验证.</p>
+<p><code>pod spec lint*..podspec</code> 是从本地和远程验证你的 pod 能否通过验证.</p>
+<p>大家可自行选择这两种方式。</p>
+<h2 id="添加项目到-Github-Repository"><a href="#添加项目到-Github-Repository" class="headerlink" title="添加项目到  Github Repository"></a>添加项目到  Github Repository</h2><p>将本地的代码 push 到 Github 的 Repository, 就是刚才创建的 MZInsetLabel.</p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br></pre></td><td class="code"><pre><span class="line">git add `文件`或者`文件夹`</span><br><span class="line"></span><br><span class="line">git commit -m &quot;Init&quot;</span><br><span class="line"></span><br><span class="line">git push</span><br></pre></td></tr></table></figure>
+
+<p>在你的 Github Repository 上面创建一个 Release 作为 Tag（0.1.0版本），如图所示:<br><img class="lazy" src="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAABGdBTUEAALGPC/xhBQAAADhlWElmTU0AKgAAAAgAAYdpAAQAAAABAAAAGgAAAAAAAqACAAQAAAABAAAAAaADAAQAAAABAAAAAQAAAADa6r/EAAAAC0lEQVQIHWNgAAIAAAUAAY27m/MAAAAASUVORK5CYII=" data-src="/upload/images/2016/11/1/2.jpg" alt="1"></p>
+<h2 id="推送到-cocoapods"><a href="#推送到-cocoapods" class="headerlink" title="推送到 cocoapods"></a>推送到 cocoapods</h2><p><strong>1. 注册 trunk</strong></p>
+<blockquote>
+<p>pod trunk register 你的邮箱 ‘用户名’ –description&#x3D;’简单描述’</p>
+</blockquote>
+<p>完整命令如下:</p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">pod trunk register veryitman@126.com &#x27;veryitman&#x27; --description=&#x27;mark&#x27;</span><br></pre></td></tr></table></figure>
+
+<p><strong>2. 打开邮箱, 激活邮件, 点击链接激活</strong></p>
+<p><strong>3. 检查注册信息</strong></p>
+<p>执行命令如下：</p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">pod trunk me</span><br></pre></td></tr></table></figure>
+
+<p><strong>4.添加到 cocoapods</strong></p>
+<p>执行下面命令, 即可.</p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">pod trunk push MZInsetLabel.podspec</span><br></pre></td></tr></table></figure>
+
+<p>成功的效果图:</p>
+<p><img class="lazy" src="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAABGdBTUEAALGPC/xhBQAAADhlWElmTU0AKgAAAAgAAYdpAAQAAAABAAAAGgAAAAAAAqACAAQAAAABAAAAAaADAAQAAAABAAAAAQAAAADa6r/EAAAAC0lEQVQIHWNgAAIAAAUAAY27m/MAAAAASUVORK5CYII=" data-src="/upload/images/2016/11/1/3.jpg" alt="1"></p>
+<p><img class="lazy" src="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAABGdBTUEAALGPC/xhBQAAADhlWElmTU0AKgAAAAgAAYdpAAQAAAABAAAAGgAAAAAAAqACAAQAAAABAAAAAaADAAQAAAABAAAAAQAAAADa6r/EAAAAC0lEQVQIHWNgAAIAAAUAAY27m/MAAAAASUVORK5CYII=" data-src="/upload/images/2016/11/1/4.png" alt="1"></p>
+<h2 id="验证使用"><a href="#验证使用" class="headerlink" title="验证使用"></a>验证使用</h2><p><strong>1. 检查是否可以搜索到</strong></p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">pod search MZInsetLabel</span><br></pre></td></tr></table></figure>
+
+<p>如果搜索不到, 请执行</p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">pod setup</span><br></pre></td></tr></table></figure>
+
+<p><strong>2. 在项目中可以使用该项目</strong></p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">pod &#x27;MZInsetLabel&#x27;, &#x27;~&gt; 0.1.0&#x27;</span><br></pre></td></tr></table></figure>
+
+<p>然后在你的测试项目中，执行 <code>pod install</code> 即可。</p>
+<h2 id="可能遇到的麻烦"><a href="#可能遇到的麻烦" class="headerlink" title="可能遇到的麻烦"></a>可能遇到的麻烦</h2><p><strong>1. 执行 <code>pod trunk push *.podspec</code> 时, 好久没反应?</strong></p>
+<blockquote>
+<p>这种情况, 大多数都是因为你的网络不给力造成的, 如果你确定你的网络没问题, 那么请翻墙.</p>
+</blockquote>
+<p><strong>2. 执 行 <code>pod trunk push *.podspec</code> 时报错?</strong></p>
+<p>报错信息:</p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">ERROR | [iOS] unknown: Encountered an unknown error (Simulator iPhone 4s is not available.) during validation.</span><br></pre></td></tr></table></figure>
+
+<p>这个错误是因为, 更新了 xcode8 之后不再支持 ios7 的缘故.</p>
+<p>解决方案(我的), 升级 cocoapods.</p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">sudo gem install -n /usr/local/bin cocoapods</span><br></pre></td></tr></table></figure>
+
+<p><strong>3. pod trunk push 失败</strong></p>
+<p>失败提示信息类似:</p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br></pre></td><td class="code"><pre><span class="line">Cloning into &#x27;master&#x27;...</span><br><span class="line">error: RPC failed; curl 56 SSLRead() return error -36</span><br><span class="line">fatal: The remote end hung up unexpectedly</span><br><span class="line">fatal: early EOF</span><br><span class="line">fatal: index-pack failed</span><br></pre></td></tr></table></figure>
+
+<p>解决方案: 更新 gem</p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">sudo gem update --system</span><br></pre></td></tr></table></figure>
+
+<h2 id="Git-命令行操作"><a href="#Git-命令行操作" class="headerlink" title="Git 命令行操作"></a>Git 命令行操作</h2><p><strong>1. 向远程 Repository 添加 tag</strong></p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line">git tag -m &quot;注释&quot; 0.0.1</span><br><span class="line"></span><br><span class="line">git push --tags</span><br></pre></td></tr></table></figure>
+
+<p>执行后，可以看到 Github Repository 上会多一个对应的 tag 版本。</p>
+<p><strong>2.删除本地 Tag</strong></p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">git tag --delete [TagName]</span><br></pre></td></tr></table></figure>
+
+<p>如:</p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">git tag --delete 0.0.1</span><br></pre></td></tr></table></figure>
+
+<p><strong>3. 删除远程 Tag</strong></p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">git push --delete origin [TagName]</span><br></pre></td></tr></table></figure>
+
+<p>如:</p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">git push --delete origin 0.0.1</span><br></pre></td></tr></table></figure>
+
+<blockquote>
+<p>在 Github 上面如果你不小心打错了 Release, 然后删除该 Release.<br>你会发现, tag 无法删除.使用上面方式妥妥的解决.</p>
+</blockquote>
+<p>如果你删除 tag，想重新打一个相同的 tag，需要先删除本地的 tag，否则会失败。</p>
+<hr>
+<p><strong>扫码关注，你我就各多一个朋友~</strong></p>
+<p><img class="lazy" src="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAABGdBTUEAALGPC/xhBQAAADhlWElmTU0AKgAAAAgAAYdpAAQAAAABAAAAGgAAAAAAAqACAAQAAAABAAAAAaADAAQAAAABAAAAAQAAAADa6r/EAAAAC0lEQVQIHWNgAAIAAAUAAY27m/MAAAAASUVORK5CYII=" data-src="/upload/me/qrcode_wx.jpg"></p>
+
+
+
+
+</article>
+
+<div class="related-wrap reveal" id="read-next"><section class="header cap theme"><span>接下来阅读</span></section><section class="body fs14"><a id="next" href="/2016/10/22/iOS-%E8%B0%88%E8%B0%88-frame-%E5%92%8C-bounds/">iOS: 谈谈 frame 和 bounds<span class="note">较早</span></a><div class="line"></div><a id="prev" href="/2016/11/08/Cocoapods-%E9%97%AE%E9%A2%98%E9%9B%86%E9%94%A6/">Cocoapods 问题集锦<span class="note">较新</span></a></section></div>
+
+
+
+
+
+
+  <div class='related-wrap md reveal' id="comments">
+    <div class='cmt-title cap theme'>
+      快来参与讨论吧
+    </div>
+    <div class='cmt-body valine'>
+      
+
+<div id="valine_container" class="valine_thread"><svg class="loading" style="vertical-align: middle;fill: currentColor;overflow: hidden;" viewBox="0 0 1024 1024" version="1.1" xmlns="http://www.w3.org/2000/svg" p-id="2709"><path d="M832 512c0-176-144-320-320-320V128c211.2 0 384 172.8 384 384h-64zM192 512c0 176 144 320 320 320v64C300.8 896 128 723.2 128 512h64z" p-id="2710"></path></svg></div>
+
+    </div>
+  </div>
+
+
+
+      
+<footer class="page-footer reveal fs12"><hr><div class="text"><p>本博客所有文章除特别声明外，均采用 <a target="_blank" rel="noopener" href="https://creativecommons.org/licenses/by-nc-sa/4.0/">CC BY-NC-SA 4.0</a> 许可协议，转载请注明出处。</p>
+<p>veryitman</p>
+</div></footer>
+
+      <div class='float-panel mobile-only blur' style='display:none'>
+  <button type='button' class='sidebar-toggle mobile' onclick='sidebar.toggle()'>
+    <svg class="icon" style="width: 1em; height: 1em;vertical-align: middle;fill: currentColor;overflow: hidden;" viewBox="0 0 1024 1024" version="1.1" xmlns="http://www.w3.org/2000/svg" p-id="15301"><path d="M566.407 808.3c26.9-0.1 49.3-20.8 51.6-47.6-1.9-27.7-23.9-49.7-51.6-51.6h-412.6c-28.2-1.4-52.6 19.5-55.5 47.6 2.3 26.8 24.6 47.5 51.6 47.6h416.5v4z m309.3-249.9c26.9-0.1 49.3-20.8 51.6-47.6-2.2-26.8-24.6-47.5-51.6-47.6h-721.9c-27.7-2.8-52.5 17.4-55.3 45.1-0.1 0.8-0.1 1.7-0.2 2.5 0.9 27.2 23.6 48.5 50.7 47.6H875.707z m-103.1-245.9c26.9-0.1 49.3-20.8 51.6-47.6-0.4-28.3-23.2-51.1-51.5-51.6h-618.9c-29.5-1.1-54.3 21.9-55.5 51.4v0.2c1.4 27.8 25.2 49.2 53 47.8 0.8 0 1.7-0.1 2.5-0.2h618.8z" p-id="15302"></path><path d="M566.407 808.3c26.9-0.1 49.3-20.8 51.6-47.6-1.9-27.7-23.9-49.7-51.6-51.6h-412.6c-28.2-1.4-52.6 19.5-55.5 47.6 1.9 27.7 23.9 49.7 51.6 51.6h416.5z m309.3-249.9c26.9-0.1 49.3-20.8 51.6-47.6-2.2-26.8-24.6-47.5-51.6-47.6h-721.9c-27.7-2.8-52.5 17.4-55.3 45.1-0.1 0.8-0.1 1.7-0.2 2.5 0.9 27.2 23.6 48.5 50.7 47.6H875.707z m-103.1-245.9c26.9-0.1 49.3-20.8 51.6-47.6-0.4-28.3-23.2-51.1-51.5-51.6h-618.9c-29.5-1.1-54.3 21.9-55.5 51.4v0.2c1.4 27.8 25.2 49.2 53 47.8 0.8 0 1.7-0.1 2.5-0.2h618.8z" p-id="15303"></path></svg>
+  </button>
+</div>
+
+    </div>
+  </div>
+  <div class='scripts'>
+    <script type="text/javascript">
+  stellar = {
+    // 懒加载 css https://github.com/filamentgroup/loadCSS
+    loadCSS: (href, before, media, attributes) => {
+      var doc = window.document;
+      var ss = doc.createElement("link");
+      var ref;
+      if (before) {
+        ref = before;
+      } else {
+        var refs = (doc.body || doc.getElementsByTagName("head")[0]).childNodes;
+        ref = refs[refs.length - 1];
+      }
+      var sheets = doc.styleSheets;
+      if (attributes) {
+        for (var attributeName in attributes) {
+          if (attributes.hasOwnProperty(attributeName)) {
+            ss.setAttribute(attributeName, attributes[attributeName]);
+          }
+        }
+      }
+      ss.rel = "stylesheet";
+      ss.href = href;
+      ss.media = "only x";
+      function ready(cb) {
+        if (doc.body) {
+          return cb();
+        }
+        setTimeout(function () {
+          ready(cb);
+        });
+      }
+      ready(function () {
+        ref.parentNode.insertBefore(ss, before ? ref : ref.nextSibling);
+      });
+      var onloadcssdefined = function (cb) {
+        var resolvedHref = ss.href;
+        var i = sheets.length;
+        while (i--) {
+          if (sheets[i].href === resolvedHref) {
+            return cb();
+          }
+        }
+        setTimeout(function () {
+          onloadcssdefined(cb);
+        });
+      };
+      function loadCB() {
+        if (ss.addEventListener) {
+          ss.removeEventListener("load", loadCB);
+        }
+        ss.media = media || "all";
+      }
+      if (ss.addEventListener) {
+        ss.addEventListener("load", loadCB);
+      }
+      ss.onloadcssdefined = onloadcssdefined;
+      onloadcssdefined(loadCB);
+      return ss;
+    },
+
+    // 从 butterfly 和 volantis 获得灵感
+    loadScript: (src, opt) => new Promise((resolve, reject) => {
+      var script = document.createElement('script');
+      script.src = src;
+      if (opt) {
+        for (let key of Object.keys(opt)) {
+          script[key] = opt[key]
+        }
+      } else {
+        // 默认异步，如果需要同步，第二个参数传入 {} 即可
+        script.async = true
+      }
+      script.onerror = reject
+      script.onload = script.onreadystatechange = function() {
+        const loadState = this.readyState
+        if (loadState && loadState !== 'loaded' && loadState !== 'complete') return
+        script.onload = script.onreadystatechange = null
+        resolve()
+      }
+      document.head.appendChild(script)
+    }),
+
+    // https://github.com/jerryc127/hexo-theme-butterfly
+    jQuery: (fn) => {
+      if (typeof jQuery === 'undefined') {
+        stellar.loadScript(stellar.plugins.jQuery).then(fn)
+      } else {
+        fn()
+      }
+    }
+  };
+  stellar.github = 'https://github.com/xaoxuu/hexo-theme-stellar/tree/1.6.1';
+  stellar.config = {
+    date_suffix: {
+      just: '刚刚',
+      min: '分钟前',
+      hour: '小时前',
+      day: '天前',
+      month: '个月前',
+    },
+  };
+
+  // required plugins (only load if needs)
+  stellar.plugins = {
+    jQuery: 'https://cdn.jsdelivr.net/npm/jquery@3.5.1/dist/jquery.min.js',
+    sitesjs: '/js/plugins/sites.js',
+    friendsjs: '/js/plugins/friends.js',
+  };
+
+  // optional plugins
+  if ('true' == 'true') {
+    stellar.plugins.lazyload = Object.assign({"enable":true,"js":"https://cdn.jsdelivr.net/npm/vanilla-lazyload@17.3.1/dist/lazyload.min.js","transition":"blur"});
+  }
+  if ('true' == 'true') {
+    stellar.plugins.swiper = Object.assign({"enable":true,"css":"https://unpkg.com/swiper@6/swiper-bundle.min.css","js":"https://unpkg.com/swiper@6/swiper-bundle.min.js"});
+  }
+  if ('' == 'true') {
+    stellar.plugins.scrollreveal = Object.assign({"enable":null,"js":"https://cdn.jsdelivr.net/npm/scrollreveal@4.0.9/dist/scrollreveal.min.js","distance":"8px","duration":500,"interval":100,"scale":1});
+  }
+  if ('true' == 'true') {
+    stellar.plugins.preload = Object.assign({"enable":true,"service":"flying_pages","instant_page":"https://cdn.jsdelivr.net/gh/volantis-x/cdn-volantis@4.1.2/js/instant_page.js","flying_pages":"https://cdn.jsdelivr.net/gh/gijo-varghese/flying-pages@2.1.2/flying-pages.min.js"});
+  }
+</script>
+
+<!-- required -->
+
+  
+<script src="/js/main.js" async></script>
+
+
+
+<!-- optional -->
+
+  <script>
+  function getEmojiMaps() {
+    function emoji(path, idx, ext) {
+      return path + "/" + path + "-" + idx + "." + ext;
+    }
+    var emojiMaps = {};
+    for (var i = 1; i <= 54; i++) {
+      emojiMaps['tieba-' + i] = emoji('tieba', i, 'png');
+    }
+    for (var i = 1; i <= 101; i++) {
+      emojiMaps['qq-' + i] = emoji('qq', i, 'gif');
+    }
+    for (var i = 1; i <= 116; i++) {
+      emojiMaps['aru-' + i] = emoji('aru', i, 'gif');
+    }
+    for (var i = 1; i <= 125; i++) {
+      emojiMaps['twemoji-' + i] = emoji('twemoji', i, 'png');
+    }
+    for (var i = 1; i <= 4; i++) {
+      emojiMaps['weibo-' + i] = emoji('weibo', i, 'png');
+    }
+    return emojiMaps;
+  }
+  function load_comment(){
+    if(!document.getElementById("valine_container"))return;
+    stellar.loadScript('https://cdn.jsdelivr.net/gh/XuxuGood/simple-blog-cdn@main/js/Valine.min.js', {defer:true}).then(function () {
+      const el = document.getElementById("valine_container");
+      var path = el.getAttribute('comment_id');
+      const placeholder = "欢迎您留言~";
+      if (!path) {
+        path = decodeURI(window.location.pathname);
+      }
+      var valine = new Valine();
+      valine.init(Object.assign({"js":"https://cdn.jsdelivr.net/gh/XuxuGood/simple-blog-cdn@main/js/Valine.min.js","appId":"FY2C9UCttYNaE1j8umenqdCE-gzGzoHsz","appKey":"4i7xMwkfSEGmEDhi6SceKFxz","placeholder":"欢迎您留言~","requiredFields":["nick","mail"],"enableQQ":true,"recordIP":false,"avatar":"robohash","pageSize":10,"lang":"zh-cn","highlight":true,"mathJax":false,"tagMeta":["博主","小伙伴","访客"],"metaPlaceholder":{"nick":"昵称/QQ号(必填)","mail":"邮箱（必填，完全保密）"},"master":["6783037F2DF30EAB99F9FC256157D875"],"friends":["6783037F2DF30EAB99F9FC256157D875"],"comment_count":true}, {
+        el: '#valine_container',
+        path: path,
+        placeholder: placeholder,
+        emojiCDN: 'https://cdn.jsdelivr.net/gh/volantis-x/cdn-emoji/valine/',
+        emojiMaps: getEmojiMaps(),
+      }));
+    });
+  }
+  window.addEventListener('DOMContentLoaded', (event) => {
+    console.log('DOM fully loaded and parsed');
+    load_comment();
+  });
+
+</script>
+
+
+
+
+<!-- inject -->
+
+
+  </div>
+</body>
+</html>

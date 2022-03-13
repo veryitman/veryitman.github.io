@@ -1,0 +1,394 @@
+<!DOCTYPE html>
+<html lang='zh-CN'>
+
+<head>
+  <meta name="generator" content="Hexo 6.0.0">
+  <meta charset="utf-8">
+  
+
+  <meta http-equiv='x-dns-prefetch-control' content='on' />
+  <link rel='dns-prefetch' href='https://cdn.jsdelivr.net'>
+  <link rel="preconnect" href="https://cdn.jsdelivr.net" crossorigin>
+
+  <meta name="renderer" content="webkit">
+  <meta name="force-rendering" content="webkit">
+  <meta http-equiv="X-UA-Compatible" content="IE=Edge,chrome=1">
+  <meta name="HandheldFriendly" content="True" >
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1">
+  <meta name="theme-color" content="#f8f8f8">
+  <title>macOS 中神秘的 GCC - Veryitman</title>
+
+  
+    <meta name="description" content="最近在看人工智能相关的知识，无意中发现了一个巨牛的 人工智能教程，分享一下给大家。 教程不仅是零基础，通俗易懂，而且非常风趣幽默，像看小说一样！觉得太牛了，所以分享给大家。点 这里 可以直接看教程。  这个事情，要从编译一个简单的代码开始说起。 gcc 和 g++ 的区别gcc 是 GCC 中的 GUN C Compiler，C 编译器。 g++ 是 GCC 中的 GUN C++ Compiler">
+<meta property="og:type" content="article">
+<meta property="og:title" content="macOS 中神秘的 GCC">
+<meta property="og:url" content="http://example.com/2018/10/13/macOS-%E4%B8%AD%E7%A5%9E%E7%A7%98%E7%9A%84-GCC/index.html">
+<meta property="og:site_name" content="Veryitman">
+<meta property="og:description" content="最近在看人工智能相关的知识，无意中发现了一个巨牛的 人工智能教程，分享一下给大家。 教程不仅是零基础，通俗易懂，而且非常风趣幽默，像看小说一样！觉得太牛了，所以分享给大家。点 这里 可以直接看教程。  这个事情，要从编译一个简单的代码开始说起。 gcc 和 g++ 的区别gcc 是 GCC 中的 GUN C Compiler，C 编译器。 g++ 是 GCC 中的 GUN C++ Compiler">
+<meta property="og:locale" content="zh_CN">
+<meta property="og:image" content="http://example.com/upload/images/2018/10/13/1.jpg">
+<meta property="og:image" content="http://example.com/upload/images/2018/10/13/2.jpg">
+<meta property="og:image" content="http://example.com/upload/me/qrcode_wx.jpg">
+<meta property="article:published_time" content="2018-10-13T15:41:06.000Z">
+<meta property="article:modified_time" content="2022-03-09T14:53:24.344Z">
+<meta property="article:author" content="veryitman">
+<meta property="article:tag" content="gcc g++ clang clang++ cc">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:image" content="http://example.com/upload/images/2018/10/13/1.jpg">
+  
+  
+
+  <!-- feed -->
+  
+
+  
+    
+<link rel="stylesheet" href="/css/main.css">
+
+  
+
+  
+
+  
+</head>
+
+<body>
+  
+
+
+  <div class='l_body' id='start'>
+    <aside class='l_left' layout='post'>
+    
+
+
+<header class="header">
+
+<div class="logo-wrap"><a class="title" href="/"><div class="main">Veryitman</div></a></div>
+<nav class="menu dis-select"></nav></header>
+
+<div class="widgets">
+
+<div class="widget-wrap single" id="toc"><div class="widget-header cap dis-select"><span class="name">本文目录</span></div><div class="widget-body fs14"><div class="doc-tree active"><ol class="toc"><li class="toc-item toc-level-2"><a class="toc-link" href="#gcc-%E5%92%8C-g-%E7%9A%84%E5%8C%BA%E5%88%AB"><span class="toc-text">gcc 和 g++ 的区别</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#%E4%BA%A4%E6%8D%A2%E5%8F%98%E9%87%8F%EF%BC%9A%E7%94%A8%E6%8C%87%E9%92%88"><span class="toc-text">交换变量：用指针</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#%E4%BA%A4%E6%8D%A2%E5%8F%98%E9%87%8F%EF%BC%9A%E7%94%A8%E5%BC%95%E7%94%A8"><span class="toc-text">交换变量：用引用</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#gcc%E3%80%81g-%E5%92%8C-clang-%E7%9A%84%E5%85%B3%E7%B3%BB"><span class="toc-text">gcc、g++ 和 clang 的关系</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#%E6%80%BB%E7%BB%93"><span class="toc-text">总结</span></a></li></ol></div></div></div>
+
+
+</div>
+
+
+    </aside>
+    <div class='l_main'>
+      
+
+      
+
+
+<div class="bread-nav fs12"><div id="breadcrumb"><a class="cap breadcrumb" href="/">主页</a><span class="sep"></span><a class="cap breadcrumb" href="/">文章</a><span class="sep"></span><a class="cap breadcrumb-link" href="/categories/C-C/">C/C++</a></div><div id="post-meta">发布于&nbsp;<time datetime="2018-10-13T15:41:06.000Z">2018-10-13</time></div></div>
+
+<article class='content md post'>
+<h1 class="article-title"><span>macOS 中神秘的 GCC</span></h1>
+<p>最近在看人工智能相关的知识，无意中发现了一个巨牛的 <a target="_blank" rel="noopener" href="https://www.cbedai.net/androidbluetooth">人工智能教程</a>，分享一下给大家。</p>
+<p>教程不仅是零基础，通俗易懂，而且非常风趣幽默，像看小说一样！觉得太牛了，所以分享给大家。点 <a target="_blank" rel="noopener" href="https://www.cbedai.net/androidbluetooth">这里</a> 可以直接看教程。</p>
+<hr>
+<p>这个事情，要从编译一个简单的代码开始说起。</p>
+<h2 id="gcc-和-g-的区别"><a href="#gcc-和-g-的区别" class="headerlink" title="gcc 和 g++ 的区别"></a>gcc 和 g++ 的区别</h2><p><code>gcc</code> 是 GCC 中的 GUN C Compiler，C 编译器。</p>
+<p><code>g++</code> 是 GCC 中的 GUN C++ Compiler，C++编译器。</p>
+<p>就本质而言，<code>gcc</code> 和 <code>g++</code> 并不是编译器，也不是编译器的集合，它们只是一种驱动器，根据参数中要编译的文件的类型，调用对应的 GUN 编译器而已。</p>
+<p><code>gcc</code> 与 <code>g++</code> 都可以编译 C 和 C++ 文件，只是处理方式不同。 可以参考 <a target="_blank" rel="noopener" href="https://www.cnblogs.com/wb118115/p/5969775.html">GCC的gcc和g++区别</a> 这篇文章。</p>
+<h2 id="交换变量：用指针"><a href="#交换变量：用指针" class="headerlink" title="交换变量：用指针"></a>交换变量：用指针</h2><p>下面这段代码很简单，利用 C 指针实现交换两个变量的目的。</p>
+<p><strong>源文件：mz_swap.c</strong></p>
+<figure class="highlight c"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br></pre></td><td class="code"><pre><span class="line"><span class="meta">#<span class="keyword">include</span> <span class="string">&lt;stdio.h&gt;</span></span></span><br><span class="line"></span><br><span class="line"><span class="comment">// 使用指针的方式交换两个变量</span></span><br><span class="line"><span class="type">int</span> <span class="title function_">mz_swap</span><span class="params">(<span class="type">int</span> *ap, <span class="type">int</span> *bp)</span>;</span><br><span class="line"></span><br><span class="line"><span class="type">int</span> <span class="title function_">main</span><span class="params">(<span class="type">int</span> argc, <span class="type">char</span> * argv[])</span> &#123;</span><br><span class="line"></span><br><span class="line">	<span class="type">int</span> xp = <span class="number">901</span>;</span><br><span class="line">	<span class="type">int</span> yp = <span class="number">902</span>;</span><br><span class="line"></span><br><span class="line">	<span class="built_in">printf</span>(<span class="string">&quot;--Before-- xp = %i, yp = %i\n&quot;</span>, xp, yp);</span><br><span class="line">	</span><br><span class="line">	mz_swap(&amp;xp, &amp;yp);</span><br><span class="line"></span><br><span class="line">	<span class="built_in">printf</span>(<span class="string">&quot;--After--- xp = %i, yp = %i\n&quot;</span>, xp, yp);</span><br><span class="line"></span><br><span class="line">	<span class="keyword">return</span> <span class="number">0</span>;</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line"><span class="type">int</span> <span class="title function_">mz_swap</span><span class="params">(<span class="type">int</span> *ap, <span class="type">int</span> *bp)</span> &#123;</span><br><span class="line"></span><br><span class="line">	<span class="keyword">if</span> (<span class="literal">NULL</span> == ap || <span class="literal">NULL</span> == bp) &#123;</span><br><span class="line">		<span class="keyword">return</span> <span class="number">-1</span>;</span><br><span class="line">	&#125;</span><br><span class="line"></span><br><span class="line">	<span class="type">int</span> tp = *ap;</span><br><span class="line"></span><br><span class="line">	*ap = *bp;</span><br><span class="line"></span><br><span class="line">	*bp = tp;</span><br><span class="line"></span><br><span class="line">	<span class="keyword">return</span> <span class="number">0</span>;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<p>在 macOS 下使用 <code>gcc</code> 编译 <code>mz_swap.c</code>，产生可执行文件 <code>exec_main.out</code>，如下操作：</p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">gcc mz_swap.c -o exec_main.out</span><br></pre></td></tr></table></figure>
+
+<p>编译成功，执行 <code>./exec_main.out</code>，正常输出结果：</p>
+<figure class="highlight c"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line">--Before-- xp = <span class="number">901</span>, yp = <span class="number">902</span></span><br><span class="line">--After--- xp = <span class="number">902</span>, yp = <span class="number">901</span></span><br></pre></td></tr></table></figure>
+
+<p>采用 g++ 来编译，如下操作：</p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">g++ mz_swap.c -o exec_main.out</span><br></pre></td></tr></table></figure>
+
+<p>报出如下警告，该警告的意思是在 C++ 模式下强制编译 C 文件，这里可以不予理会。</p>
+<figure class="highlight c"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">clang: warning: treating <span class="string">&#x27;c&#x27;</span> input as <span class="string">&#x27;c++&#x27;</span> when in C++ mode, this behavior is deprecated [-Wdeprecated]</span><br></pre></td></tr></table></figure>
+
+<p>虽然有警告，但是编译可以产生可执行文件 <code>exec_main.out</code> 且可以正常执行的，执行结果跟上面一样。</p>
+<h2 id="交换变量：用引用"><a href="#交换变量：用引用" class="headerlink" title="交换变量：用引用"></a>交换变量：用引用</h2><p>大家都知道，C 没有 <code>引用</code> 这个概念，而 C++ 是有 <code>引用</code> 概念的，可以在此了解 <a target="_blank" rel="noopener" href="http://www.runoob.com/cplusplus/cpp-references.html">C++ 引用</a>.</p>
+<p>试一下使用 <code>gcc</code> 编译使用 <code>引用</code> 方式编写的 C 代码，按照说法，<code>gcc</code> 是无法编译通过的。</p>
+<p><strong>源文件：mz_swap_ref.c</strong></p>
+<figure class="highlight c"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br></pre></td><td class="code"><pre><span class="line"><span class="meta">#<span class="keyword">include</span> <span class="string">&lt;stdio.h&gt;</span></span></span><br><span class="line"></span><br><span class="line"><span class="comment">// 使用引用的方式交换两个变量</span></span><br><span class="line"><span class="type">int</span> <span class="title function_">mz_swap_ref</span><span class="params">(<span class="type">int</span> &amp;ap, <span class="type">int</span> &amp;bp)</span>;</span><br><span class="line"></span><br><span class="line"><span class="type">int</span> <span class="title function_">main</span><span class="params">(<span class="type">int</span> argc, <span class="type">char</span> * argv[])</span> &#123;</span><br><span class="line"></span><br><span class="line">	<span class="type">int</span> xp = <span class="number">901</span>;</span><br><span class="line">	<span class="type">int</span> yp = <span class="number">902</span>;</span><br><span class="line"></span><br><span class="line">	<span class="built_in">printf</span>(<span class="string">&quot;--Before-- xp = %i, yp = %i\n&quot;</span>, xp, yp);</span><br><span class="line"></span><br><span class="line">	mz_swap_ref(xp, yp);</span><br><span class="line">	</span><br><span class="line">	<span class="built_in">printf</span>(<span class="string">&quot;--After--- xp = %i, yp = %i\n&quot;</span>, xp, yp);</span><br><span class="line"></span><br><span class="line">	<span class="keyword">return</span> <span class="number">0</span>;</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line"><span class="type">int</span> <span class="title function_">mz_swap_ref</span><span class="params">(<span class="type">int</span> &amp;ap, <span class="type">int</span> &amp;bp)</span> &#123;</span><br><span class="line"></span><br><span class="line">	<span class="type">int</span> tp = ap;</span><br><span class="line"></span><br><span class="line">	ap = bp;</span><br><span class="line"></span><br><span class="line">	bp = tp;</span><br><span class="line"></span><br><span class="line">	<span class="keyword">return</span> <span class="number">0</span>;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<p>编译</p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">gcc mz_swap_ref.c -o exec_main.out</span><br></pre></td></tr></table></figure>
+
+<p>编译失败，错误信息如下：</p>
+<figure class="highlight c"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br></pre></td><td class="code"><pre><span class="line">mz_swap_ref.c:<span class="number">4</span>:<span class="number">21</span>: error: expected <span class="string">&#x27;)&#x27;</span></span><br><span class="line"><span class="type">int</span> <span class="title function_">mz_swap_ref</span><span class="params">(<span class="type">int</span> &amp;ap, <span class="type">int</span> &amp;bp)</span>;</span><br><span class="line">                    ^</span><br><span class="line">mz_swap_ref.c:<span class="number">4</span>:<span class="number">16</span>: note: to match this <span class="string">&#x27;(&#x27;</span></span><br><span class="line"><span class="type">int</span> <span class="title function_">mz_swap_ref</span><span class="params">(<span class="type">int</span> &amp;ap, <span class="type">int</span> &amp;bp)</span>;</span><br></pre></td></tr></table></figure>
+
+<p>既然按照 C 的编译方式不行，那就换成 <code>g++</code> 来编译。</p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">g++ mz_swap_ref.c -o exec_main.out</span><br></pre></td></tr></table></figure>
+
+<p>编译成功，执行可执行文件</p>
+<figure class="highlight c"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">./exec_main.out </span><br></pre></td></tr></table></figure>
+
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line">--Before-- xp = 901, yp = 902</span><br><span class="line">--After--- xp = 902, yp = 901</span><br></pre></td></tr></table></figure>
+
+<p>大家可以自己动手试试，使用 clang 来编译 <code>mz_swap_ref.c</code> 和使用 <code>gcc</code> 来编译都是报错，使用 <code>clang++</code> 和 <code>g++</code> 编译都是没有问题的。</p>
+<p>在博客 <a target="_blank" rel="noopener" href="http://www.veryitman.com/2017/10/07/GCC-Homebrew-%E5%AE%89%E8%A3%85-GCC-%E5%92%8C-Binutils/">GCC: Homebrew 安装 GCC 和 Binutils</a> 中，我已经分享了在 macOS 中的 <code>gcc</code> 和 <code>g++</code> 不是 GNU 提供的，而是 Apple 自己的 clang。</p>
+<p>这里要说明的是即使使用自己安装的 gcc(<code>gcc-4.9</code>) 来编译 <code>mz_swap_ref.c</code> 也是无法编译通过的，验证如下：</p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">gcc-4.9 mz_swap_ref.c -o exec_main.out</span><br></pre></td></tr></table></figure>
+
+<p>错误信息：</p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br></pre></td><td class="code"><pre><span class="line">mz_swap_ref.c:4:21: error: expected &#x27;;&#x27;, &#x27;,&#x27; or &#x27;)&#x27; before &#x27;&amp;&#x27; token</span><br><span class="line"> int mz_swap_ref(int &amp;ap, int &amp;bp);</span><br><span class="line">                     ^</span><br><span class="line">mz_swap_ref.c:20:21: error: expected &#x27;;&#x27;, &#x27;,&#x27; or &#x27;)&#x27; before &#x27;&amp;&#x27; token</span><br><span class="line"> int mz_swap_ref(int &amp;ap, int &amp;bp) &#123;              ^</span><br></pre></td></tr></table></figure>
+
+<h2 id="gcc、g-和-clang-的关系"><a href="#gcc、g-和-clang-的关系" class="headerlink" title="gcc、g++ 和 clang 的关系"></a>gcc、g++ 和 clang 的关系</h2><p>在 macOS 中，<code>gcc</code> 以某种方式指向 <code>llvm-gcc</code> 编译器，<code>g++</code> 亦如此。</p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">In Apple&#x27;s version of GCC, both cc and gcc are actually symbolic links to the llvm-gcc compiler. Similarly, c++ and g++ are links to llvm-g++.</span><br></pre></td></tr></table></figure>
+
+<p><code>llvm-gcc</code> 是 c&#x2F;c++&#x2F;oc 的编译器，用了 <code>gcc</code> 前端和命令行界面的 llvm.</p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">llvm-gcc is a C, C++, Objective-C and Objective-C++ compiler. llvm-g++ is a compiler driver for C++. llvm-gcc uses gcc front-end and gcc&#x27;s command line interface.</span><br></pre></td></tr></table></figure>
+
+<p>接下来，我们看一下 <code>llvm-gcc</code>，可以使用 <code>which llvm-gcc</code> 看一下 <code>llvm-gcc</code> 所在位置是 <code>/usr/bin/llvm-gcc</code>，打开目录可以看出其实是一个符号链接，如下图所示：<br><img class="lazy" src="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAABGdBTUEAALGPC/xhBQAAADhlWElmTU0AKgAAAAgAAYdpAAQAAAABAAAAGgAAAAAAAqACAAQAAAABAAAAAaADAAQAAAABAAAAAQAAAADa6r/EAAAAC0lEQVQIHWNgAAIAAAUAAY27m/MAAAAASUVORK5CYII=" data-src="/upload/images/2018/10/13/1.jpg" alt="1"></p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">ls -l /usr/bin/llvm-gcc</span><br></pre></td></tr></table></figure>
+
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">/usr/bin/llvm-gcc -&gt; clang</span><br></pre></td></tr></table></figure>
+
+<p>它们是统一指向 <code>clang</code> 的符号链接，可以看其原始指向，<code>llvm-gcc</code> 指向 <code>clang</code>，<code>llvm-g++</code> 指向 <code>clang++</code>。</p>
+<p>二者都在 <code>/usr/bin/</code> 目录下：<br><img class="lazy" src="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAABGdBTUEAALGPC/xhBQAAADhlWElmTU0AKgAAAAgAAYdpAAQAAAABAAAAGgAAAAAAAqACAAQAAAABAAAAAaADAAQAAAABAAAAAQAAAADa6r/EAAAAC0lEQVQIHWNgAAIAAAUAAY27m/MAAAAASUVORK5CYII=" data-src="/upload/images/2018/10/13/2.jpg" alt="1"></p>
+<p>其实在 macOS 中 <code>cc</code> 编译器也指向 <code>clang</code>。</p>
+<h2 id="总结"><a href="#总结" class="headerlink" title="总结"></a>总结</h2><p>通过上面的例子，我们至少可以学到如下几点知识：</p>
+<p><strong>1、C 语言规范中没有 <code>引用</code> 的概念，使用 C 编译器无法使其编译通过，但是使用 C++ 编译器是可以编译通过的。这是因为各自的编译器是遵循语言规范的。</strong></p>
+<p><strong>2、macOS 中的 <code>gcc</code> 和 <code>g++</code> 苹果开发者们并没有去改造和重写它们，只是分别指向 <code>clang</code> 和 <code>clang++</code> 编译器。</strong></p>
+<p><strong>3、如果不想使用 macOS 中的 <code>gcc</code> 和 <code>g++</code>，就需要自己重新安装 GNU 的编译套件，安装和使用方法已经在博客中有说明。</strong></p>
+<hr>
+<p><strong>扫码关注，你我就各多一个朋友~</strong></p>
+<p><img class="lazy" src="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAABGdBTUEAALGPC/xhBQAAADhlWElmTU0AKgAAAAgAAYdpAAQAAAABAAAAGgAAAAAAAqACAAQAAAABAAAAAaADAAQAAAABAAAAAQAAAADa6r/EAAAAC0lEQVQIHWNgAAIAAAUAAY27m/MAAAAASUVORK5CYII=" data-src="/upload/me/qrcode_wx.jpg"></p>
+
+
+
+
+</article>
+
+<div class="related-wrap reveal" id="read-next"><section class="header cap theme"><span>接下来阅读</span></section><section class="body fs14"><a id="next" href="/2018/10/06/SVN-%E6%A3%80%E5%87%BA%E6%96%87%E4%BB%B6/">SVN 检出文件<span class="note">较早</span></a><div class="line"></div><a id="prev" href="/2018/10/28/%E8%A7%82%E5%AF%9F%E8%80%85%E6%A8%A1%E5%BC%8F/">观察者模式<span class="note">较新</span></a></section></div>
+
+
+
+
+
+
+  <div class='related-wrap md reveal' id="comments">
+    <div class='cmt-title cap theme'>
+      快来参与讨论吧
+    </div>
+    <div class='cmt-body valine'>
+      
+
+<div id="valine_container" class="valine_thread"><svg class="loading" style="vertical-align: middle;fill: currentColor;overflow: hidden;" viewBox="0 0 1024 1024" version="1.1" xmlns="http://www.w3.org/2000/svg" p-id="2709"><path d="M832 512c0-176-144-320-320-320V128c211.2 0 384 172.8 384 384h-64zM192 512c0 176 144 320 320 320v64C300.8 896 128 723.2 128 512h64z" p-id="2710"></path></svg></div>
+
+    </div>
+  </div>
+
+
+
+      
+<footer class="page-footer reveal fs12"><hr><div class="text"><p>本博客所有文章除特别声明外，均采用 <a target="_blank" rel="noopener" href="https://creativecommons.org/licenses/by-nc-sa/4.0/">CC BY-NC-SA 4.0</a> 许可协议，转载请注明出处。</p>
+<p>veryitman</p>
+</div></footer>
+
+      <div class='float-panel mobile-only blur' style='display:none'>
+  <button type='button' class='sidebar-toggle mobile' onclick='sidebar.toggle()'>
+    <svg class="icon" style="width: 1em; height: 1em;vertical-align: middle;fill: currentColor;overflow: hidden;" viewBox="0 0 1024 1024" version="1.1" xmlns="http://www.w3.org/2000/svg" p-id="15301"><path d="M566.407 808.3c26.9-0.1 49.3-20.8 51.6-47.6-1.9-27.7-23.9-49.7-51.6-51.6h-412.6c-28.2-1.4-52.6 19.5-55.5 47.6 2.3 26.8 24.6 47.5 51.6 47.6h416.5v4z m309.3-249.9c26.9-0.1 49.3-20.8 51.6-47.6-2.2-26.8-24.6-47.5-51.6-47.6h-721.9c-27.7-2.8-52.5 17.4-55.3 45.1-0.1 0.8-0.1 1.7-0.2 2.5 0.9 27.2 23.6 48.5 50.7 47.6H875.707z m-103.1-245.9c26.9-0.1 49.3-20.8 51.6-47.6-0.4-28.3-23.2-51.1-51.5-51.6h-618.9c-29.5-1.1-54.3 21.9-55.5 51.4v0.2c1.4 27.8 25.2 49.2 53 47.8 0.8 0 1.7-0.1 2.5-0.2h618.8z" p-id="15302"></path><path d="M566.407 808.3c26.9-0.1 49.3-20.8 51.6-47.6-1.9-27.7-23.9-49.7-51.6-51.6h-412.6c-28.2-1.4-52.6 19.5-55.5 47.6 1.9 27.7 23.9 49.7 51.6 51.6h416.5z m309.3-249.9c26.9-0.1 49.3-20.8 51.6-47.6-2.2-26.8-24.6-47.5-51.6-47.6h-721.9c-27.7-2.8-52.5 17.4-55.3 45.1-0.1 0.8-0.1 1.7-0.2 2.5 0.9 27.2 23.6 48.5 50.7 47.6H875.707z m-103.1-245.9c26.9-0.1 49.3-20.8 51.6-47.6-0.4-28.3-23.2-51.1-51.5-51.6h-618.9c-29.5-1.1-54.3 21.9-55.5 51.4v0.2c1.4 27.8 25.2 49.2 53 47.8 0.8 0 1.7-0.1 2.5-0.2h618.8z" p-id="15303"></path></svg>
+  </button>
+</div>
+
+    </div>
+  </div>
+  <div class='scripts'>
+    <script type="text/javascript">
+  stellar = {
+    // 懒加载 css https://github.com/filamentgroup/loadCSS
+    loadCSS: (href, before, media, attributes) => {
+      var doc = window.document;
+      var ss = doc.createElement("link");
+      var ref;
+      if (before) {
+        ref = before;
+      } else {
+        var refs = (doc.body || doc.getElementsByTagName("head")[0]).childNodes;
+        ref = refs[refs.length - 1];
+      }
+      var sheets = doc.styleSheets;
+      if (attributes) {
+        for (var attributeName in attributes) {
+          if (attributes.hasOwnProperty(attributeName)) {
+            ss.setAttribute(attributeName, attributes[attributeName]);
+          }
+        }
+      }
+      ss.rel = "stylesheet";
+      ss.href = href;
+      ss.media = "only x";
+      function ready(cb) {
+        if (doc.body) {
+          return cb();
+        }
+        setTimeout(function () {
+          ready(cb);
+        });
+      }
+      ready(function () {
+        ref.parentNode.insertBefore(ss, before ? ref : ref.nextSibling);
+      });
+      var onloadcssdefined = function (cb) {
+        var resolvedHref = ss.href;
+        var i = sheets.length;
+        while (i--) {
+          if (sheets[i].href === resolvedHref) {
+            return cb();
+          }
+        }
+        setTimeout(function () {
+          onloadcssdefined(cb);
+        });
+      };
+      function loadCB() {
+        if (ss.addEventListener) {
+          ss.removeEventListener("load", loadCB);
+        }
+        ss.media = media || "all";
+      }
+      if (ss.addEventListener) {
+        ss.addEventListener("load", loadCB);
+      }
+      ss.onloadcssdefined = onloadcssdefined;
+      onloadcssdefined(loadCB);
+      return ss;
+    },
+
+    // 从 butterfly 和 volantis 获得灵感
+    loadScript: (src, opt) => new Promise((resolve, reject) => {
+      var script = document.createElement('script');
+      script.src = src;
+      if (opt) {
+        for (let key of Object.keys(opt)) {
+          script[key] = opt[key]
+        }
+      } else {
+        // 默认异步，如果需要同步，第二个参数传入 {} 即可
+        script.async = true
+      }
+      script.onerror = reject
+      script.onload = script.onreadystatechange = function() {
+        const loadState = this.readyState
+        if (loadState && loadState !== 'loaded' && loadState !== 'complete') return
+        script.onload = script.onreadystatechange = null
+        resolve()
+      }
+      document.head.appendChild(script)
+    }),
+
+    // https://github.com/jerryc127/hexo-theme-butterfly
+    jQuery: (fn) => {
+      if (typeof jQuery === 'undefined') {
+        stellar.loadScript(stellar.plugins.jQuery).then(fn)
+      } else {
+        fn()
+      }
+    }
+  };
+  stellar.github = 'https://github.com/xaoxuu/hexo-theme-stellar/tree/1.6.1';
+  stellar.config = {
+    date_suffix: {
+      just: '刚刚',
+      min: '分钟前',
+      hour: '小时前',
+      day: '天前',
+      month: '个月前',
+    },
+  };
+
+  // required plugins (only load if needs)
+  stellar.plugins = {
+    jQuery: 'https://cdn.jsdelivr.net/npm/jquery@3.5.1/dist/jquery.min.js',
+    sitesjs: '/js/plugins/sites.js',
+    friendsjs: '/js/plugins/friends.js',
+  };
+
+  // optional plugins
+  if ('true' == 'true') {
+    stellar.plugins.lazyload = Object.assign({"enable":true,"js":"https://cdn.jsdelivr.net/npm/vanilla-lazyload@17.3.1/dist/lazyload.min.js","transition":"blur"});
+  }
+  if ('true' == 'true') {
+    stellar.plugins.swiper = Object.assign({"enable":true,"css":"https://unpkg.com/swiper@6/swiper-bundle.min.css","js":"https://unpkg.com/swiper@6/swiper-bundle.min.js"});
+  }
+  if ('' == 'true') {
+    stellar.plugins.scrollreveal = Object.assign({"enable":null,"js":"https://cdn.jsdelivr.net/npm/scrollreveal@4.0.9/dist/scrollreveal.min.js","distance":"8px","duration":500,"interval":100,"scale":1});
+  }
+  if ('true' == 'true') {
+    stellar.plugins.preload = Object.assign({"enable":true,"service":"flying_pages","instant_page":"https://cdn.jsdelivr.net/gh/volantis-x/cdn-volantis@4.1.2/js/instant_page.js","flying_pages":"https://cdn.jsdelivr.net/gh/gijo-varghese/flying-pages@2.1.2/flying-pages.min.js"});
+  }
+</script>
+
+<!-- required -->
+
+  
+<script src="/js/main.js" async></script>
+
+
+
+<!-- optional -->
+
+  <script>
+  function getEmojiMaps() {
+    function emoji(path, idx, ext) {
+      return path + "/" + path + "-" + idx + "." + ext;
+    }
+    var emojiMaps = {};
+    for (var i = 1; i <= 54; i++) {
+      emojiMaps['tieba-' + i] = emoji('tieba', i, 'png');
+    }
+    for (var i = 1; i <= 101; i++) {
+      emojiMaps['qq-' + i] = emoji('qq', i, 'gif');
+    }
+    for (var i = 1; i <= 116; i++) {
+      emojiMaps['aru-' + i] = emoji('aru', i, 'gif');
+    }
+    for (var i = 1; i <= 125; i++) {
+      emojiMaps['twemoji-' + i] = emoji('twemoji', i, 'png');
+    }
+    for (var i = 1; i <= 4; i++) {
+      emojiMaps['weibo-' + i] = emoji('weibo', i, 'png');
+    }
+    return emojiMaps;
+  }
+  function load_comment(){
+    if(!document.getElementById("valine_container"))return;
+    stellar.loadScript('https://cdn.jsdelivr.net/gh/XuxuGood/simple-blog-cdn@main/js/Valine.min.js', {defer:true}).then(function () {
+      const el = document.getElementById("valine_container");
+      var path = el.getAttribute('comment_id');
+      const placeholder = "欢迎您留言~";
+      if (!path) {
+        path = decodeURI(window.location.pathname);
+      }
+      var valine = new Valine();
+      valine.init(Object.assign({"js":"https://cdn.jsdelivr.net/gh/XuxuGood/simple-blog-cdn@main/js/Valine.min.js","appId":"FY2C9UCttYNaE1j8umenqdCE-gzGzoHsz","appKey":"4i7xMwkfSEGmEDhi6SceKFxz","placeholder":"欢迎您留言~","requiredFields":["nick","mail"],"enableQQ":true,"recordIP":false,"avatar":"robohash","pageSize":10,"lang":"zh-cn","highlight":true,"mathJax":false,"tagMeta":["博主","小伙伴","访客"],"metaPlaceholder":{"nick":"昵称/QQ号(必填)","mail":"邮箱（必填，完全保密）"},"master":["6783037F2DF30EAB99F9FC256157D875"],"friends":["6783037F2DF30EAB99F9FC256157D875"],"comment_count":true}, {
+        el: '#valine_container',
+        path: path,
+        placeholder: placeholder,
+        emojiCDN: 'https://cdn.jsdelivr.net/gh/volantis-x/cdn-emoji/valine/',
+        emojiMaps: getEmojiMaps(),
+      }));
+    });
+  }
+  window.addEventListener('DOMContentLoaded', (event) => {
+    console.log('DOM fully loaded and parsed');
+    load_comment();
+  });
+
+</script>
+
+
+
+
+<!-- inject -->
+
+
+  </div>
+</body>
+</html>

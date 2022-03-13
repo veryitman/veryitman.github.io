@@ -1,0 +1,428 @@
+<!DOCTYPE html>
+<html lang='zh-CN'>
+
+<head>
+  <meta name="generator" content="Hexo 6.0.0">
+  <meta charset="utf-8">
+  
+
+  <meta http-equiv='x-dns-prefetch-control' content='on' />
+  <link rel='dns-prefetch' href='https://cdn.jsdelivr.net'>
+  <link rel="preconnect" href="https://cdn.jsdelivr.net" crossorigin>
+
+  <meta name="renderer" content="webkit">
+  <meta name="force-rendering" content="webkit">
+  <meta http-equiv="X-UA-Compatible" content="IE=Edge,chrome=1">
+  <meta name="HandheldFriendly" content="True" >
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1">
+  <meta name="theme-color" content="#f8f8f8">
+  <title>反向代理 - Veryitman</title>
+
+  
+    <meta name="description" content="本篇内容概要不知道大家有没有问过别人，或者是自己偷偷在网上搜过类似 “什么是正向和反向代理“ 类似的问题，即使问过、搜过是不是也很懵？ 总结一句粗话：正向代理就是代理客户端的代理服务，反向代理就是代理服务端的代理服务。 那我们今天就来掰扯掰扯这个问题。 VPN 和正向代理小明：“你昨天看了我给你发的视频链接了吗？超级好看哟！”。小丽：“哦，那个链接根本打不开呀，看个pi！”，小明失望的看了看小丽。">
+<meta property="og:type" content="article">
+<meta property="og:title" content="反向代理">
+<meta property="og:url" content="http://example.com/2019/04/14/%E5%8F%8D%E5%90%91%E4%BB%A3%E7%90%86/index.html">
+<meta property="og:site_name" content="Veryitman">
+<meta property="og:description" content="本篇内容概要不知道大家有没有问过别人，或者是自己偷偷在网上搜过类似 “什么是正向和反向代理“ 类似的问题，即使问过、搜过是不是也很懵？ 总结一句粗话：正向代理就是代理客户端的代理服务，反向代理就是代理服务端的代理服务。 那我们今天就来掰扯掰扯这个问题。 VPN 和正向代理小明：“你昨天看了我给你发的视频链接了吗？超级好看哟！”。小丽：“哦，那个链接根本打不开呀，看个pi！”，小明失望的看了看小丽。">
+<meta property="og:locale" content="zh_CN">
+<meta property="og:image" content="http://example.com/upload/images/2019/04/14/1.jpg">
+<meta property="og:image" content="http://example.com/upload/images/2019/04/14/2.jpg">
+<meta property="og:image" content="http://example.com/upload/images/2019/04/14/3.jpg">
+<meta property="og:image" content="http://example.com/upload/images/2019/04/14/4.jpg">
+<meta property="og:image" content="http://example.com/upload/me/qrcode_wx.jpg">
+<meta property="article:published_time" content="2019-04-14T09:10:11.000Z">
+<meta property="article:modified_time" content="2022-03-09T14:53:24.310Z">
+<meta property="article:author" content="veryitman">
+<meta property="article:tag" content="Nginx VPN 代理服务器">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:image" content="http://example.com/upload/images/2019/04/14/1.jpg">
+  
+  
+
+  <!-- feed -->
+  
+
+  
+    
+<link rel="stylesheet" href="/css/main.css">
+
+  
+
+  
+
+  
+</head>
+
+<body>
+  
+
+
+  <div class='l_body' id='start'>
+    <aside class='l_left' layout='post'>
+    
+
+
+<header class="header">
+
+<div class="logo-wrap"><a class="title" href="/"><div class="main">Veryitman</div></a></div>
+<nav class="menu dis-select"></nav></header>
+
+<div class="widgets">
+
+<div class="widget-wrap single" id="toc"><div class="widget-header cap dis-select"><span class="name">本文目录</span></div><div class="widget-body fs14"><div class="doc-tree active"><ol class="toc"><li class="toc-item toc-level-2"><a class="toc-link" href="#%E6%9C%AC%E7%AF%87%E5%86%85%E5%AE%B9%E6%A6%82%E8%A6%81"><span class="toc-text">本篇内容概要</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#VPN-%E5%92%8C%E6%AD%A3%E5%90%91%E4%BB%A3%E7%90%86"><span class="toc-text">VPN 和正向代理</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#%E5%8F%8D%E5%90%91%E4%BB%A3%E7%90%86%E5%92%8C-Nginx"><span class="toc-text">反向代理和 Nginx</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#Nginx-%E9%85%8D%E7%BD%AE%E5%8F%8D%E5%90%91%E4%BB%A3%E7%90%86"><span class="toc-text">Nginx 配置反向代理</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#%E9%99%84%E5%BD%95%EF%BC%9ANginx-%E5%91%BD%E4%BB%A4"><span class="toc-text">附录：Nginx 命令</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#%E6%8E%A8%E8%8D%90%E9%98%85%E8%AF%BB"><span class="toc-text">推荐阅读</span></a></li></ol></div></div></div>
+
+
+</div>
+
+
+    </aside>
+    <div class='l_main'>
+      
+
+      
+
+
+<div class="bread-nav fs12"><div id="breadcrumb"><a class="cap breadcrumb" href="/">主页</a><span class="sep"></span><a class="cap breadcrumb" href="/">文章</a><span class="sep"></span><a class="cap breadcrumb-link" href="/categories/Server/">Server</a></div><div id="post-meta">发布于&nbsp;<time datetime="2019-04-14T09:10:11.000Z">2019-04-14</time></div></div>
+
+<article class='content md post'>
+<h1 class="article-title"><span>反向代理</span></h1>
+<h2 id="本篇内容概要"><a href="#本篇内容概要" class="headerlink" title="本篇内容概要"></a>本篇内容概要</h2><p>不知道大家有没有问过别人，或者是自己偷偷在网上搜过类似 “什么是正向和反向代理“ 类似的问题，即使问过、搜过是不是也很懵？</p>
+<p><strong>总结一句粗话：正向代理就是代理客户端的代理服务，反向代理就是代理服务端的代理服务。</strong></p>
+<p>那我们今天就来掰扯掰扯这个问题。</p>
+<h2 id="VPN-和正向代理"><a href="#VPN-和正向代理" class="headerlink" title="VPN 和正向代理"></a>VPN 和正向代理</h2><p>小明：“你昨天看了我给你发的视频链接了吗？超级好看哟！”。<br>小丽：“哦，那个链接根本打不开呀，看个pi！”，小明失望的看了看小丽。<br>小明：“好吧，肯定是你没有使用 VPN 软件，所以你看不了…”。</p>
+<p>相信你也有经历过类似的场景，朋友给了一个需要你拥有 VPN 才能打开的链接，无论你是万兆光纤也好还是亿兆光纤也罢，死活都无法打开。</p>
+<p>这里所说的 VPN 就是人们通常所说的正向代理服务器，VPN(虚拟私人网络 <code>Virtual Private Network</code>)，是一种加密通讯技术。VPN 有很多的具体实现，比如 <code>PPTP</code>、<code>L2TP</code>、<code>IPSec</code> 和 <code>openvpn</code>。VPN 不是为了翻墙而生的，他只是一中技术，就好比菜刀本来是用来切菜的道理一样。使用 VPN 来爬楼梯基本已经作废了，但当大家谈及 fanqiang 的时候说得最多的还是 “你有好用的 VPN 吗？”，所以把 VPN 当成 fanqiang 工具的代名词也情有可原。</p>
+<p>如果你有了 fanqiang 软件就可以轻松访问全世界的网站了，特别是程序员，可以在知识的海洋里遨游。简单来说正向代理服务器类似于下面图所示：<br><img class="lazy" src="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAABGdBTUEAALGPC/xhBQAAADhlWElmTU0AKgAAAAgAAYdpAAQAAAABAAAAGgAAAAAAAqACAAQAAAABAAAAAaADAAQAAAABAAAAAQAAAADa6r/EAAAAC0lEQVQIHWNgAAIAAAUAAY27m/MAAAAASUVORK5CYII=" data-src="/upload/images/2019/04/14/1.jpg"></p>
+<h2 id="反向代理和-Nginx"><a href="#反向代理和-Nginx" class="headerlink" title="反向代理和 Nginx"></a>反向代理和 Nginx</h2><p>这里可以给大家举个例子，假如你想让电信公司给你安装宽带或者网络电视，这个时候你可能需要打电话咨询一下相关的内容，于是你拿起了手机给电信公司打电话，经过一番复杂操作后终于可以等待人工服务了。电信的人工客服人员有很多，系统会根据一定的规则给你分配一个人，接下来可能是美眉也可能是汉子为你服务，究竟是谁给你提供语音服务取决与系统的分配，而不是你可以决定的。</p>
+<p>系统分配和调度的功能就类似于反向代理服务器，对用户来说没有感知。类似于下面图所示：<br><img class="lazy" src="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAABGdBTUEAALGPC/xhBQAAADhlWElmTU0AKgAAAAgAAYdpAAQAAAABAAAAGgAAAAAAAqACAAQAAAABAAAAAaADAAQAAAABAAAAAQAAAADa6r/EAAAAC0lEQVQIHWNgAAIAAAUAAY27m/MAAAAASUVORK5CYII=" data-src="/upload/images/2019/04/14/2.jpg"></p>
+<p>在软件设计中，服务端开发经常会用到反向代理服务器，比如 <code>Nginx</code>、<code>Apache</code> 等，它们经常也被用作为 WEB 服务器，<code>Nginx</code> 被当做代理服务器比较多，所谓的代理服务器是架设在 WEB 服务器和网络中断(比如手机客户端)之间的服务器，换句话说，<code>Nginx</code> 提供了反向代理服务的能力。</p>
+<p>由于 <code>Nginx</code> 和 <code>Apache</code> 各自的优势，现在很多开发者选择让两者在服务器中共存。在服务器端让 <code>Nginx</code> 在前 <code>Apache</code> 在后，由 <code>Nginx</code> 做负载均衡和反向代理，并且处理静态文件，将动态请求交给 <code>Apache</code> 去处理。</p>
+<p>下图是一个典型的 <code>Nginx</code> 作为反向代理服务器部署 <code>ELK</code> 的架构图，如下：<br><img class="lazy" src="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAABGdBTUEAALGPC/xhBQAAADhlWElmTU0AKgAAAAgAAYdpAAQAAAABAAAAGgAAAAAAAqACAAQAAAABAAAAAaADAAQAAAABAAAAAQAAAADa6r/EAAAAC0lEQVQIHWNgAAIAAAUAAY27m/MAAAAASUVORK5CYII=" data-src="/upload/images/2019/04/14/3.jpg"></p>
+<p>用 <code>Nginx</code> 的反向代理，用户可以从外部访问到 <code>Kibana</code>，并且它本身具有负载均衡的作用，也能够提高了其性能。</p>
+<p>再看一个微服务架构中的架构图（在网关前面也部署了 Nginx），如下图所示：<br><img class="lazy" src="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAABGdBTUEAALGPC/xhBQAAADhlWElmTU0AKgAAAAgAAYdpAAQAAAABAAAAGgAAAAAAAqACAAQAAAABAAAAAaADAAQAAAABAAAAAQAAAADa6r/EAAAAC0lEQVQIHWNgAAIAAAUAAY27m/MAAAAASUVORK5CYII=" data-src="/upload/images/2019/04/14/4.jpg"></p>
+<p>关于 <code>Nginx</code> 作为负载均衡器的配置和实例，下一次跟大家分享。你现在只需要聚焦在 <code>Nginx</code> 作为反向代理服务器上面的功能即可。</p>
+<h2 id="Nginx-配置反向代理"><a href="#Nginx-配置反向代理" class="headerlink" title="Nginx 配置反向代理"></a>Nginx 配置反向代理</h2><p><code>Nginx</code> 本身已经提供了反向代理服务的能力，下面我们结合实例给大家分享一下，假设你本机已经安装了 <code>Nginx</code> 并且会基本的操作命令。</p>
+<p><strong>1、启动 Nginx</strong></p>
+<figure class="highlight sh"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">sudo nginx</span><br></pre></td></tr></table></figure>
+
+<p>在浏览器打开 <code>http://localhost:80</code>，确保 <code>Nginx</code> 启动成功。</p>
+<p><strong>2、配置 host</strong></p>
+<p>我们配置一下本机的 host，vim 编辑即可。</p>
+<figure class="highlight sh"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">sudo vim /etc/hosts</span><br></pre></td></tr></table></figure>
+
+<p>增加下面一行：</p>
+<figure class="highlight sh"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">127.0.0.1 www.ithome.com</span><br></pre></td></tr></table></figure>
+
+<p>在浏览器打开 <code>http://www.ithome.com:80</code>，跟刚才显示一样的WEB 界面。</p>
+<p><strong>3、配置 Nginx</strong></p>
+<p>编辑 <code>Nginx</code> 配置，如下：</p>
+<figure class="highlight sh"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">sudo vim /usr/local/etc/nginx/nginx.conf</span><br></pre></td></tr></table></figure>
+
+<p>在 <code>http &#123;</code> 节点下增加下面内容：</p>
+<figure class="highlight sh"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br></pre></td><td class="code"><pre><span class="line">server &#123;</span><br><span class="line">  <span class="comment"># 监听80端口号</span></span><br><span class="line">  listen 80;</span><br><span class="line"></span><br><span class="line">  <span class="comment"># 监听访问的域名</span></span><br><span class="line">  server_name www.ithome.com;</span><br><span class="line"></span><br><span class="line">  <span class="comment"># 根据访问路径配置</span></span><br><span class="line">  location / &#123;</span><br><span class="line">      <span class="comment"># 设置 http 版本</span></span><br><span class="line">      proxy_http_version 1.1;</span><br><span class="line">      proxy_set_header Connection <span class="string">&quot;&quot;</span>;</span><br><span class="line">      <span class="comment"># 把请求转发到 https://www.baidu.com</span></span><br><span class="line">      proxy_pass https://www.baidu.com;</span><br><span class="line">  &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<p>重新启动 <code>Nginx</code>，重新加载配置文件，操作命令如下：</p>
+<figure class="highlight sh"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">sudo nginx -s reload</span><br></pre></td></tr></table></figure>
+
+<p>在浏览器打开 <code>http://www.ithome.com:80</code>，此时打开的是百度首页。至此，简单的配置 <code>Nginx</code> 作为反向代理服务器的功能已经完成，当然想配置好 <code>Nginx</code> 还需要大家多去实践和看官方技术手册。</p>
+<p><code>proxy_pass</code> 默认使用的是 <code>http 1.0</code>，可以通过 <code>proxy_http_version </code>指令让它使用 <code>http 1.1</code>，以便开启 <code>keepalive</code> 之类的功能。<a target="_blank" rel="noopener" href="http://nginx.org/en/docs/http/ngx_http_proxy_module.html#proxy_http_version">官方说明</a> 如下：</p>
+<figure class="highlight sh"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line">Sets the HTTP protocol version <span class="keyword">for</span> proxying. By default, version 1.0 is used. </span><br><span class="line"></span><br><span class="line">Version 1.1 is recommended <span class="keyword">for</span> use with keepalive connections and NTLM authentication.</span><br></pre></td></tr></table></figure>
+
+<p>另外，nginx 还可以设置透明代理，可以参考 <a target="_blank" rel="noopener" href="https://www.nginx.com/blog/ip-transparency-direct-server-return-nginx-plus-transparent-proxy/">IP Transparency and Direct Server Return with NGINX and NGINX Plus as Transparent Proxy</a> 这篇文章。</p>
+<h2 id="附录：Nginx-命令"><a href="#附录：Nginx-命令" class="headerlink" title="附录：Nginx 命令"></a>附录：Nginx 命令</h2><p><strong>1、查看 nginx 的配置信息</strong></p>
+<figure class="highlight sh"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">nginx -V</span><br></pre></td></tr></table></figure>
+
+<p>注意：是大写字母 <code>V</code>。</p>
+<p><strong>2、查看 nginx 版本信息</strong></p>
+<figure class="highlight sh"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">nginx -v</span><br></pre></td></tr></table></figure>
+
+
+
+<p><strong>3、启动 nginx</strong></p>
+<figure class="highlight sh"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">sudo nginx</span><br></pre></td></tr></table></figure>
+
+
+
+<p><strong>4、查看 nginx 进程</strong></p>
+<figure class="highlight sh"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">ps -ef|grep nginx</span><br></pre></td></tr></table></figure>
+
+
+
+<p><strong>5、重启 nginx</strong></p>
+<figure class="highlight shell"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">nginx -s reload</span><br></pre></td></tr></table></figure>
+
+
+
+<p><strong>6、完美停止 nginx</strong></p>
+<figure class="highlight sh"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line"><span class="built_in">kill</span> -QUIT `<span class="built_in">cat</span> /var/run/nginx.pid`</span><br></pre></td></tr></table></figure>
+
+
+
+<p><strong>7、快速停止 nginx</strong></p>
+<figure class="highlight sh"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line"><span class="built_in">kill</span> -TERM `<span class="built_in">cat</span> /var/run/nginx.pid`</span><br></pre></td></tr></table></figure>
+
+<p>或者</p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">kill -INT `cat /var/run/nginx.pid`</span><br></pre></td></tr></table></figure>
+
+
+
+<p><strong>8、完美停止工作进程，主要用于平滑升级</strong></p>
+<figure class="highlight sh"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line"><span class="built_in">kill</span> -WINCH `<span class="built_in">cat</span> /var/run/nginx.pid`</span><br></pre></td></tr></table></figure>
+
+
+
+<p><strong>9、强制停止 nginx</strong></p>
+<figure class="highlight sh"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">pkill -9 nginx</span><br></pre></td></tr></table></figure>
+
+
+
+<p><strong>10、检查 nginx.conf 修改是否正确</strong></p>
+<figure class="highlight sh"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">nginx -t</span><br></pre></td></tr></table></figure>
+
+
+
+<p><strong>11、停止 nginx 的命令</strong></p>
+<figure class="highlight sh"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">nginx -s stop</span><br></pre></td></tr></table></figure>
+
+<h2 id="推荐阅读"><a href="#推荐阅读" class="headerlink" title="推荐阅读"></a>推荐阅读</h2><ul>
+<li><a target="_blank" rel="noopener" href="https://laravelacademy.org/post/9336">图解正向代理、反向代理、透明代理：可能是你见过的讲解最透彻的代理技术教程</a></li>
+<li><a target="_blank" rel="noopener" href="https://www.nginx.cn/doc/standard/httpproxy.html">HttpProxy模块</a></li>
+</ul>
+<hr>
+<p><strong>不经历风雨怎么见彩虹，没有人能够随随便便成功~</strong></p>
+<p><img class="lazy" src="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAABGdBTUEAALGPC/xhBQAAADhlWElmTU0AKgAAAAgAAYdpAAQAAAABAAAAGgAAAAAAAqACAAQAAAABAAAAAaADAAQAAAABAAAAAQAAAADa6r/EAAAAC0lEQVQIHWNgAAIAAAUAAY27m/MAAAAASUVORK5CYII=" data-src="/upload/me/qrcode_wx.jpg"></p>
+
+
+
+
+</article>
+
+<div class="related-wrap reveal" id="read-next"><section class="header cap theme"><span>接下来阅读</span></section><section class="body fs14"><a id="next" href="/2019/04/07/Java-%E8%87%AA%E5%8A%A8%E8%A3%85%E7%AE%B1%E3%80%81%E6%8B%86%E7%AE%B1%E5%BC%95%E8%B5%B7%E7%9A%84%E8%80%97%E6%97%B6/">Java 自动装箱、拆箱引起的耗时<span class="note">较早</span></a><div class="line"></div><a id="prev" href="/2019/04/20/Ubuntu19%E5%AE%89%E8%A3%85Swift5/">Ubuntu19安装Swift5<span class="note">较新</span></a></section></div>
+
+
+
+
+
+
+  <div class='related-wrap md reveal' id="comments">
+    <div class='cmt-title cap theme'>
+      快来参与讨论吧
+    </div>
+    <div class='cmt-body valine'>
+      
+
+<div id="valine_container" class="valine_thread"><svg class="loading" style="vertical-align: middle;fill: currentColor;overflow: hidden;" viewBox="0 0 1024 1024" version="1.1" xmlns="http://www.w3.org/2000/svg" p-id="2709"><path d="M832 512c0-176-144-320-320-320V128c211.2 0 384 172.8 384 384h-64zM192 512c0 176 144 320 320 320v64C300.8 896 128 723.2 128 512h64z" p-id="2710"></path></svg></div>
+
+    </div>
+  </div>
+
+
+
+      
+<footer class="page-footer reveal fs12"><hr><div class="text"><p>本博客所有文章除特别声明外，均采用 <a target="_blank" rel="noopener" href="https://creativecommons.org/licenses/by-nc-sa/4.0/">CC BY-NC-SA 4.0</a> 许可协议，转载请注明出处。</p>
+<p>veryitman</p>
+</div></footer>
+
+      <div class='float-panel mobile-only blur' style='display:none'>
+  <button type='button' class='sidebar-toggle mobile' onclick='sidebar.toggle()'>
+    <svg class="icon" style="width: 1em; height: 1em;vertical-align: middle;fill: currentColor;overflow: hidden;" viewBox="0 0 1024 1024" version="1.1" xmlns="http://www.w3.org/2000/svg" p-id="15301"><path d="M566.407 808.3c26.9-0.1 49.3-20.8 51.6-47.6-1.9-27.7-23.9-49.7-51.6-51.6h-412.6c-28.2-1.4-52.6 19.5-55.5 47.6 2.3 26.8 24.6 47.5 51.6 47.6h416.5v4z m309.3-249.9c26.9-0.1 49.3-20.8 51.6-47.6-2.2-26.8-24.6-47.5-51.6-47.6h-721.9c-27.7-2.8-52.5 17.4-55.3 45.1-0.1 0.8-0.1 1.7-0.2 2.5 0.9 27.2 23.6 48.5 50.7 47.6H875.707z m-103.1-245.9c26.9-0.1 49.3-20.8 51.6-47.6-0.4-28.3-23.2-51.1-51.5-51.6h-618.9c-29.5-1.1-54.3 21.9-55.5 51.4v0.2c1.4 27.8 25.2 49.2 53 47.8 0.8 0 1.7-0.1 2.5-0.2h618.8z" p-id="15302"></path><path d="M566.407 808.3c26.9-0.1 49.3-20.8 51.6-47.6-1.9-27.7-23.9-49.7-51.6-51.6h-412.6c-28.2-1.4-52.6 19.5-55.5 47.6 1.9 27.7 23.9 49.7 51.6 51.6h416.5z m309.3-249.9c26.9-0.1 49.3-20.8 51.6-47.6-2.2-26.8-24.6-47.5-51.6-47.6h-721.9c-27.7-2.8-52.5 17.4-55.3 45.1-0.1 0.8-0.1 1.7-0.2 2.5 0.9 27.2 23.6 48.5 50.7 47.6H875.707z m-103.1-245.9c26.9-0.1 49.3-20.8 51.6-47.6-0.4-28.3-23.2-51.1-51.5-51.6h-618.9c-29.5-1.1-54.3 21.9-55.5 51.4v0.2c1.4 27.8 25.2 49.2 53 47.8 0.8 0 1.7-0.1 2.5-0.2h618.8z" p-id="15303"></path></svg>
+  </button>
+</div>
+
+    </div>
+  </div>
+  <div class='scripts'>
+    <script type="text/javascript">
+  stellar = {
+    // 懒加载 css https://github.com/filamentgroup/loadCSS
+    loadCSS: (href, before, media, attributes) => {
+      var doc = window.document;
+      var ss = doc.createElement("link");
+      var ref;
+      if (before) {
+        ref = before;
+      } else {
+        var refs = (doc.body || doc.getElementsByTagName("head")[0]).childNodes;
+        ref = refs[refs.length - 1];
+      }
+      var sheets = doc.styleSheets;
+      if (attributes) {
+        for (var attributeName in attributes) {
+          if (attributes.hasOwnProperty(attributeName)) {
+            ss.setAttribute(attributeName, attributes[attributeName]);
+          }
+        }
+      }
+      ss.rel = "stylesheet";
+      ss.href = href;
+      ss.media = "only x";
+      function ready(cb) {
+        if (doc.body) {
+          return cb();
+        }
+        setTimeout(function () {
+          ready(cb);
+        });
+      }
+      ready(function () {
+        ref.parentNode.insertBefore(ss, before ? ref : ref.nextSibling);
+      });
+      var onloadcssdefined = function (cb) {
+        var resolvedHref = ss.href;
+        var i = sheets.length;
+        while (i--) {
+          if (sheets[i].href === resolvedHref) {
+            return cb();
+          }
+        }
+        setTimeout(function () {
+          onloadcssdefined(cb);
+        });
+      };
+      function loadCB() {
+        if (ss.addEventListener) {
+          ss.removeEventListener("load", loadCB);
+        }
+        ss.media = media || "all";
+      }
+      if (ss.addEventListener) {
+        ss.addEventListener("load", loadCB);
+      }
+      ss.onloadcssdefined = onloadcssdefined;
+      onloadcssdefined(loadCB);
+      return ss;
+    },
+
+    // 从 butterfly 和 volantis 获得灵感
+    loadScript: (src, opt) => new Promise((resolve, reject) => {
+      var script = document.createElement('script');
+      script.src = src;
+      if (opt) {
+        for (let key of Object.keys(opt)) {
+          script[key] = opt[key]
+        }
+      } else {
+        // 默认异步，如果需要同步，第二个参数传入 {} 即可
+        script.async = true
+      }
+      script.onerror = reject
+      script.onload = script.onreadystatechange = function() {
+        const loadState = this.readyState
+        if (loadState && loadState !== 'loaded' && loadState !== 'complete') return
+        script.onload = script.onreadystatechange = null
+        resolve()
+      }
+      document.head.appendChild(script)
+    }),
+
+    // https://github.com/jerryc127/hexo-theme-butterfly
+    jQuery: (fn) => {
+      if (typeof jQuery === 'undefined') {
+        stellar.loadScript(stellar.plugins.jQuery).then(fn)
+      } else {
+        fn()
+      }
+    }
+  };
+  stellar.github = 'https://github.com/xaoxuu/hexo-theme-stellar/tree/1.6.1';
+  stellar.config = {
+    date_suffix: {
+      just: '刚刚',
+      min: '分钟前',
+      hour: '小时前',
+      day: '天前',
+      month: '个月前',
+    },
+  };
+
+  // required plugins (only load if needs)
+  stellar.plugins = {
+    jQuery: 'https://cdn.jsdelivr.net/npm/jquery@3.5.1/dist/jquery.min.js',
+    sitesjs: '/js/plugins/sites.js',
+    friendsjs: '/js/plugins/friends.js',
+  };
+
+  // optional plugins
+  if ('true' == 'true') {
+    stellar.plugins.lazyload = Object.assign({"enable":true,"js":"https://cdn.jsdelivr.net/npm/vanilla-lazyload@17.3.1/dist/lazyload.min.js","transition":"blur"});
+  }
+  if ('true' == 'true') {
+    stellar.plugins.swiper = Object.assign({"enable":true,"css":"https://unpkg.com/swiper@6/swiper-bundle.min.css","js":"https://unpkg.com/swiper@6/swiper-bundle.min.js"});
+  }
+  if ('' == 'true') {
+    stellar.plugins.scrollreveal = Object.assign({"enable":null,"js":"https://cdn.jsdelivr.net/npm/scrollreveal@4.0.9/dist/scrollreveal.min.js","distance":"8px","duration":500,"interval":100,"scale":1});
+  }
+  if ('true' == 'true') {
+    stellar.plugins.preload = Object.assign({"enable":true,"service":"flying_pages","instant_page":"https://cdn.jsdelivr.net/gh/volantis-x/cdn-volantis@4.1.2/js/instant_page.js","flying_pages":"https://cdn.jsdelivr.net/gh/gijo-varghese/flying-pages@2.1.2/flying-pages.min.js"});
+  }
+</script>
+
+<!-- required -->
+
+  
+<script src="/js/main.js" async></script>
+
+
+
+<!-- optional -->
+
+  <script>
+  function getEmojiMaps() {
+    function emoji(path, idx, ext) {
+      return path + "/" + path + "-" + idx + "." + ext;
+    }
+    var emojiMaps = {};
+    for (var i = 1; i <= 54; i++) {
+      emojiMaps['tieba-' + i] = emoji('tieba', i, 'png');
+    }
+    for (var i = 1; i <= 101; i++) {
+      emojiMaps['qq-' + i] = emoji('qq', i, 'gif');
+    }
+    for (var i = 1; i <= 116; i++) {
+      emojiMaps['aru-' + i] = emoji('aru', i, 'gif');
+    }
+    for (var i = 1; i <= 125; i++) {
+      emojiMaps['twemoji-' + i] = emoji('twemoji', i, 'png');
+    }
+    for (var i = 1; i <= 4; i++) {
+      emojiMaps['weibo-' + i] = emoji('weibo', i, 'png');
+    }
+    return emojiMaps;
+  }
+  function load_comment(){
+    if(!document.getElementById("valine_container"))return;
+    stellar.loadScript('https://cdn.jsdelivr.net/gh/XuxuGood/simple-blog-cdn@main/js/Valine.min.js', {defer:true}).then(function () {
+      const el = document.getElementById("valine_container");
+      var path = el.getAttribute('comment_id');
+      const placeholder = "欢迎您留言~";
+      if (!path) {
+        path = decodeURI(window.location.pathname);
+      }
+      var valine = new Valine();
+      valine.init(Object.assign({"js":"https://cdn.jsdelivr.net/gh/XuxuGood/simple-blog-cdn@main/js/Valine.min.js","appId":"FY2C9UCttYNaE1j8umenqdCE-gzGzoHsz","appKey":"4i7xMwkfSEGmEDhi6SceKFxz","placeholder":"欢迎您留言~","requiredFields":["nick","mail"],"enableQQ":true,"recordIP":false,"avatar":"robohash","pageSize":10,"lang":"zh-cn","highlight":true,"mathJax":false,"tagMeta":["博主","小伙伴","访客"],"metaPlaceholder":{"nick":"昵称/QQ号(必填)","mail":"邮箱（必填，完全保密）"},"master":["6783037F2DF30EAB99F9FC256157D875"],"friends":["6783037F2DF30EAB99F9FC256157D875"],"comment_count":true}, {
+        el: '#valine_container',
+        path: path,
+        placeholder: placeholder,
+        emojiCDN: 'https://cdn.jsdelivr.net/gh/volantis-x/cdn-emoji/valine/',
+        emojiMaps: getEmojiMaps(),
+      }));
+    });
+  }
+  window.addEventListener('DOMContentLoaded', (event) => {
+    console.log('DOM fully loaded and parsed');
+    load_comment();
+  });
+
+</script>
+
+
+
+
+<!-- inject -->
+
+
+  </div>
+</body>
+</html>

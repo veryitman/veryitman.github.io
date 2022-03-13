@@ -1,0 +1,377 @@
+<!DOCTYPE html>
+<html lang='zh-CN'>
+
+<head>
+  <meta name="generator" content="Hexo 6.0.0">
+  <meta charset="utf-8">
+  
+
+  <meta http-equiv='x-dns-prefetch-control' content='on' />
+  <link rel='dns-prefetch' href='https://cdn.jsdelivr.net'>
+  <link rel="preconnect" href="https://cdn.jsdelivr.net" crossorigin>
+
+  <meta name="renderer" content="webkit">
+  <meta name="force-rendering" content="webkit">
+  <meta http-equiv="X-UA-Compatible" content="IE=Edge,chrome=1">
+  <meta name="HandheldFriendly" content="True" >
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1">
+  <meta name="theme-color" content="#f8f8f8">
+  <title>Java 自动装箱、拆箱引起的耗时 - Veryitman</title>
+
+  
+    <meta name="description" content="耗时问题在说 Java 的自动装箱和自动拆箱之前，我们先看一个例子。 这个错误我在项目中犯过(尴尬)，拿出来共勉！ 12345678910111213141516private static long getCounterResult() &amp;#123;    Long sum &#x3D; 0L;    final int length &#x3D; Integer.MAX_VALUE;    for (int i">
+<meta property="og:type" content="article">
+<meta property="og:title" content="Java 自动装箱、拆箱引起的耗时">
+<meta property="og:url" content="http://example.com/2019/04/07/Java-%E8%87%AA%E5%8A%A8%E8%A3%85%E7%AE%B1%E3%80%81%E6%8B%86%E7%AE%B1%E5%BC%95%E8%B5%B7%E7%9A%84%E8%80%97%E6%97%B6/index.html">
+<meta property="og:site_name" content="Veryitman">
+<meta property="og:description" content="耗时问题在说 Java 的自动装箱和自动拆箱之前，我们先看一个例子。 这个错误我在项目中犯过(尴尬)，拿出来共勉！ 12345678910111213141516private static long getCounterResult() &amp;#123;    Long sum &#x3D; 0L;    final int length &#x3D; Integer.MAX_VALUE;    for (int i">
+<meta property="og:locale" content="zh_CN">
+<meta property="og:image" content="http://example.com/upload/images/2019/04/07/1.jpeg">
+<meta property="og:image" content="http://example.com/upload/me/qrcode_wx.jpg">
+<meta property="article:published_time" content="2019-04-07T04:02:16.000Z">
+<meta property="article:modified_time" content="2022-03-09T14:53:24.310Z">
+<meta property="article:author" content="veryitman">
+<meta property="article:tag" content="自动拆箱 自动装箱 autoboxing unboxing">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:image" content="http://example.com/upload/images/2019/04/07/1.jpeg">
+  
+  
+
+  <!-- feed -->
+  
+
+  
+    
+<link rel="stylesheet" href="/css/main.css">
+
+  
+
+  
+
+  
+</head>
+
+<body>
+  
+
+
+  <div class='l_body' id='start'>
+    <aside class='l_left' layout='post'>
+    
+
+
+<header class="header">
+
+<div class="logo-wrap"><a class="title" href="/"><div class="main">Veryitman</div></a></div>
+<nav class="menu dis-select"></nav></header>
+
+<div class="widgets">
+
+<div class="widget-wrap single" id="toc"><div class="widget-header cap dis-select"><span class="name">本文目录</span></div><div class="widget-body fs14"><div class="doc-tree active"><ol class="toc"><li class="toc-item toc-level-2"><a class="toc-link" href="#%E8%80%97%E6%97%B6%E9%97%AE%E9%A2%98"><span class="toc-text">耗时问题</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#%E5%9F%BA%E6%9C%AC%E6%A6%82%E5%BF%B5"><span class="toc-text">基本概念</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#Integer-x2F-int-%E8%87%AA%E5%8A%A8%E6%8B%86%E7%AE%B1%E5%92%8C%E8%A3%85%E7%AE%B1"><span class="toc-text">Integer&#x2F;int 自动拆箱和装箱</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#%E8%A7%A3%E6%9E%90%E8%80%97%E6%97%B6%E9%97%AE%E9%A2%98"><span class="toc-text">解析耗时问题</span></a></li></ol></div></div></div>
+
+
+</div>
+
+
+    </aside>
+    <div class='l_main'>
+      
+
+      
+
+
+<div class="bread-nav fs12"><div id="breadcrumb"><a class="cap breadcrumb" href="/">主页</a><span class="sep"></span><a class="cap breadcrumb" href="/">文章</a><span class="sep"></span><a class="cap breadcrumb-link" href="/categories/Java/">Java</a></div><div id="post-meta">发布于&nbsp;<time datetime="2019-04-07T04:02:16.000Z">2019-04-07</time></div></div>
+
+<article class='content md post'>
+<h1 class="article-title"><span>Java 自动装箱、拆箱引起的耗时</span></h1>
+<p><img class="lazy" src="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAABGdBTUEAALGPC/xhBQAAADhlWElmTU0AKgAAAAgAAYdpAAQAAAABAAAAGgAAAAAAAqACAAQAAAABAAAAAaADAAQAAAABAAAAAQAAAADa6r/EAAAAC0lEQVQIHWNgAAIAAAUAAY27m/MAAAAASUVORK5CYII=" data-src="/upload/images/2019/04/07/1.jpeg" alt="1"></p>
+<h2 id="耗时问题"><a href="#耗时问题" class="headerlink" title="耗时问题"></a>耗时问题</h2><p>在说 Java 的自动装箱和自动拆箱之前，我们先看一个例子。</p>
+<p>这个错误我在项目中犯过(尴尬)，拿出来共勉！</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">private</span> <span class="keyword">static</span> <span class="type">long</span> <span class="title function_">getCounterResult</span><span class="params">()</span> &#123;</span><br><span class="line">    <span class="type">Long</span> <span class="variable">sum</span> <span class="operator">=</span> <span class="number">0L</span>;</span><br><span class="line">    <span class="keyword">final</span> <span class="type">int</span> <span class="variable">length</span> <span class="operator">=</span> Integer.MAX_VALUE;</span><br><span class="line">    <span class="keyword">for</span> (<span class="type">int</span> <span class="variable">i</span> <span class="operator">=</span> <span class="number">0</span>; i &lt; length; i++) &#123;</span><br><span class="line">        sum += i;</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    <span class="keyword">return</span> sum;</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line"><span class="keyword">public</span> <span class="keyword">static</span> <span class="keyword">void</span> <span class="title function_">main</span><span class="params">(String[] args)</span> &#123;</span><br><span class="line">    <span class="type">long</span> <span class="variable">startCountTime</span> <span class="operator">=</span> System.currentTimeMillis();</span><br><span class="line">    <span class="type">long</span> <span class="variable">result</span> <span class="operator">=</span> getCounterResult();</span><br><span class="line">    <span class="type">long</span> <span class="variable">endCountTime</span> <span class="operator">=</span> System.currentTimeMillis();</span><br><span class="line">    System.out.println(<span class="string">&quot;result = &quot;</span> + result + <span class="string">&quot;, and take up time : &quot;</span> + (endCountTime - startCountTime) / <span class="number">1000</span> + <span class="string">&quot;s&quot;</span>);</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<p>在我的电脑(macOS 64位系统，配置较高)，打印结果如下：</p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">result = 2305843005992468481, and take up time : 12s</span><br></pre></td></tr></table></figure>
+
+<p>居然使用了 <code>12s</code>，是可忍<code>叔</code>不可忍，再正常不过的代码怎么会耗时这么久呢？如果在配置差一点的电脑上运行耗时会更久(惊呆了.jpg)。</p>
+<p>我们不妨先阅读下面的内容，再来分析、解决上述耗时的问题。</p>
+<h2 id="基本概念"><a href="#基本概念" class="headerlink" title="基本概念"></a>基本概念</h2><blockquote>
+<p>自从 jdk1.5 之后就有了自动装箱(Autoboxing)和自动拆箱(AutoUnboxing)。</p>
+</blockquote>
+<p><strong>自动装箱</strong>，就是 Java 自动将原始(基本)类型转换成对应的封装器(对象)类型的过程，比如将 <code>int</code> 的变量转换成 <code>Integer</code> 对象，这个过程叫做装箱。</p>
+<p><strong>自动拆箱</strong>，就是 Java 自动将封装器(对象)类型转换成基本类型的过程，如将 <code>Integer</code> 对象转换成 <code>int</code> 类型值，这个过程叫做拆箱。</p>
+<p>之所以称之为自动装箱和拆箱，是因为这些操作并非人工(程序猿)操作的，而是 Java 自带的一个特性。</p>
+<p>下表是 Java 中的基本类型和对应的封装类型的对应表：</p>
+<p>基本类型|封装器类<br>—|—|—<br>int|Integer<br>byte|Byte<br>long|Long<br>float|float<br>double|Double<br>char|Character<br>boolean|Boolean</p>
+<p><strong>自动装箱示例：</strong></p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line"><span class="type">int</span> <span class="variable">a</span> <span class="operator">=</span> <span class="number">3</span>;</span><br><span class="line"><span class="type">Integer</span> <span class="variable">b</span> <span class="operator">=</span> a;</span><br></pre></td></tr></table></figure>
+
+<p><strong>自动拆箱示例：</strong></p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line"><span class="type">Integer</span> <span class="variable">b</span> <span class="operator">=</span> <span class="keyword">new</span> <span class="title class_">Integer</span>(<span class="number">7</span>);</span><br><span class="line"><span class="type">int</span> <span class="variable">a</span> <span class="operator">=</span> b;</span><br></pre></td></tr></table></figure>
+
+<h2 id="Integer-x2F-int-自动拆箱和装箱"><a href="#Integer-x2F-int-自动拆箱和装箱" class="headerlink" title="Integer&#x2F;int 自动拆箱和装箱"></a>Integer&#x2F;int 自动拆箱和装箱</h2><p>下面这段代码是 <code>Integer</code> 的源码中 <code>valueOf</code> 方法。</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment">/**</span></span><br><span class="line"><span class="comment"> * Returns an &#123;<span class="doctag">@code</span> Integer&#125; instance representing the specified</span></span><br><span class="line"><span class="comment"> * &#123;<span class="doctag">@code</span> int&#125; value.  If a new &#123;<span class="doctag">@code</span> Integer&#125; instance is not</span></span><br><span class="line"><span class="comment"> * required, this method should generally be used in preference to</span></span><br><span class="line"><span class="comment"> * the constructor &#123;<span class="doctag">@link</span> #Integer(int)&#125;, as this method is likely</span></span><br><span class="line"><span class="comment"> * to yield significantly better space and time performance by</span></span><br><span class="line"><span class="comment"> * caching frequently requested values.</span></span><br><span class="line"><span class="comment"> *</span></span><br><span class="line"><span class="comment"> * This method will always cache values in the range -128 to 127,</span></span><br><span class="line"><span class="comment"> * inclusive, and may cache other values outside of this range.</span></span><br><span class="line"><span class="comment"> *</span></span><br><span class="line"><span class="comment"> * <span class="doctag">@param</span>  i an &#123;<span class="doctag">@code</span> int&#125; value.</span></span><br><span class="line"><span class="comment"> * <span class="doctag">@return</span> an &#123;<span class="doctag">@code</span> Integer&#125; instance representing &#123;<span class="doctag">@code</span> i&#125;.</span></span><br><span class="line"><span class="comment"> * <span class="doctag">@since</span>  1.5</span></span><br><span class="line"><span class="comment"> */</span></span><br><span class="line"><span class="keyword">public</span> <span class="keyword">static</span> Integer <span class="title function_">valueOf</span><span class="params">(<span class="type">int</span> i)</span> &#123;</span><br><span class="line">	  <span class="comment">// 如果i的值大于-128小于127则返回一个缓冲区中的一个Integer对象</span></span><br><span class="line">    <span class="keyword">if</span> (i &gt;= IntegerCache.low &amp;&amp; i &lt;= IntegerCache.high)</span><br><span class="line">        <span class="keyword">return</span> IntegerCache.cache[i + (-IntegerCache.low)];</span><br><span class="line">        </span><br><span class="line">    <span class="comment">// 否则返回 new 一个Integer 对象</span></span><br><span class="line">    <span class="keyword">return</span> <span class="keyword">new</span> <span class="title class_">Integer</span>(i);</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<p>我们在执行下面的这句代码，如下：</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line"><span class="type">Integer</span> <span class="variable">i</span> <span class="operator">=</span> <span class="number">100</span>;</span><br></pre></td></tr></table></figure>
+
+<p>上面的代码等同于下面的代码：</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line"><span class="type">Integer</span> <span class="variable">i</span> <span class="operator">=</span> Integer.valueOf(<span class="number">100</span>);</span><br></pre></td></tr></table></figure>
+
+<p>结合上面的源码可以看出来，如果数值在 <code>[-128，127]</code> 之间(双闭区间)，不会重新创建 <code>Integer</code> 对象，而是从缓存中(常量池)直接获取，从常量池中获取而不是堆栈操作，读取数据要快很多。</p>
+<p>我们再来看一下常见的基础面试题(请给出打印结果)，如下:</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">public</span> <span class="keyword">static</span> <span class="keyword">void</span> <span class="title function_">main</span><span class="params">(String[] args)</span> &#123;</span><br><span class="line">	<span class="comment">// ⓵</span></span><br><span class="line">	<span class="type">Integer</span> <span class="variable">a</span> <span class="operator">=</span> <span class="keyword">new</span> <span class="title class_">Integer</span>(<span class="number">121</span>);</span><br><span class="line">	<span class="type">Integer</span> <span class="variable">b</span> <span class="operator">=</span> <span class="keyword">new</span> <span class="title class_">Integer</span>(<span class="number">121</span>);</span><br><span class="line">	System.out.println(a == b);</span><br><span class="line">	</span><br><span class="line">	<span class="comment">// ⓶</span></span><br><span class="line">	<span class="type">Integer</span> <span class="variable">c</span> <span class="operator">=</span> <span class="number">121</span>;</span><br><span class="line">	<span class="type">Integer</span> <span class="variable">d</span> <span class="operator">=</span> <span class="number">121</span>;</span><br><span class="line">	System.out.println(c == d);</span><br><span class="line">	</span><br><span class="line">	<span class="comment">// ⓷</span></span><br><span class="line">	<span class="type">Integer</span> <span class="variable">e</span> <span class="operator">=</span> <span class="number">129</span>;</span><br><span class="line">	<span class="type">Integer</span> <span class="variable">f</span> <span class="operator">=</span> <span class="number">129</span>;</span><br><span class="line">	System.out.println(e == f);</span><br><span class="line">	</span><br><span class="line">	<span class="comment">// ⓸</span></span><br><span class="line">	<span class="type">int</span> <span class="variable">g</span> <span class="operator">=</span> <span class="number">50</span>;</span><br><span class="line">	<span class="type">Integer</span> <span class="variable">h</span> <span class="operator">=</span> <span class="keyword">new</span> <span class="title class_">Integer</span>(<span class="number">50</span>);</span><br><span class="line">	System.out.println(g == h);</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<p><strong>分析结果：</strong></p>
+<p>⓵: false, 两个对象进行比较分别指向了不同堆内存<br>⓶: true, 自动装箱且数值在 [-128，127] 之间(双闭区间)<br>⓷: false, 自动装箱且数值不在 [-128，127] 之间(双闭区间)<br>⓸: true, 自动拆箱且数值在 [-128，127] 之间(双闭区间)</p>
+<h2 id="解析耗时问题"><a href="#解析耗时问题" class="headerlink" title="解析耗时问题"></a>解析耗时问题</h2><p>类 <code>Long</code> 对应的也有一个 <code>valueof</code> 方法，源码如下：</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">public</span> <span class="keyword">static</span> Long <span class="title function_">valueOf</span><span class="params">(<span class="type">long</span> l)</span> &#123;</span><br><span class="line">	<span class="keyword">final</span> <span class="type">int</span> <span class="variable">offset</span> <span class="operator">=</span> <span class="number">128</span>;</span><br><span class="line">	<span class="keyword">if</span> (l &gt;= -<span class="number">128</span> &amp;&amp; l &lt;= <span class="number">127</span>) &#123; <span class="comment">// will cache</span></span><br><span class="line">	    <span class="keyword">return</span> LongCache.cache[(<span class="type">int</span>)l + offset];</span><br><span class="line">	&#125;</span><br><span class="line">	<span class="keyword">return</span> <span class="keyword">new</span> <span class="title class_">Long</span>(l);</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<p>这个和 <code>Integer</code> 的很像，道理上面说过，这里不再赘述。</p>
+<p>在开篇的例子中，<code>getCounterResult</code> 方法有下面这句代码，如下：</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line"><span class="type">Long</span> <span class="variable">sum</span> <span class="operator">=</span> <span class="number">0L</span>;</span><br></pre></td></tr></table></figure>
+
+<p>很明显我们声明了一个 <code>Long</code> 的对象 <code>sum</code>，由于自动装箱，这句代码并没有语法上面的错误，编译器当然也不会报错。上面代码等同于如下代码：</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line"><span class="type">Long</span> <span class="variable">sum</span> <span class="operator">=</span> Long.valueof(<span class="number">0</span>);</span><br></pre></td></tr></table></figure>
+
+<p>在 <code>for</code> 循环中，超过 <code>[-128，127]</code> 就会创建新的对象，这样不断的创建对象，不停的申请堆内存，程序执行自然也就比较耗时了。</p>
+<p>修改一下代码，如下：</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">private</span> <span class="keyword">static</span> <span class="type">long</span> <span class="title function_">getCounterResult</span><span class="params">()</span> &#123;</span><br><span class="line">    <span class="comment">// 修改为普通的基本类型数据</span></span><br><span class="line">    <span class="type">long</span> <span class="variable">sum</span> <span class="operator">=</span> <span class="number">0L</span>;</span><br><span class="line">    <span class="keyword">final</span> <span class="type">int</span> <span class="variable">length</span> <span class="operator">=</span> Integer.MAX_VALUE;</span><br><span class="line">    <span class="keyword">for</span> (<span class="type">int</span> <span class="variable">i</span> <span class="operator">=</span> <span class="number">0</span>; i &lt; length; i++) &#123;</span><br><span class="line">        sum += i;</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    <span class="keyword">return</span> sum;</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line"><span class="keyword">public</span> <span class="keyword">static</span> <span class="keyword">void</span> <span class="title function_">main</span><span class="params">(String[] args)</span> &#123;</span><br><span class="line">    <span class="type">long</span> <span class="variable">startCountTime</span> <span class="operator">=</span> System.currentTimeMillis();</span><br><span class="line">    <span class="type">long</span> <span class="variable">result</span> <span class="operator">=</span> getCounterResult();</span><br><span class="line">    <span class="type">long</span> <span class="variable">endCountTime</span> <span class="operator">=</span> System.currentTimeMillis();</span><br><span class="line">    System.out.println(<span class="string">&quot;result = &quot;</span> + result + <span class="string">&quot;, and take up time : &quot;</span> + (endCountTime - startCountTime) / <span class="number">1000</span> + <span class="string">&quot;s&quot;</span>);</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<p>执行时间大大缩短。</p>
+<hr>
+<p><strong>优柔寡断，是人生最大的负能量。对，别犹豫了赶紧扫码关注~</strong></p>
+<p><img class="lazy" src="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAABGdBTUEAALGPC/xhBQAAADhlWElmTU0AKgAAAAgAAYdpAAQAAAABAAAAGgAAAAAAAqACAAQAAAABAAAAAaADAAQAAAABAAAAAQAAAADa6r/EAAAAC0lEQVQIHWNgAAIAAAUAAY27m/MAAAAASUVORK5CYII=" data-src="/upload/me/qrcode_wx.jpg"></p>
+
+
+
+
+</article>
+
+<div class="related-wrap reveal" id="read-next"><section class="header cap theme"><span>接下来阅读</span></section><section class="body fs14"><a id="next" href="/2019/04/07/dumpdecrypted-%E7%A0%B8%E5%A3%B3%EF%BC%9A%E5%AF%BC%E5%87%BA%E5%A4%B4%E6%96%87%E4%BB%B6/">dumpdecrypted 砸壳：导出头文件<span class="note">较早</span></a><div class="line"></div><a id="prev" href="/2019/04/14/%E5%8F%8D%E5%90%91%E4%BB%A3%E7%90%86/">反向代理<span class="note">较新</span></a></section></div>
+
+
+
+
+
+
+  <div class='related-wrap md reveal' id="comments">
+    <div class='cmt-title cap theme'>
+      快来参与讨论吧
+    </div>
+    <div class='cmt-body valine'>
+      
+
+<div id="valine_container" class="valine_thread"><svg class="loading" style="vertical-align: middle;fill: currentColor;overflow: hidden;" viewBox="0 0 1024 1024" version="1.1" xmlns="http://www.w3.org/2000/svg" p-id="2709"><path d="M832 512c0-176-144-320-320-320V128c211.2 0 384 172.8 384 384h-64zM192 512c0 176 144 320 320 320v64C300.8 896 128 723.2 128 512h64z" p-id="2710"></path></svg></div>
+
+    </div>
+  </div>
+
+
+
+      
+<footer class="page-footer reveal fs12"><hr><div class="text"><p>本博客所有文章除特别声明外，均采用 <a target="_blank" rel="noopener" href="https://creativecommons.org/licenses/by-nc-sa/4.0/">CC BY-NC-SA 4.0</a> 许可协议，转载请注明出处。</p>
+<p>veryitman</p>
+</div></footer>
+
+      <div class='float-panel mobile-only blur' style='display:none'>
+  <button type='button' class='sidebar-toggle mobile' onclick='sidebar.toggle()'>
+    <svg class="icon" style="width: 1em; height: 1em;vertical-align: middle;fill: currentColor;overflow: hidden;" viewBox="0 0 1024 1024" version="1.1" xmlns="http://www.w3.org/2000/svg" p-id="15301"><path d="M566.407 808.3c26.9-0.1 49.3-20.8 51.6-47.6-1.9-27.7-23.9-49.7-51.6-51.6h-412.6c-28.2-1.4-52.6 19.5-55.5 47.6 2.3 26.8 24.6 47.5 51.6 47.6h416.5v4z m309.3-249.9c26.9-0.1 49.3-20.8 51.6-47.6-2.2-26.8-24.6-47.5-51.6-47.6h-721.9c-27.7-2.8-52.5 17.4-55.3 45.1-0.1 0.8-0.1 1.7-0.2 2.5 0.9 27.2 23.6 48.5 50.7 47.6H875.707z m-103.1-245.9c26.9-0.1 49.3-20.8 51.6-47.6-0.4-28.3-23.2-51.1-51.5-51.6h-618.9c-29.5-1.1-54.3 21.9-55.5 51.4v0.2c1.4 27.8 25.2 49.2 53 47.8 0.8 0 1.7-0.1 2.5-0.2h618.8z" p-id="15302"></path><path d="M566.407 808.3c26.9-0.1 49.3-20.8 51.6-47.6-1.9-27.7-23.9-49.7-51.6-51.6h-412.6c-28.2-1.4-52.6 19.5-55.5 47.6 1.9 27.7 23.9 49.7 51.6 51.6h416.5z m309.3-249.9c26.9-0.1 49.3-20.8 51.6-47.6-2.2-26.8-24.6-47.5-51.6-47.6h-721.9c-27.7-2.8-52.5 17.4-55.3 45.1-0.1 0.8-0.1 1.7-0.2 2.5 0.9 27.2 23.6 48.5 50.7 47.6H875.707z m-103.1-245.9c26.9-0.1 49.3-20.8 51.6-47.6-0.4-28.3-23.2-51.1-51.5-51.6h-618.9c-29.5-1.1-54.3 21.9-55.5 51.4v0.2c1.4 27.8 25.2 49.2 53 47.8 0.8 0 1.7-0.1 2.5-0.2h618.8z" p-id="15303"></path></svg>
+  </button>
+</div>
+
+    </div>
+  </div>
+  <div class='scripts'>
+    <script type="text/javascript">
+  stellar = {
+    // 懒加载 css https://github.com/filamentgroup/loadCSS
+    loadCSS: (href, before, media, attributes) => {
+      var doc = window.document;
+      var ss = doc.createElement("link");
+      var ref;
+      if (before) {
+        ref = before;
+      } else {
+        var refs = (doc.body || doc.getElementsByTagName("head")[0]).childNodes;
+        ref = refs[refs.length - 1];
+      }
+      var sheets = doc.styleSheets;
+      if (attributes) {
+        for (var attributeName in attributes) {
+          if (attributes.hasOwnProperty(attributeName)) {
+            ss.setAttribute(attributeName, attributes[attributeName]);
+          }
+        }
+      }
+      ss.rel = "stylesheet";
+      ss.href = href;
+      ss.media = "only x";
+      function ready(cb) {
+        if (doc.body) {
+          return cb();
+        }
+        setTimeout(function () {
+          ready(cb);
+        });
+      }
+      ready(function () {
+        ref.parentNode.insertBefore(ss, before ? ref : ref.nextSibling);
+      });
+      var onloadcssdefined = function (cb) {
+        var resolvedHref = ss.href;
+        var i = sheets.length;
+        while (i--) {
+          if (sheets[i].href === resolvedHref) {
+            return cb();
+          }
+        }
+        setTimeout(function () {
+          onloadcssdefined(cb);
+        });
+      };
+      function loadCB() {
+        if (ss.addEventListener) {
+          ss.removeEventListener("load", loadCB);
+        }
+        ss.media = media || "all";
+      }
+      if (ss.addEventListener) {
+        ss.addEventListener("load", loadCB);
+      }
+      ss.onloadcssdefined = onloadcssdefined;
+      onloadcssdefined(loadCB);
+      return ss;
+    },
+
+    // 从 butterfly 和 volantis 获得灵感
+    loadScript: (src, opt) => new Promise((resolve, reject) => {
+      var script = document.createElement('script');
+      script.src = src;
+      if (opt) {
+        for (let key of Object.keys(opt)) {
+          script[key] = opt[key]
+        }
+      } else {
+        // 默认异步，如果需要同步，第二个参数传入 {} 即可
+        script.async = true
+      }
+      script.onerror = reject
+      script.onload = script.onreadystatechange = function() {
+        const loadState = this.readyState
+        if (loadState && loadState !== 'loaded' && loadState !== 'complete') return
+        script.onload = script.onreadystatechange = null
+        resolve()
+      }
+      document.head.appendChild(script)
+    }),
+
+    // https://github.com/jerryc127/hexo-theme-butterfly
+    jQuery: (fn) => {
+      if (typeof jQuery === 'undefined') {
+        stellar.loadScript(stellar.plugins.jQuery).then(fn)
+      } else {
+        fn()
+      }
+    }
+  };
+  stellar.github = 'https://github.com/xaoxuu/hexo-theme-stellar/tree/1.6.1';
+  stellar.config = {
+    date_suffix: {
+      just: '刚刚',
+      min: '分钟前',
+      hour: '小时前',
+      day: '天前',
+      month: '个月前',
+    },
+  };
+
+  // required plugins (only load if needs)
+  stellar.plugins = {
+    jQuery: 'https://cdn.jsdelivr.net/npm/jquery@3.5.1/dist/jquery.min.js',
+    sitesjs: '/js/plugins/sites.js',
+    friendsjs: '/js/plugins/friends.js',
+  };
+
+  // optional plugins
+  if ('true' == 'true') {
+    stellar.plugins.lazyload = Object.assign({"enable":true,"js":"https://cdn.jsdelivr.net/npm/vanilla-lazyload@17.3.1/dist/lazyload.min.js","transition":"blur"});
+  }
+  if ('true' == 'true') {
+    stellar.plugins.swiper = Object.assign({"enable":true,"css":"https://unpkg.com/swiper@6/swiper-bundle.min.css","js":"https://unpkg.com/swiper@6/swiper-bundle.min.js"});
+  }
+  if ('' == 'true') {
+    stellar.plugins.scrollreveal = Object.assign({"enable":null,"js":"https://cdn.jsdelivr.net/npm/scrollreveal@4.0.9/dist/scrollreveal.min.js","distance":"8px","duration":500,"interval":100,"scale":1});
+  }
+  if ('true' == 'true') {
+    stellar.plugins.preload = Object.assign({"enable":true,"service":"flying_pages","instant_page":"https://cdn.jsdelivr.net/gh/volantis-x/cdn-volantis@4.1.2/js/instant_page.js","flying_pages":"https://cdn.jsdelivr.net/gh/gijo-varghese/flying-pages@2.1.2/flying-pages.min.js"});
+  }
+</script>
+
+<!-- required -->
+
+  
+<script src="/js/main.js" async></script>
+
+
+
+<!-- optional -->
+
+  <script>
+  function getEmojiMaps() {
+    function emoji(path, idx, ext) {
+      return path + "/" + path + "-" + idx + "." + ext;
+    }
+    var emojiMaps = {};
+    for (var i = 1; i <= 54; i++) {
+      emojiMaps['tieba-' + i] = emoji('tieba', i, 'png');
+    }
+    for (var i = 1; i <= 101; i++) {
+      emojiMaps['qq-' + i] = emoji('qq', i, 'gif');
+    }
+    for (var i = 1; i <= 116; i++) {
+      emojiMaps['aru-' + i] = emoji('aru', i, 'gif');
+    }
+    for (var i = 1; i <= 125; i++) {
+      emojiMaps['twemoji-' + i] = emoji('twemoji', i, 'png');
+    }
+    for (var i = 1; i <= 4; i++) {
+      emojiMaps['weibo-' + i] = emoji('weibo', i, 'png');
+    }
+    return emojiMaps;
+  }
+  function load_comment(){
+    if(!document.getElementById("valine_container"))return;
+    stellar.loadScript('https://cdn.jsdelivr.net/gh/XuxuGood/simple-blog-cdn@main/js/Valine.min.js', {defer:true}).then(function () {
+      const el = document.getElementById("valine_container");
+      var path = el.getAttribute('comment_id');
+      const placeholder = "欢迎您留言~";
+      if (!path) {
+        path = decodeURI(window.location.pathname);
+      }
+      var valine = new Valine();
+      valine.init(Object.assign({"js":"https://cdn.jsdelivr.net/gh/XuxuGood/simple-blog-cdn@main/js/Valine.min.js","appId":"FY2C9UCttYNaE1j8umenqdCE-gzGzoHsz","appKey":"4i7xMwkfSEGmEDhi6SceKFxz","placeholder":"欢迎您留言~","requiredFields":["nick","mail"],"enableQQ":true,"recordIP":false,"avatar":"robohash","pageSize":10,"lang":"zh-cn","highlight":true,"mathJax":false,"tagMeta":["博主","小伙伴","访客"],"metaPlaceholder":{"nick":"昵称/QQ号(必填)","mail":"邮箱（必填，完全保密）"},"master":["6783037F2DF30EAB99F9FC256157D875"],"friends":["6783037F2DF30EAB99F9FC256157D875"],"comment_count":true}, {
+        el: '#valine_container',
+        path: path,
+        placeholder: placeholder,
+        emojiCDN: 'https://cdn.jsdelivr.net/gh/volantis-x/cdn-emoji/valine/',
+        emojiMaps: getEmojiMaps(),
+      }));
+    });
+  }
+  window.addEventListener('DOMContentLoaded', (event) => {
+    console.log('DOM fully loaded and parsed');
+    load_comment();
+  });
+
+</script>
+
+
+
+
+<!-- inject -->
+
+
+  </div>
+</body>
+</html>

@@ -1,0 +1,388 @@
+<!DOCTYPE html>
+<html lang='zh-CN'>
+
+<head>
+  <meta name="generator" content="Hexo 6.0.0">
+  <meta charset="utf-8">
+  
+
+  <meta http-equiv='x-dns-prefetch-control' content='on' />
+  <link rel='dns-prefetch' href='https://cdn.jsdelivr.net'>
+  <link rel="preconnect" href="https://cdn.jsdelivr.net" crossorigin>
+
+  <meta name="renderer" content="webkit">
+  <meta name="force-rendering" content="webkit">
+  <meta http-equiv="X-UA-Compatible" content="IE=Edge,chrome=1">
+  <meta name="HandheldFriendly" content="True" >
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1">
+  <meta name="theme-color" content="#f8f8f8">
+  <title>音视频编程: 编译 faac/faad2 - Veryitman</title>
+
+  
+    <meta name="description" content="本文分享如何在 MacOS 上面编译 faac 和 faad2, 编译后的库文件可以直接在 iOS 上面使用. 后续会分享如何编译给 Android 使用的库文件的方法以及实战. 该系列博文:  音视频编程: 编译 faac&#x2F;faad2(本篇)  音视频编程: iOS 使用 faac 编码  音视频编程: 简单分析 WAV 文件  音视频编程: iOS 使用 faad2   音视频编程:">
+<meta property="og:type" content="article">
+<meta property="og:title" content="音视频编程: 编译 faac&#x2F;faad2">
+<meta property="og:url" content="http://example.com/2018/02/14/%E9%9F%B3%E8%A7%86%E9%A2%91%E7%BC%96%E7%A8%8B-%E7%BC%96%E8%AF%91-faac-faad2/index.html">
+<meta property="og:site_name" content="Veryitman">
+<meta property="og:description" content="本文分享如何在 MacOS 上面编译 faac 和 faad2, 编译后的库文件可以直接在 iOS 上面使用. 后续会分享如何编译给 Android 使用的库文件的方法以及实战. 该系列博文:  音视频编程: 编译 faac&#x2F;faad2(本篇)  音视频编程: iOS 使用 faac 编码  音视频编程: 简单分析 WAV 文件  音视频编程: iOS 使用 faad2   音视频编程:">
+<meta property="og:locale" content="zh_CN">
+<meta property="og:image" content="http://example.com/upload/images/2018/02/14/1.jpg">
+<meta property="og:image" content="http://example.com/upload/images/2018/02/14/2.jpg">
+<meta property="og:image" content="http://example.com/upload/images/2018/02/14/3.jpg">
+<meta property="og:image" content="http://example.com/upload/images/2018/02/14/4.jpg">
+<meta property="og:image" content="http://example.com/upload/images/2018/02/14/5.jpg">
+<meta property="article:published_time" content="2018-02-14T14:19:01.000Z">
+<meta property="article:modified_time" content="2022-03-09T14:53:24.342Z">
+<meta property="article:author" content="veryitman">
+<meta property="article:tag" content="音视频 faac faad2">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:image" content="http://example.com/upload/images/2018/02/14/1.jpg">
+  
+  
+
+  <!-- feed -->
+  
+
+  
+    
+<link rel="stylesheet" href="/css/main.css">
+
+  
+
+  
+
+  
+</head>
+
+<body>
+  
+
+
+  <div class='l_body' id='start'>
+    <aside class='l_left' layout='post'>
+    
+
+
+<header class="header">
+
+<div class="logo-wrap"><a class="title" href="/"><div class="main">Veryitman</div></a></div>
+<nav class="menu dis-select"></nav></header>
+
+<div class="widgets">
+
+<div class="widget-wrap single" id="toc"><div class="widget-header cap dis-select"><span class="name">本文目录</span></div><div class="widget-body fs14"><div class="doc-tree active"><ol class="toc"><li class="toc-item toc-level-2"><a class="toc-link" href="#%E7%AE%80%E4%BB%8B"><span class="toc-text">简介</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#%E4%B8%8B%E8%BD%BD%E6%BA%90%E7%A0%81"><span class="toc-text">下载源码</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#%E7%BC%96%E8%AF%91-faac"><span class="toc-text">编译 faac</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#%E7%BC%96%E8%AF%91-faad2"><span class="toc-text">编译 faad2</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#%E5%90%8E%E8%AE%B0"><span class="toc-text">后记</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#%E5%8F%82%E8%80%83%E6%96%87%E7%AB%A0"><span class="toc-text">参考文章</span></a></li></ol></div></div></div>
+
+
+</div>
+
+
+    </aside>
+    <div class='l_main'>
+      
+
+      
+
+
+<div class="bread-nav fs12"><div id="breadcrumb"><a class="cap breadcrumb" href="/">主页</a><span class="sep"></span><a class="cap breadcrumb" href="/">文章</a><span class="sep"></span><a class="cap breadcrumb-link" href="/categories/iOS/">iOS</a></div><div id="post-meta">发布于&nbsp;<time datetime="2018-02-14T14:19:01.000Z">2018-02-14</time></div></div>
+
+<article class='content md post'>
+<h1 class="article-title"><span>音视频编程: 编译 faac/faad2</span></h1>
+<p>本文分享如何在 MacOS 上面编译 faac 和 faad2, 编译后的库文件可以直接在 iOS 上面使用.</p>
+<p>后续会分享如何编译给 Android 使用的库文件的方法以及实战.</p>
+<p><strong>该系列博文:</strong></p>
+<ul>
+<li><p><a target="_blank" rel="noopener" href="http://www.veryitman.com/2018/02/14/%E9%9F%B3%E8%A7%86%E9%A2%91%E7%BC%96%E7%A8%8B-%E7%BC%96%E8%AF%91-faac-faad2/">音视频编程: 编译 faac&#x2F;faad2</a>(本篇)</p>
+</li>
+<li><p><a target="_blank" rel="noopener" href="http://www.veryitman.com/2018/02/16/%E9%9F%B3%E8%A7%86%E9%A2%91%E7%BC%96%E7%A8%8B-iOS-%E4%BD%BF%E7%94%A8-faac-%E7%BC%96%E7%A0%81/">音视频编程: iOS 使用 faac 编码</a></p>
+</li>
+<li><p><a target="_blank" rel="noopener" href="http://www.veryitman.com/2018/02/20/%E9%9F%B3%E8%A7%86%E9%A2%91%E7%BC%96%E7%A8%8B-%E7%AE%80%E5%8D%95%E5%88%86%E6%9E%90-WAV-%E6%96%87%E4%BB%B6/">音视频编程: 简单分析 WAV 文件</a></p>
+</li>
+<li><p><a target="_blank" rel="noopener" href="http://www.veryitman.com/2018/02/20/%E9%9F%B3%E8%A7%86%E9%A2%91%E7%BC%96%E7%A8%8B-iOS-%E4%BD%BF%E7%94%A8-faad2/">音视频编程: iOS 使用 faad2</a> </p>
+</li>
+<li><p><a target="_blank" rel="noopener" href="http://www.veryitman.com/2018/02/25/%E9%9F%B3%E8%A7%86%E9%A2%91%E7%BC%96%E7%A8%8B-%E6%9E%84%E5%BB%BA-nginx-%E6%8E%A8%E6%B5%81%E6%9C%8D%E5%8A%A1%E5%99%A8/">音视频编程: 构建 nginx 推流服务器</a></p>
+</li>
+</ul>
+<h2 id="简介"><a href="#简介" class="headerlink" title="简介"></a>简介</h2><p><code>faad</code> 是 AAC 格式文件的音频解码库. 相对于 FFmpeg 来说比较轻量和简单. 编译出来全平台静态库文件较小, API 也比较简单, 缺点是功能单一, 只能处理 AAC 格式的音频文件。</p>
+<p><code>faac</code> 是与之对应的 AAC 音频编码库. 支持 MPEG-4 和 MPEG-2 的AAC 编码，其特性包括：可移植性好，快速，支持LC&#x2F;Main&#x2F;LTP，通过 Dream 支持 DRM.</p>
+<p>这两个库虽然很久没有更新了, 但是其功能已经满足很多业务场景了, 并且很好用。</p>
+<h2 id="下载源码"><a href="#下载源码" class="headerlink" title="下载源码"></a>下载源码</h2><p><del>点击 <a target="_blank" rel="noopener" href="http://www.audiocoding.com/downloads.html">源码链接</a> 即可下载源码</del> </p>
+<p><img class="lazy" src="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAABGdBTUEAALGPC/xhBQAAADhlWElmTU0AKgAAAAgAAYdpAAQAAAABAAAAGgAAAAAAAqACAAQAAAABAAAAAaADAAQAAAABAAAAAQAAAADa6r/EAAAAC0lEQVQIHWNgAAIAAAUAAY27m/MAAAAASUVORK5CYII=" data-src="/upload/images/2018/02/14/1.jpg" alt="1"></p>
+<p>自从 2020.08 后该网站已经无法访问了，可以从 <a target="_blank" rel="noopener" href="https://www.videoproc.com/resource/what-happened-to-audiocoding.htm">What Happened to Audiocoding.com (FAAC &amp; FAAD2)</a> 了解一下。</p>
+<p>可以从 <a target="_blank" rel="noopener" href="https://sourceforge.net/projects/faac/">Sourceforge.net</a> 下载。</p>
+<h2 id="编译-faac"><a href="#编译-faac" class="headerlink" title="编译 faac"></a>编译 faac</h2><p>下载完成后, 解压, 将 <code>faac-1.28</code> 放到新建目录  <code>src</code> 下面即可, 目录结构如下:<br><img class="lazy" src="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAABGdBTUEAALGPC/xhBQAAADhlWElmTU0AKgAAAAgAAYdpAAQAAAABAAAAGgAAAAAAAqACAAQAAAABAAAAAaADAAQAAAABAAAAAQAAAADa6r/EAAAAC0lEQVQIHWNgAAIAAAUAAY27m/MAAAAASUVORK5CYII=" data-src="/upload/images/2018/02/14/2.jpg" alt="1"></p>
+<p>修改 <code>build_faac.sh</code> 权限:</p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">chmod +x build_faac.sh</span><br></pre></td></tr></table></figure>
+
+<p>编辑 <code>build_faac.sh</code> 内容</p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br><span class="line">39</span><br><span class="line">40</span><br><span class="line">41</span><br><span class="line">42</span><br><span class="line">43</span><br><span class="line">44</span><br><span class="line">45</span><br><span class="line">46</span><br><span class="line">47</span><br><span class="line">48</span><br><span class="line">49</span><br><span class="line">50</span><br><span class="line">51</span><br><span class="line">52</span><br><span class="line">53</span><br><span class="line">54</span><br><span class="line">55</span><br><span class="line">56</span><br><span class="line">57</span><br><span class="line">58</span><br><span class="line">59</span><br><span class="line">60</span><br><span class="line">61</span><br><span class="line">62</span><br><span class="line">63</span><br><span class="line">64</span><br><span class="line">65</span><br><span class="line">66</span><br><span class="line">67</span><br><span class="line">68</span><br><span class="line">69</span><br><span class="line">70</span><br><span class="line">71</span><br><span class="line">72</span><br><span class="line">73</span><br><span class="line">74</span><br><span class="line">75</span><br><span class="line">76</span><br></pre></td><td class="code"><pre><span class="line">#!/bin/sh  </span><br><span class="line">  </span><br><span class="line"># http://www.linuxfromscratch.org/blfs/view/svn/multimedia/faac.html  </span><br><span class="line"># ftp://mirror.ovh.net/gentoo-distfiles/distfiles/  </span><br><span class="line">  </span><br><span class="line">major=1  </span><br><span class="line">minor=28  </span><br><span class="line">micro=  </span><br><span class="line"></span><br><span class="line">XCD_ROOT=&quot;/Applications/Xcode.app/Contents/Developer&quot;  </span><br><span class="line">TOL_ROOT=&quot;/Applications/Xcode.app/Contents/Developer/Toolchains/XcodeDefault.xctoolchain&quot;  </span><br><span class="line">#修改为最新的 sdk 版本</span><br><span class="line">SDK_ROOT=&quot;/Applications/Xcode.app/Contents/Developer/Platforms/iPhoneOS.platform/Developer/SDKs/iPhoneOS11.2.sdk&quot;  </span><br><span class="line">SDK_SML_ROOT=&quot;/Applications/Xcode.app/Contents/Developer/Platforms/iPhoneSimulator.platform/Developer/SDKs/iPhoneSimulator11.2.sdk&quot;  </span><br><span class="line"></span><br><span class="line">export PATH=$TOL_ROOT/usr/bin:$PATH  </span><br><span class="line">  </span><br><span class="line">work=`pwd`  </span><br><span class="line">srcs=$work/src  </span><br><span class="line">buid=$work/build  </span><br><span class="line">insl=$buid/install  </span><br><span class="line">name=faac-$&#123;major&#125;.$&#123;minor&#125;  </span><br><span class="line">pakt=$&#123;name&#125;.tar.gz  </span><br><span class="line">dest=$work/faac-iOS-$&#123;major&#125;.$&#123;minor&#125;.$&#123;micro&#125;.tgz  </span><br><span class="line">  </span><br><span class="line">rm -rf $srcs $buid $dest &amp;&amp; mkdir -p $srcs $buid  </span><br><span class="line"></span><br><span class="line"> </span><br><span class="line">archs=&quot;i386 x86_64 armv7 armv7s arm64&quot;  </span><br><span class="line">  </span><br><span class="line">for a in $archs; do  </span><br><span class="line">  case $a in  </span><br><span class="line">    arm*)  </span><br><span class="line">      sys_root=$&#123;SDK_ROOT&#125;  </span><br><span class="line">      host=arm-apple-darwin</span><br><span class="line">      ;;  </span><br><span class="line">    i386|x86_64)  </span><br><span class="line">      sys_root=$&#123;SDK_SML_ROOT&#125;  </span><br><span class="line">      host=$a-apple-darwin</span><br><span class="line">      ;;  </span><br><span class="line">  esac  </span><br><span class="line">  prefix=$insl/$a &amp;&amp; rm -rf $prefix &amp;&amp; mkdir -p $prefix  </span><br><span class="line">  rm -rf $srcs &amp;&amp; mkdir -p $srcs &amp;&amp; cd $work &amp;&amp; tar xvzf $pakt -C $srcs &amp;&amp; cd $srcs/$name  </span><br><span class="line"></span><br><span class="line">  </span><br><span class="line">  export CC=&quot;$TOL_ROOT/usr/bin/clang -arch $a -isysroot $sys_root&quot;</span><br><span class="line">  export CXX=&quot;$TOL_ROOT/usr/bin/clang++ -arch $a -isysroot $sys_root&quot;</span><br><span class="line">  export CXXFLAGS=&quot;-arch $a -isysroot $sys_root&quot;</span><br><span class="line">  export CFLAGS=&quot;-arch $a -isysroot $sys_root&quot;</span><br><span class="line">  export LDFLAGS=&quot;-isysroot $sys_root&quot;</span><br><span class="line">  export LIBS=&quot;-L$&#123;sys_root&#125;/usr/lib&quot;</span><br><span class="line"></span><br><span class="line">  chmod +x bootstrap  </span><br><span class="line">  ./bootstrap \</span><br><span class="line">    &amp;&amp;./configure \</span><br><span class="line">    --host=$host \</span><br><span class="line">    --with-sysroot=$sys_root \</span><br><span class="line">    --prefix=$prefix \</span><br><span class="line">    --disable-shared \</span><br><span class="line">    --enable-static \</span><br><span class="line">    --disable-faac \</span><br><span class="line">    --with-mp4v2 \</span><br><span class="line">    &amp;&amp;make &amp;&amp; make install</span><br><span class="line">  lipo_archs=&quot;$lipo_archs $prefix/lib/libfaac.a&quot;</span><br><span class="line"></span><br><span class="line">  echo &#x27;continue any key pressed..&#x27;</span><br><span class="line">  read -n 1</span><br><span class="line">done</span><br><span class="line">  </span><br><span class="line">univ=$insl/universal &amp;&amp; mkdir -p $univ/lib  </span><br><span class="line">cp -r $prefix/include $univ/  </span><br><span class="line">lipo $lipo_archs -create -output $univ/lib/libfaac.a  </span><br><span class="line">ranlib $univ/lib/libfaac.a  </span><br><span class="line">strip -S $univ/lib/libfaac.a  </span><br><span class="line">  </span><br><span class="line">cd $univ &amp;&amp; tar cvzf $dest *</span><br></pre></td></tr></table></figure>
+
+<p>执行 <code>./build_faac.sh</code>, 开始编译。</p>
+<p>编译成功后, 生成 build 目录。<br><img class="lazy" src="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAABGdBTUEAALGPC/xhBQAAADhlWElmTU0AKgAAAAgAAYdpAAQAAAABAAAAGgAAAAAAAqACAAQAAAABAAAAAaADAAQAAAABAAAAAQAAAADa6r/EAAAAC0lEQVQIHWNgAAIAAAUAAY27m/MAAAAASUVORK5CYII=" data-src="/upload/images/2018/02/14/3.jpg" alt="1"></p>
+<p>其中, universal 生成的库是通用库。</p>
+<h2 id="编译-faad2"><a href="#编译-faad2" class="headerlink" title="编译 faad2"></a>编译 faad2</h2><p>解压后, 将 <code>faad2-2.7</code> 改名为 <code>faad</code>.</p>
+<p>编写编译的脚本文件, 这里取名为 <code>build_fadd2.sh</code></p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">touch build_fadd2.sh</span><br></pre></td></tr></table></figure>
+
+<p>编辑 <code>build_fadd2.sh</code> 文件。</p>
+<p>写入如下内容:</p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br><span class="line">39</span><br><span class="line">40</span><br><span class="line">41</span><br><span class="line">42</span><br><span class="line">43</span><br><span class="line">44</span><br><span class="line">45</span><br><span class="line">46</span><br><span class="line">47</span><br><span class="line">48</span><br><span class="line">49</span><br><span class="line">50</span><br><span class="line">51</span><br><span class="line">52</span><br><span class="line">53</span><br><span class="line">54</span><br><span class="line">55</span><br><span class="line">56</span><br><span class="line">57</span><br><span class="line">58</span><br><span class="line">59</span><br><span class="line">60</span><br><span class="line">61</span><br><span class="line">62</span><br><span class="line">63</span><br><span class="line">64</span><br><span class="line">65</span><br><span class="line">66</span><br><span class="line">67</span><br><span class="line">68</span><br><span class="line">69</span><br><span class="line">70</span><br><span class="line">71</span><br><span class="line">72</span><br><span class="line">73</span><br><span class="line">74</span><br><span class="line">75</span><br><span class="line">76</span><br><span class="line">77</span><br><span class="line">78</span><br><span class="line">79</span><br><span class="line">80</span><br><span class="line">81</span><br><span class="line">82</span><br><span class="line">83</span><br><span class="line">84</span><br><span class="line">85</span><br><span class="line">86</span><br><span class="line">87</span><br><span class="line">88</span><br><span class="line">89</span><br><span class="line">90</span><br><span class="line">91</span><br><span class="line">92</span><br><span class="line">93</span><br><span class="line">94</span><br><span class="line">95</span><br><span class="line">96</span><br><span class="line">97</span><br><span class="line">98</span><br><span class="line">99</span><br><span class="line">100</span><br><span class="line">101</span><br></pre></td><td class="code"><pre><span class="line">#!/bin/sh</span><br><span class="line"></span><br><span class="line">CONFIGURE_FLAGS=&quot;--enable-static --with-pic&quot;</span><br><span class="line"></span><br><span class="line">ARCHS=&quot;arm64 armv7s armv7 x86_64 i386&quot;</span><br><span class="line"></span><br><span class="line"># directories</span><br><span class="line">SOURCE=&quot;faad&quot;</span><br><span class="line">FAT=&quot;fat-faad&quot;</span><br><span class="line"></span><br><span class="line">SCRATCH=&quot;scratch-faad&quot;</span><br><span class="line"># must be an absolute path</span><br><span class="line">THIN=`pwd`/&quot;thin-faad&quot;</span><br><span class="line"></span><br><span class="line">COMPILE=&quot;y&quot;</span><br><span class="line">LIPO=&quot;y&quot;</span><br><span class="line"></span><br><span class="line">if [ &quot;$*&quot; ]</span><br><span class="line">then</span><br><span class="line">if [ &quot;$*&quot; = &quot;lipo&quot; ]</span><br><span class="line">then</span><br><span class="line"># skip compile</span><br><span class="line">COMPILE=</span><br><span class="line">else</span><br><span class="line">ARCHS=&quot;$*&quot;</span><br><span class="line">if [ $# -eq 1 ]</span><br><span class="line">then</span><br><span class="line"># skip lipo</span><br><span class="line">LIPO=</span><br><span class="line">fi</span><br><span class="line">fi</span><br><span class="line">fi</span><br><span class="line"></span><br><span class="line">if [ &quot;$COMPILE&quot; ]</span><br><span class="line">then</span><br><span class="line">CWD=`pwd`</span><br><span class="line">for ARCH in $ARCHS</span><br><span class="line">do</span><br><span class="line">echo &quot;building $ARCH...&quot;</span><br><span class="line">mkdir -p &quot;$SCRATCH/$ARCH&quot;</span><br><span class="line">cd &quot;$SCRATCH/$ARCH&quot;</span><br><span class="line"></span><br><span class="line">if [ &quot;$ARCH&quot; = &quot;i386&quot; -o &quot;$ARCH&quot; = &quot;x86_64&quot; ]</span><br><span class="line">then</span><br><span class="line">PLATFORM=&quot;iPhoneSimulator&quot;</span><br><span class="line">CPU=</span><br><span class="line">if [ &quot;$ARCH&quot; = &quot;x86_64&quot; ]</span><br><span class="line">then</span><br><span class="line">SIMULATOR=&quot;-mios-simulator-version-min=7.0&quot;</span><br><span class="line">HOST=&quot;--host=x86_64-apple-darwin&quot;</span><br><span class="line">else</span><br><span class="line">SIMULATOR=&quot;-mios-simulator-version-min=5.0&quot;</span><br><span class="line">HOST=&quot;--host=i386-apple-darwin&quot;</span><br><span class="line">fi</span><br><span class="line">else</span><br><span class="line">PLATFORM=&quot;iPhoneOS&quot;</span><br><span class="line">if [ $ARCH = &quot;armv7s&quot; ]</span><br><span class="line">then</span><br><span class="line">CPU=&quot;--cpu=swift&quot;</span><br><span class="line">else</span><br><span class="line">CPU=</span><br><span class="line">fi</span><br><span class="line">SIMULATOR=</span><br><span class="line">HOST=&quot;--host=arm-apple-darwin&quot;</span><br><span class="line">fi</span><br><span class="line"></span><br><span class="line">XCRUN_SDK=`echo $PLATFORM | tr &#x27;[:upper:]&#x27; &#x27;[:lower:]&#x27;`</span><br><span class="line">CC=&quot;xcrun -sdk $XCRUN_SDK clang -Wno-error=unused-command-line-argument-hard-error-in-future&quot;</span><br><span class="line">AS=&quot;$CWD/$SOURCE/extras/gas-preprocessor.pl $CC&quot;</span><br><span class="line">CFLAGS=&quot;-arch $ARCH $SIMULATOR&quot;</span><br><span class="line">CXXFLAGS=&quot;$CFLAGS&quot;</span><br><span class="line">LDFLAGS=&quot;$CFLAGS&quot;</span><br><span class="line"></span><br><span class="line">CC=$CC CFLAGS=$CXXFLAGS LDFLAGS=$LDFLAGS CPPFLAGS=$CXXFLAGS CXX=$CC CXXFLAGS=$CXXFLAGS  $CWD/$SOURCE/configure \</span><br><span class="line">$CONFIGURE_FLAGS \</span><br><span class="line">$HOST \</span><br><span class="line">--prefix=&quot;$THIN/$ARCH&quot; \</span><br><span class="line">--disable-shared \</span><br><span class="line">--without-mp4v2</span><br><span class="line"></span><br><span class="line">make clean &amp;&amp; make &amp;&amp; make install-strip</span><br><span class="line">cd $CWD</span><br><span class="line">done</span><br><span class="line">fi</span><br><span class="line"></span><br><span class="line">if [ &quot;$LIPO&quot; ]</span><br><span class="line">then</span><br><span class="line">echo &quot;building fat binaries...&quot;</span><br><span class="line">mkdir -p $FAT/lib</span><br><span class="line">set - $ARCHS</span><br><span class="line">CWD=`pwd`</span><br><span class="line">cd $THIN/$1/lib</span><br><span class="line">for LIB in *.a</span><br><span class="line">do</span><br><span class="line">cd $CWD</span><br><span class="line">lipo -create `find $THIN -name $LIB` -output $FAT/lib/$LIB</span><br><span class="line">done</span><br><span class="line"></span><br><span class="line">cd $CWD</span><br><span class="line">cp -rf $THIN/$1/include $FAT</span><br><span class="line">fi</span><br></pre></td></tr></table></figure>
+
+<p>给予执行权限:</p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">chmod +x build_fadd2.sh</span><br></pre></td></tr></table></figure>
+
+<p>此时目录结构如下:<br><img class="lazy" src="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAABGdBTUEAALGPC/xhBQAAADhlWElmTU0AKgAAAAgAAYdpAAQAAAABAAAAGgAAAAAAAqACAAQAAAABAAAAAaADAAQAAAABAAAAAQAAAADa6r/EAAAAC0lEQVQIHWNgAAIAAAUAAY27m/MAAAAASUVORK5CYII=" data-src="/upload/images/2018/02/14/4.jpg" alt="1"></p>
+<p>执行编译脚本, 在当前目录生成 <code>scratch-faad</code> 和 <code>fat-faad</code> 以及 <code>thin-faad</code> 目录, 如下:<br><img class="lazy" src="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAABGdBTUEAALGPC/xhBQAAADhlWElmTU0AKgAAAAgAAYdpAAQAAAABAAAAGgAAAAAAAqACAAQAAAABAAAAAaADAAQAAAABAAAAAQAAAADa6r/EAAAAC0lEQVQIHWNgAAIAAAUAAY27m/MAAAAASUVORK5CYII=" data-src="/upload/images/2018/02/14/5.jpg" alt="1"></p>
+<p>使用 <code>fat-faad</code> 里面的库和文件即可。</p>
+<p>可以使用下面的命令查看对应的 <code>.a</code> 文件所支持的架构:</p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">lipo -info libfaad.a</span><br></pre></td></tr></table></figure>
+
+<p>会得到对应的输出:</p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">Architectures in the fat file: libfaad.a are: i386 armv7 armv7s arm64 </span><br></pre></td></tr></table></figure>
+
+<p>同样可以查看 <code>libfaac.a</code>.</p>
+<h2 id="后记"><a href="#后记" class="headerlink" title="后记"></a>后记</h2><p>编译好的文件, 已经放到 github 上面了, 有需要的可以下载使用, 点击 <a target="_blank" rel="noopener" href="https://github.com/veryitman/faacfaad2">下载链接</a> 进入。</p>
+<p>感谢 <a target="_blank" rel="noopener" href="https://github.com/fflydev/faac-ios-build">fflydev&#x2F;faac-ios-build</a> 提供编译 <code>faac</code> 的 shell, 只需要将里面对应的 SDK 改为本机最新的 SDK 即可。</p>
+<h2 id="参考文章"><a href="#参考文章" class="headerlink" title="参考文章"></a>参考文章</h2><ul>
+<li><p><a target="_blank" rel="noopener" href="http://www.voidcn.com/article/p-ftajkybd-p.html">faac 1.28的交叉编译与问题解决</a></p>
+</li>
+<li><p><a target="_blank" rel="noopener" href="http://blog.csdn.net/coloriy/article/details/52053144">使用FAAD库解码AAC实例</a></p>
+</li>
+<li><p><a target="_blank" rel="noopener" href="https://magiclen.org/linux-fdk-aac-2/">在Linux上使用FDK AAC將音樂轉成M4A(AAC、HE-AAC、HE-AACv2)格式</a></p>
+</li>
+<li><p><a target="_blank" rel="noopener" href="https://www.jianshu.com/p/45928cdafde0">aac文件转码为wav文件</a></p>
+</li>
+</ul>
+
+
+
+
+</article>
+
+<div class="related-wrap reveal" id="read-next"><section class="header cap theme"><span>接下来阅读</span></section><section class="body fs14"><a id="next" href="/2018/02/12/iOS-%E5%A4%9A%E7%BA%BF%E7%A8%8B-%E5%88%9D%E6%AD%A5%E8%AE%A4%E8%AF%86/">iOS 多线程: 初步认识<span class="note">较早</span></a><div class="line"></div><a id="prev" href="/2018/02/16/%E9%9F%B3%E8%A7%86%E9%A2%91%E7%BC%96%E7%A8%8B-iOS-%E4%BD%BF%E7%94%A8-faac-%E7%BC%96%E7%A0%81/">音视频编程: iOS 使用 faac 编码<span class="note">较新</span></a></section></div>
+
+
+
+
+
+
+  <div class='related-wrap md reveal' id="comments">
+    <div class='cmt-title cap theme'>
+      快来参与讨论吧
+    </div>
+    <div class='cmt-body valine'>
+      
+
+<div id="valine_container" class="valine_thread"><svg class="loading" style="vertical-align: middle;fill: currentColor;overflow: hidden;" viewBox="0 0 1024 1024" version="1.1" xmlns="http://www.w3.org/2000/svg" p-id="2709"><path d="M832 512c0-176-144-320-320-320V128c211.2 0 384 172.8 384 384h-64zM192 512c0 176 144 320 320 320v64C300.8 896 128 723.2 128 512h64z" p-id="2710"></path></svg></div>
+
+    </div>
+  </div>
+
+
+
+      
+<footer class="page-footer reveal fs12"><hr><div class="text"><p>本博客所有文章除特别声明外，均采用 <a target="_blank" rel="noopener" href="https://creativecommons.org/licenses/by-nc-sa/4.0/">CC BY-NC-SA 4.0</a> 许可协议，转载请注明出处。</p>
+<p>veryitman</p>
+</div></footer>
+
+      <div class='float-panel mobile-only blur' style='display:none'>
+  <button type='button' class='sidebar-toggle mobile' onclick='sidebar.toggle()'>
+    <svg class="icon" style="width: 1em; height: 1em;vertical-align: middle;fill: currentColor;overflow: hidden;" viewBox="0 0 1024 1024" version="1.1" xmlns="http://www.w3.org/2000/svg" p-id="15301"><path d="M566.407 808.3c26.9-0.1 49.3-20.8 51.6-47.6-1.9-27.7-23.9-49.7-51.6-51.6h-412.6c-28.2-1.4-52.6 19.5-55.5 47.6 2.3 26.8 24.6 47.5 51.6 47.6h416.5v4z m309.3-249.9c26.9-0.1 49.3-20.8 51.6-47.6-2.2-26.8-24.6-47.5-51.6-47.6h-721.9c-27.7-2.8-52.5 17.4-55.3 45.1-0.1 0.8-0.1 1.7-0.2 2.5 0.9 27.2 23.6 48.5 50.7 47.6H875.707z m-103.1-245.9c26.9-0.1 49.3-20.8 51.6-47.6-0.4-28.3-23.2-51.1-51.5-51.6h-618.9c-29.5-1.1-54.3 21.9-55.5 51.4v0.2c1.4 27.8 25.2 49.2 53 47.8 0.8 0 1.7-0.1 2.5-0.2h618.8z" p-id="15302"></path><path d="M566.407 808.3c26.9-0.1 49.3-20.8 51.6-47.6-1.9-27.7-23.9-49.7-51.6-51.6h-412.6c-28.2-1.4-52.6 19.5-55.5 47.6 1.9 27.7 23.9 49.7 51.6 51.6h416.5z m309.3-249.9c26.9-0.1 49.3-20.8 51.6-47.6-2.2-26.8-24.6-47.5-51.6-47.6h-721.9c-27.7-2.8-52.5 17.4-55.3 45.1-0.1 0.8-0.1 1.7-0.2 2.5 0.9 27.2 23.6 48.5 50.7 47.6H875.707z m-103.1-245.9c26.9-0.1 49.3-20.8 51.6-47.6-0.4-28.3-23.2-51.1-51.5-51.6h-618.9c-29.5-1.1-54.3 21.9-55.5 51.4v0.2c1.4 27.8 25.2 49.2 53 47.8 0.8 0 1.7-0.1 2.5-0.2h618.8z" p-id="15303"></path></svg>
+  </button>
+</div>
+
+    </div>
+  </div>
+  <div class='scripts'>
+    <script type="text/javascript">
+  stellar = {
+    // 懒加载 css https://github.com/filamentgroup/loadCSS
+    loadCSS: (href, before, media, attributes) => {
+      var doc = window.document;
+      var ss = doc.createElement("link");
+      var ref;
+      if (before) {
+        ref = before;
+      } else {
+        var refs = (doc.body || doc.getElementsByTagName("head")[0]).childNodes;
+        ref = refs[refs.length - 1];
+      }
+      var sheets = doc.styleSheets;
+      if (attributes) {
+        for (var attributeName in attributes) {
+          if (attributes.hasOwnProperty(attributeName)) {
+            ss.setAttribute(attributeName, attributes[attributeName]);
+          }
+        }
+      }
+      ss.rel = "stylesheet";
+      ss.href = href;
+      ss.media = "only x";
+      function ready(cb) {
+        if (doc.body) {
+          return cb();
+        }
+        setTimeout(function () {
+          ready(cb);
+        });
+      }
+      ready(function () {
+        ref.parentNode.insertBefore(ss, before ? ref : ref.nextSibling);
+      });
+      var onloadcssdefined = function (cb) {
+        var resolvedHref = ss.href;
+        var i = sheets.length;
+        while (i--) {
+          if (sheets[i].href === resolvedHref) {
+            return cb();
+          }
+        }
+        setTimeout(function () {
+          onloadcssdefined(cb);
+        });
+      };
+      function loadCB() {
+        if (ss.addEventListener) {
+          ss.removeEventListener("load", loadCB);
+        }
+        ss.media = media || "all";
+      }
+      if (ss.addEventListener) {
+        ss.addEventListener("load", loadCB);
+      }
+      ss.onloadcssdefined = onloadcssdefined;
+      onloadcssdefined(loadCB);
+      return ss;
+    },
+
+    // 从 butterfly 和 volantis 获得灵感
+    loadScript: (src, opt) => new Promise((resolve, reject) => {
+      var script = document.createElement('script');
+      script.src = src;
+      if (opt) {
+        for (let key of Object.keys(opt)) {
+          script[key] = opt[key]
+        }
+      } else {
+        // 默认异步，如果需要同步，第二个参数传入 {} 即可
+        script.async = true
+      }
+      script.onerror = reject
+      script.onload = script.onreadystatechange = function() {
+        const loadState = this.readyState
+        if (loadState && loadState !== 'loaded' && loadState !== 'complete') return
+        script.onload = script.onreadystatechange = null
+        resolve()
+      }
+      document.head.appendChild(script)
+    }),
+
+    // https://github.com/jerryc127/hexo-theme-butterfly
+    jQuery: (fn) => {
+      if (typeof jQuery === 'undefined') {
+        stellar.loadScript(stellar.plugins.jQuery).then(fn)
+      } else {
+        fn()
+      }
+    }
+  };
+  stellar.github = 'https://github.com/xaoxuu/hexo-theme-stellar/tree/1.6.1';
+  stellar.config = {
+    date_suffix: {
+      just: '刚刚',
+      min: '分钟前',
+      hour: '小时前',
+      day: '天前',
+      month: '个月前',
+    },
+  };
+
+  // required plugins (only load if needs)
+  stellar.plugins = {
+    jQuery: 'https://cdn.jsdelivr.net/npm/jquery@3.5.1/dist/jquery.min.js',
+    sitesjs: '/js/plugins/sites.js',
+    friendsjs: '/js/plugins/friends.js',
+  };
+
+  // optional plugins
+  if ('true' == 'true') {
+    stellar.plugins.lazyload = Object.assign({"enable":true,"js":"https://cdn.jsdelivr.net/npm/vanilla-lazyload@17.3.1/dist/lazyload.min.js","transition":"blur"});
+  }
+  if ('true' == 'true') {
+    stellar.plugins.swiper = Object.assign({"enable":true,"css":"https://unpkg.com/swiper@6/swiper-bundle.min.css","js":"https://unpkg.com/swiper@6/swiper-bundle.min.js"});
+  }
+  if ('' == 'true') {
+    stellar.plugins.scrollreveal = Object.assign({"enable":null,"js":"https://cdn.jsdelivr.net/npm/scrollreveal@4.0.9/dist/scrollreveal.min.js","distance":"8px","duration":500,"interval":100,"scale":1});
+  }
+  if ('true' == 'true') {
+    stellar.plugins.preload = Object.assign({"enable":true,"service":"flying_pages","instant_page":"https://cdn.jsdelivr.net/gh/volantis-x/cdn-volantis@4.1.2/js/instant_page.js","flying_pages":"https://cdn.jsdelivr.net/gh/gijo-varghese/flying-pages@2.1.2/flying-pages.min.js"});
+  }
+</script>
+
+<!-- required -->
+
+  
+<script src="/js/main.js" async></script>
+
+
+
+<!-- optional -->
+
+  <script>
+  function getEmojiMaps() {
+    function emoji(path, idx, ext) {
+      return path + "/" + path + "-" + idx + "." + ext;
+    }
+    var emojiMaps = {};
+    for (var i = 1; i <= 54; i++) {
+      emojiMaps['tieba-' + i] = emoji('tieba', i, 'png');
+    }
+    for (var i = 1; i <= 101; i++) {
+      emojiMaps['qq-' + i] = emoji('qq', i, 'gif');
+    }
+    for (var i = 1; i <= 116; i++) {
+      emojiMaps['aru-' + i] = emoji('aru', i, 'gif');
+    }
+    for (var i = 1; i <= 125; i++) {
+      emojiMaps['twemoji-' + i] = emoji('twemoji', i, 'png');
+    }
+    for (var i = 1; i <= 4; i++) {
+      emojiMaps['weibo-' + i] = emoji('weibo', i, 'png');
+    }
+    return emojiMaps;
+  }
+  function load_comment(){
+    if(!document.getElementById("valine_container"))return;
+    stellar.loadScript('https://cdn.jsdelivr.net/gh/XuxuGood/simple-blog-cdn@main/js/Valine.min.js', {defer:true}).then(function () {
+      const el = document.getElementById("valine_container");
+      var path = el.getAttribute('comment_id');
+      const placeholder = "欢迎您留言~";
+      if (!path) {
+        path = decodeURI(window.location.pathname);
+      }
+      var valine = new Valine();
+      valine.init(Object.assign({"js":"https://cdn.jsdelivr.net/gh/XuxuGood/simple-blog-cdn@main/js/Valine.min.js","appId":"FY2C9UCttYNaE1j8umenqdCE-gzGzoHsz","appKey":"4i7xMwkfSEGmEDhi6SceKFxz","placeholder":"欢迎您留言~","requiredFields":["nick","mail"],"enableQQ":true,"recordIP":false,"avatar":"robohash","pageSize":10,"lang":"zh-cn","highlight":true,"mathJax":false,"tagMeta":["博主","小伙伴","访客"],"metaPlaceholder":{"nick":"昵称/QQ号(必填)","mail":"邮箱（必填，完全保密）"},"master":["6783037F2DF30EAB99F9FC256157D875"],"friends":["6783037F2DF30EAB99F9FC256157D875"],"comment_count":true}, {
+        el: '#valine_container',
+        path: path,
+        placeholder: placeholder,
+        emojiCDN: 'https://cdn.jsdelivr.net/gh/volantis-x/cdn-emoji/valine/',
+        emojiMaps: getEmojiMaps(),
+      }));
+    });
+  }
+  window.addEventListener('DOMContentLoaded', (event) => {
+    console.log('DOM fully loaded and parsed');
+    load_comment();
+  });
+
+</script>
+
+
+
+
+<!-- inject -->
+
+
+  </div>
+</body>
+</html>

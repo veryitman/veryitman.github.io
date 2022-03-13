@@ -1,0 +1,368 @@
+<!DOCTYPE html>
+<html lang='zh-CN'>
+
+<head>
+  <meta name="generator" content="Hexo 6.0.0">
+  <meta charset="utf-8">
+  
+
+  <meta http-equiv='x-dns-prefetch-control' content='on' />
+  <link rel='dns-prefetch' href='https://cdn.jsdelivr.net'>
+  <link rel="preconnect" href="https://cdn.jsdelivr.net" crossorigin>
+
+  <meta name="renderer" content="webkit">
+  <meta name="force-rendering" content="webkit">
+  <meta http-equiv="X-UA-Compatible" content="IE=Edge,chrome=1">
+  <meta name="HandheldFriendly" content="True" >
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1">
+  <meta name="theme-color" content="#f8f8f8">
+  <title>RN: 0.34 运行在 Android 的问题 - Veryitman</title>
+
+  
+    <meta name="description" content="今天闲来无事, 想使用 RN 工程在 Android 设备上面跑跑. 想看看运行效果怎么样?! 适合读者 有 Android 开发基础. 会使用 Android Studio. 初级 React Native 的开发者.  开发环境和工具 Android Studio 2.2 ReactNative 0.34 Android 模拟器 Mac 操作系统  预期效果不出所料, 真的不能一帆风顺的 Ru">
+<meta property="og:type" content="article">
+<meta property="og:title" content="RN: 0.34 运行在 Android 的问题">
+<meta property="og:url" content="http://example.com/2016/09/26/RN-0-34-%E8%BF%90%E8%A1%8C%E5%9C%A8-Android-%E7%9A%84%E9%97%AE%E9%A2%98/index.html">
+<meta property="og:site_name" content="Veryitman">
+<meta property="og:description" content="今天闲来无事, 想使用 RN 工程在 Android 设备上面跑跑. 想看看运行效果怎么样?! 适合读者 有 Android 开发基础. 会使用 Android Studio. 初级 React Native 的开发者.  开发环境和工具 Android Studio 2.2 ReactNative 0.34 Android 模拟器 Mac 操作系统  预期效果不出所料, 真的不能一帆风顺的 Ru">
+<meta property="og:locale" content="zh_CN">
+<meta property="og:image" content="http://example.com/upload/images/2016/9/26/rn_and_eff_01.png">
+<meta property="article:published_time" content="2016-09-26T13:03:37.000Z">
+<meta property="article:modified_time" content="2022-03-09T14:53:24.353Z">
+<meta property="article:author" content="veryitman">
+<meta property="article:tag" content="Android ReactNative">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:image" content="http://example.com/upload/images/2016/9/26/rn_and_eff_01.png">
+  
+  
+
+  <!-- feed -->
+  
+
+  
+    
+<link rel="stylesheet" href="/css/main.css">
+
+  
+
+  
+
+  
+</head>
+
+<body>
+  
+
+
+  <div class='l_body' id='start'>
+    <aside class='l_left' layout='post'>
+    
+
+
+<header class="header">
+
+<div class="logo-wrap"><a class="title" href="/"><div class="main">Veryitman</div></a></div>
+<nav class="menu dis-select"></nav></header>
+
+<div class="widgets">
+
+<div class="widget-wrap single" id="toc"><div class="widget-header cap dis-select"><span class="name">本文目录</span></div><div class="widget-body fs14"><div class="doc-tree active"><ol class="toc"><li class="toc-item toc-level-2"><a class="toc-link" href="#%E9%80%82%E5%90%88%E8%AF%BB%E8%80%85"><span class="toc-text">适合读者</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#%E5%BC%80%E5%8F%91%E7%8E%AF%E5%A2%83%E5%92%8C%E5%B7%A5%E5%85%B7"><span class="toc-text">开发环境和工具</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#%E9%A2%84%E6%9C%9F%E6%95%88%E6%9E%9C"><span class="toc-text">预期效果</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#%E9%97%AE%E9%A2%98%E6%8F%8F%E8%BF%B0%E5%92%8C%E8%A7%A3%E5%86%B3"><span class="toc-text">问题描述和解决</span></a><ol class="toc-child"><li class="toc-item toc-level-3"><a class="toc-link" href="#%E9%97%AE%E9%A2%981-%E7%9B%B4%E6%8E%A5%E8%BF%90%E8%A1%8C-crash"><span class="toc-text">问题1: 直接运行 crash</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#%E8%A7%A3%E5%86%B3%E6%96%B9%E6%A1%88"><span class="toc-text">解决方案:</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#%E9%97%AE%E9%A2%982"><span class="toc-text">问题2:</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#%E8%A7%A3%E5%86%B3%E6%96%B9%E6%A1%88-1"><span class="toc-text">解决方案:</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#%E9%97%AE%E9%A2%983"><span class="toc-text">问题3:</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#%E8%A7%A3%E5%86%B3%E6%96%B9%E6%A1%88-2"><span class="toc-text">解决方案:</span></a></li></ol></li><li class="toc-item toc-level-2"><a class="toc-link" href="#%E9%99%84%E5%BD%95-%E4%BB%A3%E7%A0%81"><span class="toc-text">附录(代码)</span></a></li></ol></div></div></div>
+
+
+</div>
+
+
+    </aside>
+    <div class='l_main'>
+      
+
+      
+
+
+<div class="bread-nav fs12"><div id="breadcrumb"><a class="cap breadcrumb" href="/">主页</a><span class="sep"></span><a class="cap breadcrumb" href="/">文章</a><span class="sep"></span><a class="cap breadcrumb-link" href="/categories/ReactNative/">ReactNative</a></div><div id="post-meta">发布于&nbsp;<time datetime="2016-09-26T13:03:37.000Z">2016-09-26</time></div></div>
+
+<article class='content md post'>
+<h1 class="article-title"><span>RN: 0.34 运行在 Android 的问题</span></h1>
+<p>今天闲来无事, 想使用 RN 工程在 Android 设备上面跑跑.</p>
+<p>想看看运行效果怎么样?!</p>
+<h2 id="适合读者"><a href="#适合读者" class="headerlink" title="适合读者"></a>适合读者</h2><ul>
+<li>有 Android 开发基础.</li>
+<li>会使用 Android Studio.</li>
+<li>初级 React Native 的开发者.</li>
+</ul>
+<h2 id="开发环境和工具"><a href="#开发环境和工具" class="headerlink" title="开发环境和工具"></a>开发环境和工具</h2><ul>
+<li>Android Studio 2.2</li>
+<li>ReactNative 0.34</li>
+<li>Android 模拟器</li>
+<li>Mac 操作系统</li>
+</ul>
+<h2 id="预期效果"><a href="#预期效果" class="headerlink" title="预期效果"></a>预期效果</h2><p>不出所料, 真的不能一帆风顺的 Run.</p>
+<p>在我的博客 ReactNative: 不一样的 HelloWorld 中展示了 RN 在 iOS 上面的运行情况.</p>
+<p>今天还是这个例子, 部署和运行到 Android 上面.</p>
+<p>效果如下:<br><img class="lazy" src="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAABGdBTUEAALGPC/xhBQAAADhlWElmTU0AKgAAAAgAAYdpAAQAAAABAAAAGgAAAAAAAqACAAQAAAABAAAAAaADAAQAAAABAAAAAQAAAADa6r/EAAAAC0lEQVQIHWNgAAIAAAUAAY27m/MAAAAASUVORK5CYII=" data-src="/upload/images/2016/9/26/rn_and_eff_01.png" alt="1"></p>
+<p>在这个过程中, 遇到几个问题.</p>
+<p>特此记录.</p>
+<h2 id="问题描述和解决"><a href="#问题描述和解决" class="headerlink" title="问题描述和解决"></a>问题描述和解决</h2><h3 id="问题1-直接运行-crash"><a href="#问题1-直接运行-crash" class="headerlink" title="问题1: 直接运行 crash"></a>问题1: 直接运行 crash</h3><p>log 描述(部分)</p>
+<blockquote>
+<p>E&#x2F;AndroidRuntime: FATAL EXCEPTION: main<br>Process: com.mzrntutorial, PID: 5849<br>java.lang.RuntimeException:<br>Unable to start activity ComponentInfo{com.mzrntutorial&#x2F;com.mzrntutorial.MainActivity}: java.lang.ClassCastException: android.app.Application cannot be cast to com.facebook.react.ReactApplication<br>at android.app.ActivityThread.performLaunchActivity(ActivityThread.java:2416)<br>at android.app.ActivityThread.handleLaunchActivity(ActivityThread.java:2476)     </p>
+</blockquote>
+<h3 id="解决方案"><a href="#解决方案" class="headerlink" title="解决方案:"></a>解决方案:</h3><p>Manifest.xml 配置 Application 名称</p>
+<p>android:name&#x3D;”.MainApplication”</p>
+<h3 id="问题2"><a href="#问题2" class="headerlink" title="问题2:"></a>问题2:</h3><figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">could not get batchedbridge make sure your bundle is packaged correctly</span><br></pre></td></tr></table></figure>
+
+<p>解决问题1后, 再次运行, 会报问题2.<br>该问题是因为没有启动本地的 server.</p>
+<p>使用 Xcode 可以自动运行本地 server.<br>可以参考博客 React Native 如何启动 local server</p>
+<h3 id="解决方案-1"><a href="#解决方案-1" class="headerlink" title="解决方案:"></a>解决方案:</h3><p>手动启动 server.</p>
+<p>cd 项目根目录</p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">react-native start</span><br></pre></td></tr></table></figure>
+
+<h3 id="问题3"><a href="#问题3" class="headerlink" title="问题3:"></a>问题3:</h3><blockquote>
+<p>模拟器没有 menu 按键, 无法 Reload</p>
+</blockquote>
+<p>这个其实不是什么大问题, 但是对于初学者, 也算是一个问题.</p>
+<p>新版的 Android SDK 创建的模拟器没有 menu 按键了</p>
+<h3 id="解决方案-2"><a href="#解决方案-2" class="headerlink" title="解决方案:"></a>解决方案:</h3><p>连续按两次字母 r 即可刷新.</p>
+<p>这些问题, FB 后面肯定会解决的.<br>阿门!</p>
+<h2 id="附录-代码"><a href="#附录-代码" class="headerlink" title="附录(代码)"></a>附录(代码)</h2><p>index.ios.js</p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br><span class="line">39</span><br><span class="line">40</span><br><span class="line">41</span><br><span class="line">42</span><br><span class="line">43</span><br><span class="line">44</span><br><span class="line">45</span><br><span class="line">46</span><br><span class="line">47</span><br><span class="line">48</span><br><span class="line">49</span><br><span class="line">50</span><br><span class="line">51</span><br><span class="line">52</span><br><span class="line">53</span><br><span class="line">54</span><br><span class="line">55</span><br><span class="line">56</span><br><span class="line">57</span><br><span class="line">58</span><br><span class="line">59</span><br><span class="line">60</span><br><span class="line">61</span><br><span class="line">62</span><br><span class="line">63</span><br><span class="line">64</span><br><span class="line">65</span><br><span class="line">66</span><br><span class="line">67</span><br><span class="line">68</span><br><span class="line">69</span><br><span class="line">70</span><br><span class="line">71</span><br><span class="line">72</span><br><span class="line">73</span><br><span class="line">74</span><br><span class="line">75</span><br><span class="line">76</span><br><span class="line">77</span><br><span class="line">78</span><br><span class="line">79</span><br><span class="line">80</span><br><span class="line">81</span><br><span class="line">82</span><br><span class="line">83</span><br><span class="line">84</span><br><span class="line">85</span><br><span class="line">86</span><br><span class="line">87</span><br><span class="line">88</span><br><span class="line">89</span><br><span class="line">90</span><br><span class="line">91</span><br><span class="line">92</span><br><span class="line">93</span><br></pre></td><td class="code"><pre><span class="line">import React, &#123; Component &#125; from &#x27;react&#x27;;</span><br><span class="line">import &#123;getPlatformString, isIOS&#125; from &#x27;./js/Generals/Utils/IDSRNPlatformUtil&#x27;;</span><br><span class="line">import MZButton from &#x27;./js/ReactUIKit/MZButton&#x27;</span><br><span class="line">import &#123;</span><br><span class="line">  AppRegistry,</span><br><span class="line">  StyleSheet,</span><br><span class="line">  Text,</span><br><span class="line">  View,</span><br><span class="line">  Platform,</span><br><span class="line">  TouchableOpacity,</span><br><span class="line">  TouchableHighlight</span><br><span class="line">&#125; from &#x27;react-native&#x27;;</span><br><span class="line">// 调用其他模块方法</span><br><span class="line">var os = getPlatformString();</span><br><span class="line">var iosPlatform = isIOS();//when run on &#x27;ios&#x27; true</span><br><span class="line">class MZRNTutorial extends Component &#123;</span><br><span class="line">  constructor(props)</span><br><span class="line">  &#123;</span><br><span class="line">      super(props);</span><br><span class="line">      this.state = &#123;status:1&#125;;</span><br><span class="line">  &#125;</span><br><span class="line">  customPressHandler = () =&gt; &#123;</span><br><span class="line">      alert(&#x27;当前状态: &#x27; + this.state.status);</span><br><span class="line">      this.state.status = 2;</span><br><span class="line">  &#125;</span><br><span class="line">  render() &#123;</span><br><span class="line">    console.log(&#x27;render ...&#x27;);</span><br><span class="line">    return (</span><br><span class="line">      &lt;View style=&#123;styles.container&#125;&gt;</span><br><span class="line">        &lt;Text style=&#123;styles.welcome&#125;&gt;</span><br><span class="line">          Near use React Native!</span><br><span class="line">        &lt;/Text&gt;</span><br><span class="line">        &lt;Text style=&#123;styles.instructions&#125;&gt;</span><br><span class="line">          To get started, edit index.android.js</span><br><span class="line">        &lt;/Text&gt;</span><br><span class="line">        &lt;Text style=&#123;styles.instructions&#125;&gt;</span><br><span class="line">          Press &#x27;R&#x27; twice to reload,&#123;&#x27;\n&#x27;&#125;</span><br><span class="line">          or shake for dev menu</span><br><span class="line">        &lt;/Text&gt;</span><br><span class="line">        &#123;/* 显示当前平台信息*/&#125;</span><br><span class="line">        &lt;Text style=&#123;styles.welcome&#125;&gt;</span><br><span class="line">            current os: &#123;Platform.OS&#125;</span><br><span class="line">        &lt;/Text&gt;</span><br><span class="line">        &#123;/*</span><br><span class="line">        &lt;TouchableOpacity</span><br><span class="line">            style=&#123;styles.button&#125;</span><br><span class="line">            onPress=&#123;this.customPressHandler&#125;</span><br><span class="line">            &gt;</span><br><span class="line">            &lt;Text style=&#123;styles.buttonText&#125;&gt;确定&lt;/Text&gt;</span><br><span class="line">        &lt;/TouchableOpacity&gt;</span><br><span class="line">        */&#125;</span><br><span class="line">        &lt;MZButton text=&quot;确定?&quot; bgColor=&quot;green&quot; dianjishijian=&#123;()=&gt;&#123;alert(&#x27;居然点击确定?!&#x27;)&#125;&#125;&gt;</span><br><span class="line">        &lt;/MZButton&gt;</span><br><span class="line">      &lt;/View&gt;</span><br><span class="line">    );</span><br><span class="line">  &#125;</span><br><span class="line">&#125;</span><br><span class="line">const styles = StyleSheet.create(&#123;</span><br><span class="line">  button: &#123;</span><br><span class="line">    height: 40,</span><br><span class="line">    width: 150,</span><br><span class="line">    borderRadius: 20,</span><br><span class="line">    justifyContent: &#x27;center&#x27;,</span><br><span class="line">    backgroundColor: &#x27;green&#x27;,</span><br><span class="line">    overflow: &#x27;hidden&#x27;</span><br><span class="line">  &#125;,</span><br><span class="line">  buttonText: &#123;</span><br><span class="line">    textAlign: &#x27;center&#x27;,</span><br><span class="line">    color: &#x27;white&#x27;</span><br><span class="line">  &#125;,</span><br><span class="line">  container: &#123;</span><br><span class="line">    flex: 1,</span><br><span class="line">    justifyContent: &#x27;center&#x27;,</span><br><span class="line">    alignItems: &#x27;center&#x27;,</span><br><span class="line">    backgroundColor: &#x27;#F5FCFF&#x27;,</span><br><span class="line">  &#125;,</span><br><span class="line">  welcome: &#123;</span><br><span class="line">    fontSize: 20,</span><br><span class="line">    textAlign: &#x27;center&#x27;,</span><br><span class="line">    margin: 10,</span><br><span class="line">  &#125;,</span><br><span class="line">  instructions: &#123;</span><br><span class="line">    textAlign: &#x27;center&#x27;,</span><br><span class="line">    color: &#x27;#333333&#x27;,</span><br><span class="line">    marginBottom: 5,</span><br><span class="line">  &#125;,</span><br><span class="line">  flowRight: &#123;</span><br><span class="line">   flexDirection: &#x27;row&#x27;,</span><br><span class="line">   alignItems: &#x27;center&#x27;,</span><br><span class="line">   alignSelf: &#x27;stretch&#x27;</span><br><span class="line"> &#125;,</span><br><span class="line">&#125;);</span><br><span class="line">AppRegistry.registerComponent(&#x27;MZRNTutorial&#x27;, () =&gt; MZRNTutorial);</span><br></pre></td></tr></table></figure>
+
+<p>MZButton.js</p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br><span class="line">39</span><br><span class="line">40</span><br><span class="line">41</span><br><span class="line">42</span><br><span class="line">43</span><br><span class="line">44</span><br><span class="line">45</span><br><span class="line">46</span><br><span class="line">47</span><br><span class="line">48</span><br><span class="line">49</span><br><span class="line">50</span><br><span class="line">51</span><br><span class="line">52</span><br><span class="line">53</span><br><span class="line">54</span><br><span class="line">55</span><br></pre></td><td class="code"><pre><span class="line">import React, &#123; Component &#125; from &#x27;react&#x27;;</span><br><span class="line">import &#123;</span><br><span class="line">  StyleSheet,</span><br><span class="line">  Text,</span><br><span class="line">  View,</span><br><span class="line">  Platform,</span><br><span class="line">  TouchableOpacity</span><br><span class="line">&#125; from &#x27;react-native&#x27;;</span><br><span class="line">//-----------------------------------------------------</span><br><span class="line">//外部使用该模块, ES6需要使用关键字 export default</span><br><span class="line">//-----------------------------------------------------</span><br><span class="line">export default class MZButton extends Component</span><br><span class="line">&#123;</span><br><span class="line">    constructor(props)</span><br><span class="line">    &#123;</span><br><span class="line">        super(props);</span><br><span class="line">        this.state = &#123;status:1&#125;;</span><br><span class="line">    &#125;</span><br><span class="line">    costumPressHandler = () =&gt; &#123;</span><br><span class="line">        alert(&#x27;当前状态:&#x27; + this.state.status);</span><br><span class="line">        const &#123;dianjishijian&#125; = this.props;</span><br><span class="line">        dianjishijian();</span><br><span class="line">    &#125;;</span><br><span class="line">    // 使用属性值设置背景颜色</span><br><span class="line">    // style=&#123;[styles.button], &#123;backgroundColor:this.props.beijingyanse&#125;&#125;</span><br><span class="line">    render() &#123;</span><br><span class="line">        //解构</span><br><span class="line">        const &#123;text, bgColor&#125; = this.props;</span><br><span class="line">        return (</span><br><span class="line">            &lt;TouchableOpacity</span><br><span class="line">                style=&#123;[styles.button], &#123;backgroundColor:bgColor&#125;&#125;</span><br><span class="line">                onPress = &#123;this.costumPressHandler&#125;</span><br><span class="line">                &gt;</span><br><span class="line">                &lt;Text style=&#123;styles.buttonText&#125;&gt;</span><br><span class="line">                    &#123;/* 使用属性值 */&#125;</span><br><span class="line">                    &#123;this.props.text&#125;</span><br><span class="line">                &lt;/Text&gt;</span><br><span class="line">            &lt;/TouchableOpacity&gt;</span><br><span class="line">        )</span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br><span class="line">const styles = StyleSheet.create(&#123;</span><br><span class="line">    button: &#123;</span><br><span class="line">      height: 40,</span><br><span class="line">      width: 150,</span><br><span class="line">      borderRadius: 20,</span><br><span class="line">      justifyContent: &#x27;center&#x27;,</span><br><span class="line">      backgroundColor: &#x27;green&#x27;,</span><br><span class="line">      overflow: &#x27;hidden&#x27;</span><br><span class="line">    &#125;,</span><br><span class="line">    buttonText: &#123;</span><br><span class="line">      textAlign: &#x27;center&#x27;,</span><br><span class="line">      color: &#x27;white&#x27;</span><br><span class="line">    &#125;</span><br><span class="line">&#125;);</span><br></pre></td></tr></table></figure>
+
+<p>IDSRNPlatformUtil.js</p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br></pre></td><td class="code"><pre><span class="line">import React, &#123; Component &#125; from &#x27;react&#x27;;</span><br><span class="line">import &#123;</span><br><span class="line">    Platform</span><br><span class="line">&#125; from &#x27;react-native&#x27;;</span><br><span class="line">export function getPlatformString()</span><br><span class="line">&#123;</span><br><span class="line">    console.log(Platform.OS);</span><br><span class="line">    </span><br><span class="line">    return Platform.OS;</span><br><span class="line">&#125;</span><br><span class="line">export function isIOS()</span><br><span class="line">&#123;</span><br><span class="line">    return Platform.OS === &#x27;ios&#x27;;</span><br><span class="line">&#125;</span><br><span class="line">export function isAndroid()</span><br><span class="line">&#123;</span><br><span class="line">    return Platform.OS == &#x27;android&#x27;;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+
+
+
+
+</article>
+
+<div class="related-wrap reveal" id="read-next"><section class="header cap theme"><span>接下来阅读</span></section><section class="body fs14"><a id="next" href="/2016/09/25/iOS-%E9%A1%B9%E7%9B%AE-%E6%89%93%E9%80%A0%E6%9C%AC%E5%9C%B0-pod-%E5%BA%93/">iOS 项目: 打造本地 pod 库<span class="note">较早</span></a><div class="line"></div><a id="prev" href="/2016/10/06/RN-%E4%BD%BF%E7%94%A8-Mobx/">RN: 使用 Mobx<span class="note">较新</span></a></section></div>
+
+
+
+
+
+
+  <div class='related-wrap md reveal' id="comments">
+    <div class='cmt-title cap theme'>
+      快来参与讨论吧
+    </div>
+    <div class='cmt-body valine'>
+      
+
+<div id="valine_container" class="valine_thread"><svg class="loading" style="vertical-align: middle;fill: currentColor;overflow: hidden;" viewBox="0 0 1024 1024" version="1.1" xmlns="http://www.w3.org/2000/svg" p-id="2709"><path d="M832 512c0-176-144-320-320-320V128c211.2 0 384 172.8 384 384h-64zM192 512c0 176 144 320 320 320v64C300.8 896 128 723.2 128 512h64z" p-id="2710"></path></svg></div>
+
+    </div>
+  </div>
+
+
+
+      
+<footer class="page-footer reveal fs12"><hr><div class="text"><p>本博客所有文章除特别声明外，均采用 <a target="_blank" rel="noopener" href="https://creativecommons.org/licenses/by-nc-sa/4.0/">CC BY-NC-SA 4.0</a> 许可协议，转载请注明出处。</p>
+<p>veryitman</p>
+</div></footer>
+
+      <div class='float-panel mobile-only blur' style='display:none'>
+  <button type='button' class='sidebar-toggle mobile' onclick='sidebar.toggle()'>
+    <svg class="icon" style="width: 1em; height: 1em;vertical-align: middle;fill: currentColor;overflow: hidden;" viewBox="0 0 1024 1024" version="1.1" xmlns="http://www.w3.org/2000/svg" p-id="15301"><path d="M566.407 808.3c26.9-0.1 49.3-20.8 51.6-47.6-1.9-27.7-23.9-49.7-51.6-51.6h-412.6c-28.2-1.4-52.6 19.5-55.5 47.6 2.3 26.8 24.6 47.5 51.6 47.6h416.5v4z m309.3-249.9c26.9-0.1 49.3-20.8 51.6-47.6-2.2-26.8-24.6-47.5-51.6-47.6h-721.9c-27.7-2.8-52.5 17.4-55.3 45.1-0.1 0.8-0.1 1.7-0.2 2.5 0.9 27.2 23.6 48.5 50.7 47.6H875.707z m-103.1-245.9c26.9-0.1 49.3-20.8 51.6-47.6-0.4-28.3-23.2-51.1-51.5-51.6h-618.9c-29.5-1.1-54.3 21.9-55.5 51.4v0.2c1.4 27.8 25.2 49.2 53 47.8 0.8 0 1.7-0.1 2.5-0.2h618.8z" p-id="15302"></path><path d="M566.407 808.3c26.9-0.1 49.3-20.8 51.6-47.6-1.9-27.7-23.9-49.7-51.6-51.6h-412.6c-28.2-1.4-52.6 19.5-55.5 47.6 1.9 27.7 23.9 49.7 51.6 51.6h416.5z m309.3-249.9c26.9-0.1 49.3-20.8 51.6-47.6-2.2-26.8-24.6-47.5-51.6-47.6h-721.9c-27.7-2.8-52.5 17.4-55.3 45.1-0.1 0.8-0.1 1.7-0.2 2.5 0.9 27.2 23.6 48.5 50.7 47.6H875.707z m-103.1-245.9c26.9-0.1 49.3-20.8 51.6-47.6-0.4-28.3-23.2-51.1-51.5-51.6h-618.9c-29.5-1.1-54.3 21.9-55.5 51.4v0.2c1.4 27.8 25.2 49.2 53 47.8 0.8 0 1.7-0.1 2.5-0.2h618.8z" p-id="15303"></path></svg>
+  </button>
+</div>
+
+    </div>
+  </div>
+  <div class='scripts'>
+    <script type="text/javascript">
+  stellar = {
+    // 懒加载 css https://github.com/filamentgroup/loadCSS
+    loadCSS: (href, before, media, attributes) => {
+      var doc = window.document;
+      var ss = doc.createElement("link");
+      var ref;
+      if (before) {
+        ref = before;
+      } else {
+        var refs = (doc.body || doc.getElementsByTagName("head")[0]).childNodes;
+        ref = refs[refs.length - 1];
+      }
+      var sheets = doc.styleSheets;
+      if (attributes) {
+        for (var attributeName in attributes) {
+          if (attributes.hasOwnProperty(attributeName)) {
+            ss.setAttribute(attributeName, attributes[attributeName]);
+          }
+        }
+      }
+      ss.rel = "stylesheet";
+      ss.href = href;
+      ss.media = "only x";
+      function ready(cb) {
+        if (doc.body) {
+          return cb();
+        }
+        setTimeout(function () {
+          ready(cb);
+        });
+      }
+      ready(function () {
+        ref.parentNode.insertBefore(ss, before ? ref : ref.nextSibling);
+      });
+      var onloadcssdefined = function (cb) {
+        var resolvedHref = ss.href;
+        var i = sheets.length;
+        while (i--) {
+          if (sheets[i].href === resolvedHref) {
+            return cb();
+          }
+        }
+        setTimeout(function () {
+          onloadcssdefined(cb);
+        });
+      };
+      function loadCB() {
+        if (ss.addEventListener) {
+          ss.removeEventListener("load", loadCB);
+        }
+        ss.media = media || "all";
+      }
+      if (ss.addEventListener) {
+        ss.addEventListener("load", loadCB);
+      }
+      ss.onloadcssdefined = onloadcssdefined;
+      onloadcssdefined(loadCB);
+      return ss;
+    },
+
+    // 从 butterfly 和 volantis 获得灵感
+    loadScript: (src, opt) => new Promise((resolve, reject) => {
+      var script = document.createElement('script');
+      script.src = src;
+      if (opt) {
+        for (let key of Object.keys(opt)) {
+          script[key] = opt[key]
+        }
+      } else {
+        // 默认异步，如果需要同步，第二个参数传入 {} 即可
+        script.async = true
+      }
+      script.onerror = reject
+      script.onload = script.onreadystatechange = function() {
+        const loadState = this.readyState
+        if (loadState && loadState !== 'loaded' && loadState !== 'complete') return
+        script.onload = script.onreadystatechange = null
+        resolve()
+      }
+      document.head.appendChild(script)
+    }),
+
+    // https://github.com/jerryc127/hexo-theme-butterfly
+    jQuery: (fn) => {
+      if (typeof jQuery === 'undefined') {
+        stellar.loadScript(stellar.plugins.jQuery).then(fn)
+      } else {
+        fn()
+      }
+    }
+  };
+  stellar.github = 'https://github.com/xaoxuu/hexo-theme-stellar/tree/1.6.1';
+  stellar.config = {
+    date_suffix: {
+      just: '刚刚',
+      min: '分钟前',
+      hour: '小时前',
+      day: '天前',
+      month: '个月前',
+    },
+  };
+
+  // required plugins (only load if needs)
+  stellar.plugins = {
+    jQuery: 'https://cdn.jsdelivr.net/npm/jquery@3.5.1/dist/jquery.min.js',
+    sitesjs: '/js/plugins/sites.js',
+    friendsjs: '/js/plugins/friends.js',
+  };
+
+  // optional plugins
+  if ('true' == 'true') {
+    stellar.plugins.lazyload = Object.assign({"enable":true,"js":"https://cdn.jsdelivr.net/npm/vanilla-lazyload@17.3.1/dist/lazyload.min.js","transition":"blur"});
+  }
+  if ('true' == 'true') {
+    stellar.plugins.swiper = Object.assign({"enable":true,"css":"https://unpkg.com/swiper@6/swiper-bundle.min.css","js":"https://unpkg.com/swiper@6/swiper-bundle.min.js"});
+  }
+  if ('' == 'true') {
+    stellar.plugins.scrollreveal = Object.assign({"enable":null,"js":"https://cdn.jsdelivr.net/npm/scrollreveal@4.0.9/dist/scrollreveal.min.js","distance":"8px","duration":500,"interval":100,"scale":1});
+  }
+  if ('true' == 'true') {
+    stellar.plugins.preload = Object.assign({"enable":true,"service":"flying_pages","instant_page":"https://cdn.jsdelivr.net/gh/volantis-x/cdn-volantis@4.1.2/js/instant_page.js","flying_pages":"https://cdn.jsdelivr.net/gh/gijo-varghese/flying-pages@2.1.2/flying-pages.min.js"});
+  }
+</script>
+
+<!-- required -->
+
+  
+<script src="/js/main.js" async></script>
+
+
+
+<!-- optional -->
+
+  <script>
+  function getEmojiMaps() {
+    function emoji(path, idx, ext) {
+      return path + "/" + path + "-" + idx + "." + ext;
+    }
+    var emojiMaps = {};
+    for (var i = 1; i <= 54; i++) {
+      emojiMaps['tieba-' + i] = emoji('tieba', i, 'png');
+    }
+    for (var i = 1; i <= 101; i++) {
+      emojiMaps['qq-' + i] = emoji('qq', i, 'gif');
+    }
+    for (var i = 1; i <= 116; i++) {
+      emojiMaps['aru-' + i] = emoji('aru', i, 'gif');
+    }
+    for (var i = 1; i <= 125; i++) {
+      emojiMaps['twemoji-' + i] = emoji('twemoji', i, 'png');
+    }
+    for (var i = 1; i <= 4; i++) {
+      emojiMaps['weibo-' + i] = emoji('weibo', i, 'png');
+    }
+    return emojiMaps;
+  }
+  function load_comment(){
+    if(!document.getElementById("valine_container"))return;
+    stellar.loadScript('https://cdn.jsdelivr.net/gh/XuxuGood/simple-blog-cdn@main/js/Valine.min.js', {defer:true}).then(function () {
+      const el = document.getElementById("valine_container");
+      var path = el.getAttribute('comment_id');
+      const placeholder = "欢迎您留言~";
+      if (!path) {
+        path = decodeURI(window.location.pathname);
+      }
+      var valine = new Valine();
+      valine.init(Object.assign({"js":"https://cdn.jsdelivr.net/gh/XuxuGood/simple-blog-cdn@main/js/Valine.min.js","appId":"FY2C9UCttYNaE1j8umenqdCE-gzGzoHsz","appKey":"4i7xMwkfSEGmEDhi6SceKFxz","placeholder":"欢迎您留言~","requiredFields":["nick","mail"],"enableQQ":true,"recordIP":false,"avatar":"robohash","pageSize":10,"lang":"zh-cn","highlight":true,"mathJax":false,"tagMeta":["博主","小伙伴","访客"],"metaPlaceholder":{"nick":"昵称/QQ号(必填)","mail":"邮箱（必填，完全保密）"},"master":["6783037F2DF30EAB99F9FC256157D875"],"friends":["6783037F2DF30EAB99F9FC256157D875"],"comment_count":true}, {
+        el: '#valine_container',
+        path: path,
+        placeholder: placeholder,
+        emojiCDN: 'https://cdn.jsdelivr.net/gh/volantis-x/cdn-emoji/valine/',
+        emojiMaps: getEmojiMaps(),
+      }));
+    });
+  }
+  window.addEventListener('DOMContentLoaded', (event) => {
+    console.log('DOM fully loaded and parsed');
+    load_comment();
+  });
+
+</script>
+
+
+
+
+<!-- inject -->
+
+
+  </div>
+</body>
+</html>

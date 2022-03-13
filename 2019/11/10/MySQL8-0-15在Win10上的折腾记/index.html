@@ -1,0 +1,447 @@
+<!DOCTYPE html>
+<html lang='zh-CN'>
+
+<head>
+  <meta name="generator" content="Hexo 6.0.0">
+  <meta charset="utf-8">
+  
+
+  <meta http-equiv='x-dns-prefetch-control' content='on' />
+  <link rel='dns-prefetch' href='https://cdn.jsdelivr.net'>
+  <link rel="preconnect" href="https://cdn.jsdelivr.net" crossorigin>
+
+  <meta name="renderer" content="webkit">
+  <meta name="force-rendering" content="webkit">
+  <meta http-equiv="X-UA-Compatible" content="IE=Edge,chrome=1">
+  <meta name="HandheldFriendly" content="True" >
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1">
+  <meta name="theme-color" content="#f8f8f8">
+  <title>MySQL8.0.15在Win10上的折腾记 - Veryitman</title>
+
+  
+    <meta name="description" content="安装和配置 MySQL我在 Windows 10 上面使用 MySQL Instller 安装的 MySQL-8.0.15，安装完成后，启动和使用 MySQL 遇到了不少问题，特此记录踩坑记。 只要你的网络稳定，按照默认安装，整个安装过程还算顺利。 安装过程中需要设置密码，我设置的账号和密码都是 root，所以下面的操作都是基于这个账号和密码进行的。 安装完成后，将 mysql server 的">
+<meta property="og:type" content="article">
+<meta property="og:title" content="MySQL8.0.15在Win10上的折腾记">
+<meta property="og:url" content="http://example.com/2019/11/10/MySQL8-0-15%E5%9C%A8Win10%E4%B8%8A%E7%9A%84%E6%8A%98%E8%85%BE%E8%AE%B0/index.html">
+<meta property="og:site_name" content="Veryitman">
+<meta property="og:description" content="安装和配置 MySQL我在 Windows 10 上面使用 MySQL Instller 安装的 MySQL-8.0.15，安装完成后，启动和使用 MySQL 遇到了不少问题，特此记录踩坑记。 只要你的网络稳定，按照默认安装，整个安装过程还算顺利。 安装过程中需要设置密码，我设置的账号和密码都是 root，所以下面的操作都是基于这个账号和密码进行的。 安装完成后，将 mysql server 的">
+<meta property="og:locale" content="zh_CN">
+<meta property="og:image" content="http://example.com/upload/images/2019/11/10/1.png">
+<meta property="og:image" content="http://example.com/upload/images/2019/11/10/2.png">
+<meta property="og:image" content="http://example.com/upload/images/2019/11/10/3.png">
+<meta property="og:image" content="http://example.com/upload/images/2019/11/10/4.png">
+<meta property="og:image" content="http://example.com/upload/images/2019/11/10/5.png">
+<meta property="og:image" content="http://example.com/upload/me/qrcode_wx.jpg">
+<meta property="article:published_time" content="2019-11-10T02:58:37.000Z">
+<meta property="article:modified_time" content="2022-03-09T14:53:24.314Z">
+<meta property="article:author" content="veryitman">
+<meta property="article:tag" content="MySQL Win10">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:image" content="http://example.com/upload/images/2019/11/10/1.png">
+  
+  
+
+  <!-- feed -->
+  
+
+  
+    
+<link rel="stylesheet" href="/css/main.css">
+
+  
+
+  
+
+  
+</head>
+
+<body>
+  
+
+
+  <div class='l_body' id='start'>
+    <aside class='l_left' layout='post'>
+    
+
+
+<header class="header">
+
+<div class="logo-wrap"><a class="title" href="/"><div class="main">Veryitman</div></a></div>
+<nav class="menu dis-select"></nav></header>
+
+<div class="widgets">
+
+<div class="widget-wrap single" id="toc"><div class="widget-header cap dis-select"><span class="name">本文目录</span></div><div class="widget-body fs14"><div class="doc-tree active"><ol class="toc"><li class="toc-item toc-level-2"><a class="toc-link" href="#%E5%AE%89%E8%A3%85%E5%92%8C%E9%85%8D%E7%BD%AE-MySQL"><span class="toc-text">安装和配置 MySQL</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#%E8%A7%A3%E5%86%B3%E7%99%BB%E5%BD%95-MySQL-%E5%8F%97%E9%99%90"><span class="toc-text">解决登录 MySQL 受限</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#MySQL%E9%85%8D%E7%BD%AE%E6%96%87%E4%BB%B6%EF%BC%9F"><span class="toc-text">MySQL配置文件？</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#%E8%BF%98%E6%9C%89%E5%A5%87%E8%91%A9%E7%9A%84%E9%94%99%E8%AF%AF"><span class="toc-text">还有奇葩的错误</span></a></li></ol></div></div></div>
+
+
+</div>
+
+
+    </aside>
+    <div class='l_main'>
+      
+
+      
+
+
+<div class="bread-nav fs12"><div id="breadcrumb"><a class="cap breadcrumb" href="/">主页</a><span class="sep"></span><a class="cap breadcrumb" href="/">文章</a><span class="sep"></span><a class="cap breadcrumb-link" href="/categories/Server/">Server</a></div><div id="post-meta">发布于&nbsp;<time datetime="2019-11-10T02:58:37.000Z">2019-11-10</time></div></div>
+
+<article class='content md post'>
+<h1 class="article-title"><span>MySQL8.0.15在Win10上的折腾记</span></h1>
+<h2 id="安装和配置-MySQL"><a href="#安装和配置-MySQL" class="headerlink" title="安装和配置 MySQL"></a>安装和配置 MySQL</h2><p>我在 <code>Windows 10</code> 上面使用 <code>MySQL Instller</code> 安装的 MySQL-8.0.15，安装完成后，启动和使用 MySQL 遇到了不少问题，特此记录踩坑记。</p>
+<p>只要你的网络稳定，按照默认安装，整个安装过程还算顺利。</p>
+<p>安装过程中需要设置密码，我设置的账号和密码都是 <code>root</code>，所以下面的操作都是基于这个账号和密码进行的。</p>
+<p>安装完成后，将 <code>mysql server</code> 的 <code>bin 目录</code>加入到系统的 <code>path</code> 变量中去，如图：</p>
+<p><img class="lazy" src="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAABGdBTUEAALGPC/xhBQAAADhlWElmTU0AKgAAAAgAAYdpAAQAAAABAAAAGgAAAAAAAqACAAQAAAABAAAAAaADAAQAAAABAAAAAQAAAADa6r/EAAAAC0lEQVQIHWNgAAIAAAUAAY27m/MAAAAASUVORK5CYII=" data-src="/upload/images/2019/11/10/1.png" alt="1568529858131"></p>
+<p>系统环境变量 <code>path</code> 中加入 <code>%MySQL_Home%\bin</code> 即可。</p>
+<p>加入成功之后，就可以使用 <code>mysql</code> 命令了。</p>
+<p><strong>题外话</strong>，我们在命令行使用的 <code>mysql</code> 命令其实是对应 <code>MySQL Server 8.0\bin\mysql.exe</code>，可以使用 <code>where</code> 命令看一下其可执行文件的位置，如下：</p>
+<figure class="highlight shell"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line"><span class="meta">$ </span><span class="language-bash"><span class="built_in">where</span> mysql</span></span><br><span class="line">C:\Program Files\MySQL\MySQL Server 8.0\bin\mysql.exe</span><br></pre></td></tr></table></figure>
+
+<p>同理， <code>mysqld</code> 命令对应的是 <code>mysqld.exe</code>可执行文件。</p>
+<p>查看安装的 <code>mysql-server</code> 版本，可以执行下面的命令：</p>
+<figure class="highlight shell"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">mysql --version</span><br></pre></td></tr></table></figure>
+
+<p>可以得到下面的输出，可以看出当前版本是 <code>8.0.15</code>:</p>
+<figure class="highlight shell"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">C:\Program Files\MySQL\MySQL Server 8.0\bin\mysql.exe  Ver 8.0.15 for Win64 on x86_64 (MySQL Community Server - GPL)</span><br></pre></td></tr></table></figure>
+
+<p>我用的命令行终端工具是 <code>Git bash</code>（安装Git客户端就自带该工具，个人觉得挺好用的，[嘿哈]）。</p>
+<p>用管理员身份运行 <code>Git bash</code>，然后在该终端工具中执行如下命令：</p>
+<figure class="highlight shell"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">mysqld --install</span><br></pre></td></tr></table></figure>
+
+<p>如果不用管理员身份运行终端的话，会报类似下面的错误：</p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">Install/Remove of the Service Denied!</span><br></pre></td></tr></table></figure>
+
+<p>运行成功的话，可以看到如下提示：</p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">Service successfully installed.</span><br></pre></td></tr></table></figure>
+
+<p>再次启动 MySQL80，<strong>一定要用管理员身份启动终端，否则会报 <code>发生系统错误</code> 这样的错误</strong>（如果你是使用管理员身份启动终端的还是报这个错误，也有可能是该服务已经启动了），执行：</p>
+<figure class="highlight shell"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">net start MySQL80</span><br></pre></td></tr></table></figure>
+
+<p><strong>注意</strong>：这里使用的是 <code>MySQL80</code>，这个是服务的名称 （安装时候我设置的服务名称） ，不是 <code>mysql</code>，下面会讲解为什么这样做，如果你没有这个 <code>MySQL80</code> 服务只需要启动名称为 <code>mysql</code> 的服务即可。</p>
+<p>如果出现类似 “MYSQL 服务无法启动” 的提示，可以在 Windows 的任务管理器中找找是否已经启动了 <code>mysqld</code> 服务，可以手动关闭后再来启动。</p>
+<p>如果始终启动失败，可以执行下面的命令： </p>
+<figure class="highlight shell"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">mysqld --initialize</span><br></pre></td></tr></table></figure>
+
+<p>启动成功后，显示如下：</p>
+<figure class="highlight shell"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line">MySQL80 服务正在启动 .</span><br><span class="line">MySQL80 服务已经启动成功。</span><br></pre></td></tr></table></figure>
+
+<p>可以使用下面命令查看是否成功启动 <code>MySQL80</code> 服务，如下：</p>
+<figure class="highlight shell"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">netstat -aon|findstr &quot;3306&quot;</span><br></pre></td></tr></table></figure>
+
+<p>看到如下提示表示启动成功，如下：</p>
+<figure class="highlight shell"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br></pre></td><td class="code"><pre><span class="line">TCP    0.0.0.0:3306           0.0.0.0:0              LISTENING       10344</span><br><span class="line">TCP    0.0.0.0:33060          0.0.0.0:0              LISTENING       10344</span><br><span class="line">TCP    [::]:3306              [::]:0                 LISTENING       10344</span><br><span class="line">TCP    [::]:33060             [::]:0                 LISTENING       10344</span><br><span class="line">TCP    [::1]:3306             [::1]:56962            TIME_WAIT       0</span><br></pre></td></tr></table></figure>
+
+<p>登录 <code>MySQL80</code> 服务，执行如下命令：</p>
+<figure class="highlight shell"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line"><span class="meta">$ </span><span class="language-bash">mysql -uroot -proot</span></span><br><span class="line">mysql: [Warning] Using a password on the command line interface can be insecure.</span><br><span class="line">ERROR 1045 (28000): Access denied for user &#x27;root&#x27;@&#x27;localhost&#x27; (using password: YES)</span><br></pre></td></tr></table></figure>
+
+<p>很不幸的是，登录失败（ERROR 1045）。</p>
+<p>那我们就来解决这个问题，这个版本的 MySQL 和之前的 8.0.x 版本解决方案不同，网上找过很多解决方案有修改配置文件的，忙了半天还是没有搞定，最后在 StackOverflow 上面找到方案，结合个人实践总结了一下，还烦请大家务必往下看。</p>
+<h2 id="解决登录-MySQL-受限"><a href="#解决登录-MySQL-受限" class="headerlink" title="解决登录 MySQL 受限"></a>解决登录 MySQL 受限</h2><p>在看下面内容之前，务必完成文中前面说的步骤，否则下面的内容对你来说没有太大价值。</p>
+<p>新版本的 MySQL 加强了安全方便的因素，所以使用新版本比较费劲，如果你不想折腾，可以安装 MySQL 的 5.x 版本。</p>
+<p><strong>Step-1</strong>：停止 MySQL80 服务</p>
+<p>使用快捷键 <code>win+R</code> 输入 <code>services.msc</code>，打开如下视图并找到 MySQL80 服务：</p>
+<p><img class="lazy" src="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAABGdBTUEAALGPC/xhBQAAADhlWElmTU0AKgAAAAgAAYdpAAQAAAABAAAAGgAAAAAAAqACAAQAAAABAAAAAaADAAQAAAABAAAAAQAAAADa6r/EAAAAC0lEQVQIHWNgAAIAAAUAAY27m/MAAAAASUVORK5CYII=" data-src="/upload/images/2019/11/10/2.png" alt="1568529858131"></p>
+<p>停止 MySQL80 服务，或者在命令行执行 <code>net stop MySQL80</code> 命令。</p>
+<p><strong>Step-2</strong>：另一种方式启动 MySQL80 服务</p>
+<p>使用管理员身份运行终端1，并执行：</p>
+<figure class="highlight shell"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">mysqld --console --skip-grant-tables --shared-memory</span><br></pre></td></tr></table></figure>
+
+<p>此时可以成功启动 <code>MySQL80</code> 服务，但是在 Windows 的服务中是看不到的，不用理会。继续。</p>
+<p><strong>Step-3</strong>：启动另一个终端2</p>
+<p>上述步骤启动完成后，再用管理员身份运行另一个 Windows 的终端2(CMD)，用系统自带的或者 Git Bash 都可以，但是如果使用 Git Bash 的话，必须在登录mysql 的时候使用 <strong>winpty</strong>（Git Bash自带的工具）命令，否则登录会卡住不动。命令使用如下：</p>
+ <figure class="highlight sql"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">winpty mysql <span class="operator">-</span>uroot <span class="operator">-</span>proot</span><br></pre></td></tr></table></figure>
+
+<p><strong>Step-4</strong>：终端登录 mysql</p>
+<p>执行下面命令登录服务：</p>
+<figure class="highlight shell"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">mysql -u root -p root</span><br></pre></td></tr></table></figure>
+
+<p>如下图可以登录成功，如下截图：</p>
+<p><img class="lazy" src="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAABGdBTUEAALGPC/xhBQAAADhlWElmTU0AKgAAAAgAAYdpAAQAAAABAAAAGgAAAAAAAqACAAQAAAABAAAAAaADAAQAAAABAAAAAQAAAADa6r/EAAAAC0lEQVQIHWNgAAIAAAUAAY27m/MAAAAASUVORK5CYII=" data-src="/upload/images/2019/11/10/3.png" alt="1568529858131"></p>
+<p><strong>Step-5</strong>：置空密码</p>
+<p>在上述命令行状态下，执行：</p>
+<figure class="highlight sql"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line">use mysql</span><br><span class="line"></span><br><span class="line"><span class="keyword">update</span> <span class="keyword">user</span> <span class="keyword">set</span> authentication_string<span class="operator">=</span><span class="string">&#x27;&#x27;</span> <span class="keyword">where</span> <span class="keyword">user</span><span class="operator">=</span><span class="string">&#x27;root&#x27;</span>;</span><br></pre></td></tr></table></figure>
+
+<p><strong>Step-6</strong>：退出 mysql 服务</p>
+<figure class="highlight sql"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">quit</span><br></pre></td></tr></table></figure>
+
+<p><strong>Step-7</strong>：关闭 mysqld 启动的 MySQL80 服务</p>
+<p>需要关闭以 <code>-console --skip-grant-tables --shared-memory</code> 启动的 MySQL80 服务，直接在终端1中 <code>ctrl+c</code> 即可。</p>
+<p><strong>Step-8</strong>：启动 MySQL80 服务</p>
+<p>使用<strong>Step-1</strong>步骤中的方式打开 Windows 的服务启动或者在终端1中执行  <code> net start MySQL80</code> 启动 MySQL80 服务。</p>
+<p><strong>Step-9</strong>： 无密码登录 mysql</p>
+<p>在步骤 <strong>Step-5</strong> 中已将密码置空，现在可以无密码状态登录 mysql 服务，输入登录命令：</p>
+<figure class="highlight shell"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">mysql -u root -p </span><br></pre></td></tr></table></figure>
+
+<p>登录成功后，修改密码（永远不过期的密码）执行：</p>
+<figure class="highlight sql"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">ALTER</span> <span class="keyword">USER</span> <span class="string">&#x27;root&#x27;</span>@<span class="string">&#x27;localhost&#x27;</span> IDENTIFIED <span class="keyword">BY</span> <span class="string">&#x27;newpwd123&#x27;</span> PASSWORD EXPIRE NEVER;</span><br></pre></td></tr></table></figure>
+
+<p>我把原来的密码修改为 <code>newpwd123</code>，你可以根据自己的爱好设置为其他的密码。</p>
+<p>如果在此步骤出现类似下面的错误:</p>
+<figure class="highlight shell"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">ERROR 1290 (HY000): The MySQL server is running with the --skip-grant-tables option so it cannot execute this statement</span><br></pre></td></tr></table></figure>
+
+<p>请执行下面的SQL语句，如下命令：</p>
+<figure class="highlight sql"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">flush privileges;</span><br></pre></td></tr></table></figure>
+
+<p><strong>Step-10</strong>：退出 mysql，重新登录</p>
+<p>退出 mysql，然后重新使用修改过的密码登录 mysql，完事。</p>
+<h2 id="MySQL配置文件？"><a href="#MySQL配置文件？" class="headerlink" title="MySQL配置文件？"></a>MySQL配置文件？</h2><p>这也是个神奇的问题，最后在 MySQL 的官方手册里找到了 Answer。</p>
+<p>在 Windows 系统中 C 盘有个隐藏的文件夹，我们来揭开它的神秘面纱。</p>
+<p>打开 C 盘文件，按照下面1、2、3顺序就可以看到 <code>ProgramData </code>文件夹，如下：</p>
+<p><img class="lazy" src="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAABGdBTUEAALGPC/xhBQAAADhlWElmTU0AKgAAAAgAAYdpAAQAAAABAAAAGgAAAAAAAqACAAQAAAABAAAAAaADAAQAAAABAAAAAQAAAADa6r/EAAAAC0lEQVQIHWNgAAIAAAUAAY27m/MAAAAASUVORK5CYII=" data-src="/upload/images/2019/11/10/4.png" alt="1568529858131"></p>
+<p>进入该文件夹，就可以看到 MySQL 的配置文件，如下：</p>
+<p><img class="lazy" src="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAABGdBTUEAALGPC/xhBQAAADhlWElmTU0AKgAAAAgAAYdpAAQAAAABAAAAGgAAAAAAAqACAAQAAAABAAAAAaADAAQAAAABAAAAAQAAAADa6r/EAAAAC0lEQVQIHWNgAAIAAAUAAY27m/MAAAAASUVORK5CYII=" data-src="/upload/images/2019/11/10/5.png" alt="1568529858131"></p>
+<p>上面我们已经说过，启动 MySQL80 服务就默认使用的是该配置文件，可以在 Windows 服务中点击 MySQL80 查看其属性，可以看到下面的描述：</p>
+<figure class="highlight shell"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line">可执行文件的路径：</span><br><span class="line">C:\Program Files\MySQL\MySQL Server 8.0\bin\mysqld.exe&quot; --defaults-file=&quot;C:\ProgramData\MySQL\MySQL Server 8.0\my.ini&quot; MySQL80</span><br></pre></td></tr></table></figure>
+
+<p>其中，<code>--defaults-file=&quot;C:\ProgramData\MySQL\MySQL Server 8.0\my.ini&quot;</code> 就是指定配置文件路径的。</p>
+<p>而在 Windows 服务中点击 MySQL，看到的属性是这样的：</p>
+<figure class="highlight shell"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line">可执行文件的路径：</span><br><span class="line">&quot;C:\Program Files\MySQL\MySQL Server 8.0\bin\mysqld.exe&quot; MySQL</span><br></pre></td></tr></table></figure>
+
+<p>并没有指定配置文件，这也是为什么让大家启动的时候执行 <code>net start MySQL80</code> 的原因。</p>
+<p>顺便修改一下配置文件，把默认编码改为 <code>utf-8</code>，如下配置（记得是在[client]和[mysql]标签下）：</p>
+<figure class="highlight shell"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br></pre></td><td class="code"><pre><span class="line">[client]</span><br><span class="line"><span class="meta"># </span><span class="language-bash">pipe=</span></span><br><span class="line"><span class="meta"># </span><span class="language-bash">socket=MYSQL</span></span><br><span class="line"><span class="meta"># </span><span class="language-bash">设置mysql客户端连接服务端时默认使用的端口</span></span><br><span class="line">port=3306</span><br><span class="line">default-character-set=utf8</span><br><span class="line"></span><br><span class="line">[mysql]</span><br><span class="line">no-beep</span><br><span class="line"><span class="meta"># </span><span class="language-bash">设置默认编码</span></span><br><span class="line">default-character-set=utf8</span><br></pre></td></tr></table></figure>
+
+<h2 id="还有奇葩的错误"><a href="#还有奇葩的错误" class="headerlink" title="还有奇葩的错误"></a>还有奇葩的错误</h2><blockquote>
+<p>会持续记录各种奇葩错误。</p>
+</blockquote>
+<p>1、<strong>ERROR 2003 (HY000): Can’t connect to MySQL server on ‘localhost’ (10061)</strong></p>
+<p>登录 mysql 服务，报上面的错误，说明没有启动成功 MySQL80 服务，最大的可能是你修改了配置文件要么是格式错了要么是配置的东西 mysql 不认。</p>
+<p>只能把配置文件修改正确才能启动服务。</p>
+<hr>
+<p><strong>我们要学会做自己精神领域内的君王，不要成为别人情绪世界里面的奴隶。</strong></p>
+<p><img class="lazy" src="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAABGdBTUEAALGPC/xhBQAAADhlWElmTU0AKgAAAAgAAYdpAAQAAAABAAAAGgAAAAAAAqACAAQAAAABAAAAAaADAAQAAAABAAAAAQAAAADa6r/EAAAAC0lEQVQIHWNgAAIAAAUAAY27m/MAAAAASUVORK5CYII=" data-src="/upload/me/qrcode_wx.jpg"></p>
+
+
+
+
+</article>
+
+<div class="related-wrap reveal" id="read-next"><section class="header cap theme"><span>接下来阅读</span></section><section class="body fs14"><a id="next" href="/2019/10/31/%E5%BE%AE%E6%9C%8D%E5%8A%A1-%E9%83%A8%E7%BD%B2%E6%9C%8D%E5%8A%A1/">微服务: 部署服务<span class="note">较早</span></a><div class="line"></div><a id="prev" href="/2019/11/23/OpenSSL-%E7%94%A8VS2017%E5%88%9B%E5%BB%BAC%E5%B7%A5%E7%A8%8B/">OpenSSL: 用VS2017创建C工程<span class="note">较新</span></a></section></div>
+
+
+
+
+
+
+  <div class='related-wrap md reveal' id="comments">
+    <div class='cmt-title cap theme'>
+      快来参与讨论吧
+    </div>
+    <div class='cmt-body valine'>
+      
+
+<div id="valine_container" class="valine_thread"><svg class="loading" style="vertical-align: middle;fill: currentColor;overflow: hidden;" viewBox="0 0 1024 1024" version="1.1" xmlns="http://www.w3.org/2000/svg" p-id="2709"><path d="M832 512c0-176-144-320-320-320V128c211.2 0 384 172.8 384 384h-64zM192 512c0 176 144 320 320 320v64C300.8 896 128 723.2 128 512h64z" p-id="2710"></path></svg></div>
+
+    </div>
+  </div>
+
+
+
+      
+<footer class="page-footer reveal fs12"><hr><div class="text"><p>本博客所有文章除特别声明外，均采用 <a target="_blank" rel="noopener" href="https://creativecommons.org/licenses/by-nc-sa/4.0/">CC BY-NC-SA 4.0</a> 许可协议，转载请注明出处。</p>
+<p>veryitman</p>
+</div></footer>
+
+      <div class='float-panel mobile-only blur' style='display:none'>
+  <button type='button' class='sidebar-toggle mobile' onclick='sidebar.toggle()'>
+    <svg class="icon" style="width: 1em; height: 1em;vertical-align: middle;fill: currentColor;overflow: hidden;" viewBox="0 0 1024 1024" version="1.1" xmlns="http://www.w3.org/2000/svg" p-id="15301"><path d="M566.407 808.3c26.9-0.1 49.3-20.8 51.6-47.6-1.9-27.7-23.9-49.7-51.6-51.6h-412.6c-28.2-1.4-52.6 19.5-55.5 47.6 2.3 26.8 24.6 47.5 51.6 47.6h416.5v4z m309.3-249.9c26.9-0.1 49.3-20.8 51.6-47.6-2.2-26.8-24.6-47.5-51.6-47.6h-721.9c-27.7-2.8-52.5 17.4-55.3 45.1-0.1 0.8-0.1 1.7-0.2 2.5 0.9 27.2 23.6 48.5 50.7 47.6H875.707z m-103.1-245.9c26.9-0.1 49.3-20.8 51.6-47.6-0.4-28.3-23.2-51.1-51.5-51.6h-618.9c-29.5-1.1-54.3 21.9-55.5 51.4v0.2c1.4 27.8 25.2 49.2 53 47.8 0.8 0 1.7-0.1 2.5-0.2h618.8z" p-id="15302"></path><path d="M566.407 808.3c26.9-0.1 49.3-20.8 51.6-47.6-1.9-27.7-23.9-49.7-51.6-51.6h-412.6c-28.2-1.4-52.6 19.5-55.5 47.6 1.9 27.7 23.9 49.7 51.6 51.6h416.5z m309.3-249.9c26.9-0.1 49.3-20.8 51.6-47.6-2.2-26.8-24.6-47.5-51.6-47.6h-721.9c-27.7-2.8-52.5 17.4-55.3 45.1-0.1 0.8-0.1 1.7-0.2 2.5 0.9 27.2 23.6 48.5 50.7 47.6H875.707z m-103.1-245.9c26.9-0.1 49.3-20.8 51.6-47.6-0.4-28.3-23.2-51.1-51.5-51.6h-618.9c-29.5-1.1-54.3 21.9-55.5 51.4v0.2c1.4 27.8 25.2 49.2 53 47.8 0.8 0 1.7-0.1 2.5-0.2h618.8z" p-id="15303"></path></svg>
+  </button>
+</div>
+
+    </div>
+  </div>
+  <div class='scripts'>
+    <script type="text/javascript">
+  stellar = {
+    // 懒加载 css https://github.com/filamentgroup/loadCSS
+    loadCSS: (href, before, media, attributes) => {
+      var doc = window.document;
+      var ss = doc.createElement("link");
+      var ref;
+      if (before) {
+        ref = before;
+      } else {
+        var refs = (doc.body || doc.getElementsByTagName("head")[0]).childNodes;
+        ref = refs[refs.length - 1];
+      }
+      var sheets = doc.styleSheets;
+      if (attributes) {
+        for (var attributeName in attributes) {
+          if (attributes.hasOwnProperty(attributeName)) {
+            ss.setAttribute(attributeName, attributes[attributeName]);
+          }
+        }
+      }
+      ss.rel = "stylesheet";
+      ss.href = href;
+      ss.media = "only x";
+      function ready(cb) {
+        if (doc.body) {
+          return cb();
+        }
+        setTimeout(function () {
+          ready(cb);
+        });
+      }
+      ready(function () {
+        ref.parentNode.insertBefore(ss, before ? ref : ref.nextSibling);
+      });
+      var onloadcssdefined = function (cb) {
+        var resolvedHref = ss.href;
+        var i = sheets.length;
+        while (i--) {
+          if (sheets[i].href === resolvedHref) {
+            return cb();
+          }
+        }
+        setTimeout(function () {
+          onloadcssdefined(cb);
+        });
+      };
+      function loadCB() {
+        if (ss.addEventListener) {
+          ss.removeEventListener("load", loadCB);
+        }
+        ss.media = media || "all";
+      }
+      if (ss.addEventListener) {
+        ss.addEventListener("load", loadCB);
+      }
+      ss.onloadcssdefined = onloadcssdefined;
+      onloadcssdefined(loadCB);
+      return ss;
+    },
+
+    // 从 butterfly 和 volantis 获得灵感
+    loadScript: (src, opt) => new Promise((resolve, reject) => {
+      var script = document.createElement('script');
+      script.src = src;
+      if (opt) {
+        for (let key of Object.keys(opt)) {
+          script[key] = opt[key]
+        }
+      } else {
+        // 默认异步，如果需要同步，第二个参数传入 {} 即可
+        script.async = true
+      }
+      script.onerror = reject
+      script.onload = script.onreadystatechange = function() {
+        const loadState = this.readyState
+        if (loadState && loadState !== 'loaded' && loadState !== 'complete') return
+        script.onload = script.onreadystatechange = null
+        resolve()
+      }
+      document.head.appendChild(script)
+    }),
+
+    // https://github.com/jerryc127/hexo-theme-butterfly
+    jQuery: (fn) => {
+      if (typeof jQuery === 'undefined') {
+        stellar.loadScript(stellar.plugins.jQuery).then(fn)
+      } else {
+        fn()
+      }
+    }
+  };
+  stellar.github = 'https://github.com/xaoxuu/hexo-theme-stellar/tree/1.6.1';
+  stellar.config = {
+    date_suffix: {
+      just: '刚刚',
+      min: '分钟前',
+      hour: '小时前',
+      day: '天前',
+      month: '个月前',
+    },
+  };
+
+  // required plugins (only load if needs)
+  stellar.plugins = {
+    jQuery: 'https://cdn.jsdelivr.net/npm/jquery@3.5.1/dist/jquery.min.js',
+    sitesjs: '/js/plugins/sites.js',
+    friendsjs: '/js/plugins/friends.js',
+  };
+
+  // optional plugins
+  if ('true' == 'true') {
+    stellar.plugins.lazyload = Object.assign({"enable":true,"js":"https://cdn.jsdelivr.net/npm/vanilla-lazyload@17.3.1/dist/lazyload.min.js","transition":"blur"});
+  }
+  if ('true' == 'true') {
+    stellar.plugins.swiper = Object.assign({"enable":true,"css":"https://unpkg.com/swiper@6/swiper-bundle.min.css","js":"https://unpkg.com/swiper@6/swiper-bundle.min.js"});
+  }
+  if ('' == 'true') {
+    stellar.plugins.scrollreveal = Object.assign({"enable":null,"js":"https://cdn.jsdelivr.net/npm/scrollreveal@4.0.9/dist/scrollreveal.min.js","distance":"8px","duration":500,"interval":100,"scale":1});
+  }
+  if ('true' == 'true') {
+    stellar.plugins.preload = Object.assign({"enable":true,"service":"flying_pages","instant_page":"https://cdn.jsdelivr.net/gh/volantis-x/cdn-volantis@4.1.2/js/instant_page.js","flying_pages":"https://cdn.jsdelivr.net/gh/gijo-varghese/flying-pages@2.1.2/flying-pages.min.js"});
+  }
+</script>
+
+<!-- required -->
+
+  
+<script src="/js/main.js" async></script>
+
+
+
+<!-- optional -->
+
+  <script>
+  function getEmojiMaps() {
+    function emoji(path, idx, ext) {
+      return path + "/" + path + "-" + idx + "." + ext;
+    }
+    var emojiMaps = {};
+    for (var i = 1; i <= 54; i++) {
+      emojiMaps['tieba-' + i] = emoji('tieba', i, 'png');
+    }
+    for (var i = 1; i <= 101; i++) {
+      emojiMaps['qq-' + i] = emoji('qq', i, 'gif');
+    }
+    for (var i = 1; i <= 116; i++) {
+      emojiMaps['aru-' + i] = emoji('aru', i, 'gif');
+    }
+    for (var i = 1; i <= 125; i++) {
+      emojiMaps['twemoji-' + i] = emoji('twemoji', i, 'png');
+    }
+    for (var i = 1; i <= 4; i++) {
+      emojiMaps['weibo-' + i] = emoji('weibo', i, 'png');
+    }
+    return emojiMaps;
+  }
+  function load_comment(){
+    if(!document.getElementById("valine_container"))return;
+    stellar.loadScript('https://cdn.jsdelivr.net/gh/XuxuGood/simple-blog-cdn@main/js/Valine.min.js', {defer:true}).then(function () {
+      const el = document.getElementById("valine_container");
+      var path = el.getAttribute('comment_id');
+      const placeholder = "欢迎您留言~";
+      if (!path) {
+        path = decodeURI(window.location.pathname);
+      }
+      var valine = new Valine();
+      valine.init(Object.assign({"js":"https://cdn.jsdelivr.net/gh/XuxuGood/simple-blog-cdn@main/js/Valine.min.js","appId":"FY2C9UCttYNaE1j8umenqdCE-gzGzoHsz","appKey":"4i7xMwkfSEGmEDhi6SceKFxz","placeholder":"欢迎您留言~","requiredFields":["nick","mail"],"enableQQ":true,"recordIP":false,"avatar":"robohash","pageSize":10,"lang":"zh-cn","highlight":true,"mathJax":false,"tagMeta":["博主","小伙伴","访客"],"metaPlaceholder":{"nick":"昵称/QQ号(必填)","mail":"邮箱（必填，完全保密）"},"master":["6783037F2DF30EAB99F9FC256157D875"],"friends":["6783037F2DF30EAB99F9FC256157D875"],"comment_count":true}, {
+        el: '#valine_container',
+        path: path,
+        placeholder: placeholder,
+        emojiCDN: 'https://cdn.jsdelivr.net/gh/volantis-x/cdn-emoji/valine/',
+        emojiMaps: getEmojiMaps(),
+      }));
+    });
+  }
+  window.addEventListener('DOMContentLoaded', (event) => {
+    console.log('DOM fully loaded and parsed');
+    load_comment();
+  });
+
+</script>
+
+
+
+
+<!-- inject -->
+
+
+  </div>
+</body>
+</html>

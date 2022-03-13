@@ -1,0 +1,392 @@
+<!DOCTYPE html>
+<html lang='zh-CN'>
+
+<head>
+  <meta name="generator" content="Hexo 6.0.0">
+  <meta charset="utf-8">
+  
+
+  <meta http-equiv='x-dns-prefetch-control' content='on' />
+  <link rel='dns-prefetch' href='https://cdn.jsdelivr.net'>
+  <link rel="preconnect" href="https://cdn.jsdelivr.net" crossorigin>
+
+  <meta name="renderer" content="webkit">
+  <meta name="force-rendering" content="webkit">
+  <meta http-equiv="X-UA-Compatible" content="IE=Edge,chrome=1">
+  <meta name="HandheldFriendly" content="True" >
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1">
+  <meta name="theme-color" content="#f8f8f8">
+  <title>常驻线程是一种什么体验 - Veryitman</title>
+
+  
+    <meta name="description" content="简说 RunLoop关于 iOS RunLoop 网上很多文章都有介绍过, 很多技术面试官也会问关于 RunLoop 的相关知识. 我把自己工作中遇到的问题和总结的经验分享出来(会做成一系列的文章), 也算是对自己的一个总结和沉淀, 欢迎大家交流. 网上的文章基本都是针对于 Apple Developer Doc - Run Loops 这篇来展开的, 所以建议大家认真的去通读这篇文章, 并写代码">
+<meta property="og:type" content="article">
+<meta property="og:title" content="常驻线程是一种什么体验">
+<meta property="og:url" content="http://example.com/2018/04/21/%E5%B8%B8%E9%A9%BB%E7%BA%BF%E7%A8%8B%E6%98%AF%E4%B8%80%E7%A7%8D%E4%BB%80%E4%B9%88%E4%BD%93%E9%AA%8C/index.html">
+<meta property="og:site_name" content="Veryitman">
+<meta property="og:description" content="简说 RunLoop关于 iOS RunLoop 网上很多文章都有介绍过, 很多技术面试官也会问关于 RunLoop 的相关知识. 我把自己工作中遇到的问题和总结的经验分享出来(会做成一系列的文章), 也算是对自己的一个总结和沉淀, 欢迎大家交流. 网上的文章基本都是针对于 Apple Developer Doc - Run Loops 这篇来展开的, 所以建议大家认真的去通读这篇文章, 并写代码">
+<meta property="og:locale" content="zh_CN">
+<meta property="og:image" content="http://example.com/upload/images/2018/04/21/1.jpg">
+<meta property="og:image" content="http://example.com/upload/images/2018/04/21/2.jpg">
+<meta property="article:published_time" content="2018-04-21T15:55:06.000Z">
+<meta property="article:modified_time" content="2022-03-09T14:53:24.337Z">
+<meta property="article:author" content="veryitman">
+<meta property="article:tag" content="RunLoop 常驻线程">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:image" content="http://example.com/upload/images/2018/04/21/1.jpg">
+  
+  
+
+  <!-- feed -->
+  
+
+  
+    
+<link rel="stylesheet" href="/css/main.css">
+
+  
+
+  
+
+  
+</head>
+
+<body>
+  
+
+
+  <div class='l_body' id='start'>
+    <aside class='l_left' layout='post'>
+    
+
+
+<header class="header">
+
+<div class="logo-wrap"><a class="title" href="/"><div class="main">Veryitman</div></a></div>
+<nav class="menu dis-select"></nav></header>
+
+<div class="widgets">
+
+<div class="widget-wrap single" id="toc"><div class="widget-header cap dis-select"><span class="name">本文目录</span></div><div class="widget-body fs14"><div class="doc-tree active"><ol class="toc"><li class="toc-item toc-level-2"><a class="toc-link" href="#%E7%AE%80%E8%AF%B4-RunLoop"><span class="toc-text">简说 RunLoop</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#%E7%A5%9E%E5%A5%87%E7%9A%84-main"><span class="toc-text">神奇的 main</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#%E6%99%AE%E9%80%9A%E7%BA%BF%E7%A8%8B"><span class="toc-text">普通线程</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#%E5%AD%90%E7%BA%BF%E7%A8%8B%E5%BC%80%E5%90%AF-RunLoop"><span class="toc-text">子线程开启 RunLoop</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#%E9%AA%8C%E8%AF%81%E5%B8%B8%E9%A9%BB%E7%BA%BF%E7%A8%8B"><span class="toc-text">验证常驻线程</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#%E9%99%84%E5%BD%95"><span class="toc-text">附录</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#%E5%8F%82%E8%80%83%E6%96%87%E6%A1%A3"><span class="toc-text">参考文档</span></a></li></ol></div></div></div>
+
+
+</div>
+
+
+    </aside>
+    <div class='l_main'>
+      
+
+      
+
+
+<div class="bread-nav fs12"><div id="breadcrumb"><a class="cap breadcrumb" href="/">主页</a><span class="sep"></span><a class="cap breadcrumb" href="/">文章</a><span class="sep"></span><a class="cap breadcrumb-link" href="/categories/iOS/">iOS</a></div><div id="post-meta">发布于&nbsp;<time datetime="2018-04-21T15:55:06.000Z">2018-04-21</time></div></div>
+
+<article class='content md post'>
+<h1 class="article-title"><span>常驻线程是一种什么体验</span></h1>
+<h2 id="简说-RunLoop"><a href="#简说-RunLoop" class="headerlink" title="简说 RunLoop"></a>简说 RunLoop</h2><p>关于 iOS RunLoop 网上很多文章都有介绍过, 很多技术面试官也会问关于 RunLoop 的相关知识. 我把自己工作中遇到的问题和总结的经验分享出来(会做成一系列的文章), 也算是对自己的一个总结和沉淀, 欢迎大家交流.</p>
+<p>网上的文章基本都是针对于 <a target="_blank" rel="noopener" href="https://developer.apple.com/library/content/documentation/Cocoa/Conceptual/Multithreading/RunLoopManagement/RunLoopManagement.html">Apple Developer Doc - Run Loops</a> 这篇来展开的, 所以建议大家认真的去通读这篇文章, 并写代码验证, 实践.</p>
+<p>可以简单粗暴的这么理解一下 RunLoop, 基于事件驱动的死循环(由内核来调度和管理的), 在需要处理事情的时候就出来干点事, 否则休眠待命.<br>RunLoop 的核心是基于 <code>machport</code> 的，其进入休眠时调用的函数是 mach_msg().</p>
+<p>类似下面的代码来说明一下:</p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br></pre></td><td class="code"><pre><span class="line">BOOL stopRunning = NO;</span><br><span class="line"></span><br><span class="line">do &#123;</span><br><span class="line">   </span><br><span class="line">   // 处理 App 中各种操作各种事件</span><br><span class="line">   // 点击屏幕, 触摸到硬件也会唤醒 RunLoop</span><br><span class="line">   </span><br><span class="line">  &#125; while(!stopRunning);</span><br></pre></td></tr></table></figure>
+
+<p>说到这里, 随便提及一下, 学习过 Android 开发的同事应该和好理解 RunLoop 了,  iOS 的 RunLoop 跟 Android 的 Looper 机制几乎一样, 只是不同的系统之间实现有差异罢了!</p>
+<p>有兴趣的朋友可以看一下我之前写的文章 <a target="_blank" rel="noopener" href="https://blog.csdn.net/veryitman/article/details/6384641">Handler: 更新UI的方法</a>.</p>
+<hr>
+<p>今天跟大家分享如何在 iOS 中结合 RunLoop 和 machport 实现常驻线程, 先跟着实例走, 后续再去总结 RunLoop 的各种细节点.</p>
+<h2 id="神奇的-main"><a href="#神奇的-main" class="headerlink" title="神奇的 main"></a>神奇的 main</h2><p>开发过 iOS 应用中的朋友, 对 <code>main.m</code> 再也熟悉不过了, <code>main</code> 函数正是应用的入口函数.</p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br></pre></td><td class="code"><pre><span class="line">int main(int argc, char * argv[]) &#123;</span><br><span class="line">    @autoreleasepool &#123;</span><br><span class="line">        return UIApplicationMain(argc, argv, nil, NSStringFromClass([AppDelegate class]));</span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<p>我们将 <code>return</code> 代码分开写, 看看有什么蛛丝马迹可寻.</p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br></pre></td><td class="code"><pre><span class="line">int main(int argc, char * argv[]) &#123;</span><br><span class="line">    </span><br><span class="line">    @autoreleasepool &#123;</span><br><span class="line">        </span><br><span class="line">        int ret = UIApplicationMain(argc, argv, nil, NSStringFromClass([AppDelegate class]));</span><br><span class="line">        </span><br><span class="line">        NSLog(@&quot;veryitman--- UIApplicationMain end.&quot;);</span><br><span class="line">        </span><br><span class="line">        return ret;</span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<p>无论如何你也看不到日志 <code>veryitman--- UIApplicationMain end.</code> 的打印, 这说明 <code>UIApplicationMain</code> 一直在呵护着 APP 的运行, 哈哈.</p>
+<p>我们不妨再改一次, 如下:</p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br></pre></td><td class="code"><pre><span class="line">int main(int argc, char * argv[]) &#123;</span><br><span class="line">    </span><br><span class="line">    @autoreleasepool &#123;</span><br><span class="line">        return 0;</span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<p>再去运行 APP, 你会发现根本没有让 APP 运行起来, 再次说明没有了 <code>UIApplicationMain</code> 的呵护, APP 无法起死回生.</p>
+<p>猜测在 <code>UIApplicationMain</code> 函数中，开启了和主线程相关的 RunLoop，使 <code>UIApplicationMain</code> 不会返回一直在运行中，从而保证了程序的持续运行, 最大的功臣就是  RunLoop.</p>
+<h2 id="普通线程"><a href="#普通线程" class="headerlink" title="普通线程"></a>普通线程</h2><p>一般我们开启的线程在执行完任务后, 就会结束该线程. 除非你写了类似下面的代码:</p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line">while(1) &#123;</span><br><span class="line">	// 业务处理</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<p>或者</p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line">while (条件满足) &#123;</span><br><span class="line">	// 业务处理</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<p>开启一个线程</p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br></pre></td><td class="code"><pre><span class="line">- (NSThread *)permanentThread &#123;</span><br><span class="line">    </span><br><span class="line">    static NSThread *thread = nil;</span><br><span class="line">    static dispatch_once_t onceToken;</span><br><span class="line">    dispatch_once(&amp;onceToken, ^&#123;</span><br><span class="line"></span><br><span class="line">        thread = [[NSThread alloc] initWithTarget:self selector:@selector(asyncRun) object:nil];</span><br><span class="line">        [thread setName:@&quot;veryitman-thread&quot;];</span><br><span class="line">        </span><br><span class="line">        // 同一个线程连续多次 start 会导致 crash</span><br><span class="line">        [thread start];</span><br><span class="line">    &#125;);</span><br><span class="line">    </span><br><span class="line">    return thread;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<p>执行对应的 <code>asyncRun</code> 函数, 如下:</p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br></pre></td><td class="code"><pre><span class="line">- (void)asyncRun &#123;</span><br><span class="line">    </span><br><span class="line">    @autoreleasepool &#123;</span><br><span class="line">        </span><br><span class="line">        NSLog(@&quot;veryitman--asyncRun. Current Thread: %@&quot;, [NSThread currentThread]);</span><br><span class="line">        </span><br><span class="line">        // 执行其他逻辑</span><br><span class="line">        //...</span><br><span class="line">        </span><br><span class="line">        NSLog(@&quot;veryitman--asyncRun. End Run.&quot;);</span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<p>可以发现 <code>asyncRun</code> 很快就可以执行完成 (End Run).</p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line">veryitman--asyncRun. Current Thread: &lt;NSThread: 0x60000066c400&gt;&#123;number = 3, name = veryitman-thread&#125;</span><br><span class="line">veryitman--asyncRun. End Run.</span><br></pre></td></tr></table></figure>
+
+<h2 id="子线程开启-RunLoop"><a href="#子线程开启-RunLoop" class="headerlink" title="子线程开启 RunLoop"></a>子线程开启 RunLoop</h2><p>主线程是默认开启 RunLoop 的即 mainRunLoop 是系统默认开启的, 但是子线程中的 RunLoop 需要我们自己手动开启.</p>
+<blockquote>
+<p>关于为什么子线程中需要手动开启, 后续文章结合源码给大家分析, 这里暂时可以理解为获取 RunLoop 对象是一种懒加载模式. 只不过主线程中, 系统帮我们开启了, 然而子线程中需要我们手动开启而已.</p>
+</blockquote>
+<p>类似这样:</p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br></pre></td><td class="code"><pre><span class="line">- (void)asyncRun &#123;</span><br><span class="line">    </span><br><span class="line">    @autoreleasepool &#123;</span><br><span class="line">        </span><br><span class="line">        NSLog(@&quot;veryitman--asyncRun. Current Thread: %@&quot;, [NSThread currentThread]);</span><br><span class="line">        </span><br><span class="line">        NSRunLoop *runLoop = [NSRunLoop currentRunLoop];</span><br><span class="line">        </span><br><span class="line">        NSLog(@&quot;veryitman--asyncRun. Current RunLoop: %@&quot;, runLoop);</span><br><span class="line">        </span><br><span class="line">        // 执行其他逻辑</span><br><span class="line">        //...</span><br><span class="line">        </span><br><span class="line">        // 手动开启 RunLoop</span><br><span class="line">        [runLoop run];</span><br><span class="line">        </span><br><span class="line">        NSLog(@&quot;veryitman--asyncRun. End Run.&quot;);</span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<p>在控制台可以看到输出:</p>
+<p><img class="lazy" src="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAABGdBTUEAALGPC/xhBQAAADhlWElmTU0AKgAAAAgAAYdpAAQAAAABAAAAGgAAAAAAAqACAAQAAAABAAAAAaADAAQAAAABAAAAAQAAAADa6r/EAAAAC0lEQVQIHWNgAAIAAAUAAY27m/MAAAAASUVORK5CYII=" data-src="/upload/images/2018/04/21/1.jpg" alt="1"></p>
+<p>RunLoop 没有任何输入源(input source) 和定时器(timer), 这时即使开启了 RunLoop 也不会让其等待执行, 换句话说会立即结束当前的 RunLoop.</p>
+<p>既然这样我们给子线程的 RunLoop 添加源或者定时器即可. 这里以添加 NSPort 为例.</p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br></pre></td><td class="code"><pre><span class="line">- (void)asyncRun &#123;</span><br><span class="line">    </span><br><span class="line">    @autoreleasepool &#123;</span><br><span class="line">        </span><br><span class="line">        NSLog(@&quot;veryitman--asyncRun. Current Thread: %@&quot;, [NSThread currentThread]);</span><br><span class="line">        </span><br><span class="line">        NSRunLoop *runLoop = [NSRunLoop currentRunLoop];</span><br><span class="line">        </span><br><span class="line">        // 添加 source</span><br><span class="line">        NSPort *port = [NSMachPort port];</span><br><span class="line">        [runLoop addPort:port forMode:NSRunLoopCommonModes];</span><br><span class="line">               </span><br><span class="line">        NSLog(@&quot;veryitman--asyncRun. Current RunLoop: %@&quot;, runLoop);</span><br><span class="line">        </span><br><span class="line">        // 执行其他逻辑</span><br><span class="line">        //...</span><br><span class="line">        </span><br><span class="line">        // 手动开启 RunLoop</span><br><span class="line">        [runLoop run];</span><br><span class="line">        </span><br><span class="line">        NSLog(@&quot;veryitman--asyncRun. End Run.&quot;);</span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<p>再次运行, 你会发现 <code>End Run</code> 这个 Log 是不会打印出来的. 对应当前的 RunLoop 也有了源和定时器, 如图所示:<br><img class="lazy" src="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAABGdBTUEAALGPC/xhBQAAADhlWElmTU0AKgAAAAgAAYdpAAQAAAABAAAAGgAAAAAAAqACAAQAAAABAAAAAaADAAQAAAABAAAAAQAAAADa6r/EAAAAC0lEQVQIHWNgAAIAAAUAAY27m/MAAAAASUVORK5CYII=" data-src="/upload/images/2018/04/21/2.jpg" alt="1"></p>
+<p>关于定时器和 RunLoop 的结合, 下篇再分享. </p>
+<p>现在有这样一个需求, 需要在指定的线程中执行某项任务, 显然使用上面的方法来满足需求, 下面进入今天的正题.</p>
+<h2 id="验证常驻线程"><a href="#验证常驻线程" class="headerlink" title="验证常驻线程"></a>验证常驻线程</h2><p>一定到 <code>常驻</code> 这个词, 就知道是能够让该线程随时待命, 保证其不挂掉.</p>
+<p>iOS 中默认就有个主线程即 <code>main 线程</code>, 我们的 UI 线程指的就是主线程, 一般都是在主线程中操作 UI, 从某个角度来说, 主线程就是一个常驻线程.</p>
+<p>我们开启其他线程, 目的是为了异步完成一些任务, 这些任务一般都比较耗时, 如果放在主线程当中完成这些任务就会导致主线程的卡顿, 用户体验极其差. </p>
+<p>说了这么多, 也许你会问, 为什么要常驻线程呢?</p>
+<p>频繁的创建和销毁线程，会造成资源(主要是内存)的浪费, 我们为什么不让频繁使用的子线程常驻在内存中, 想用的时候就用, 不用的时候让他休眠呢?! </p>
+<p>上面已经使用 RunLoop 来实现了让线程长时间存活而不被销毁了.</p>
+<p>用 <code>touchesBegan</code> 来模拟在指定线程中再次执行任务(runAnyTime)的方法.</p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br></pre></td><td class="code"><pre><span class="line">- (void)touchesBegan:(NSSet&lt;UITouch *&gt; *)touches withEvent:(UIEvent *)event &#123;</span><br><span class="line">    </span><br><span class="line">    // 模拟在指定线程上面再次执行方法</span><br><span class="line">    SEL seltor = NSSelectorFromString(@&quot;runAnyTime&quot;);</span><br><span class="line">    [self performSelector:seltor onThread:[self permanentThread] withObject:nil waitUntilDone:NO];</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line">- (void)runAnyTime &#123;</span><br><span class="line">    </span><br><span class="line">    NSLog(@&quot;veryitman--runAnyTime. Current Thread: %@&quot;, [NSThread currentThread]);</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<p>对应上面的 <code>asyncRun</code> 实现即可, 你会发现在当前页面每次点击屏幕都会执行 <code>runAnyTime</code>.</p>
+<h2 id="附录"><a href="#附录" class="headerlink" title="附录"></a>附录</h2><p>代码的完整实现</p>
+<blockquote>
+<p>常驻线程, 可以参考具体的注释.</p>
+</blockquote>
+<p><strong>MZCreatePermanentThreadController.m</strong></p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br><span class="line">39</span><br><span class="line">40</span><br><span class="line">41</span><br><span class="line">42</span><br><span class="line">43</span><br><span class="line">44</span><br><span class="line">45</span><br><span class="line">46</span><br><span class="line">47</span><br><span class="line">48</span><br><span class="line">49</span><br><span class="line">50</span><br><span class="line">51</span><br><span class="line">52</span><br><span class="line">53</span><br><span class="line">54</span><br><span class="line">55</span><br><span class="line">56</span><br><span class="line">57</span><br><span class="line">58</span><br><span class="line">59</span><br><span class="line">60</span><br><span class="line">61</span><br><span class="line">62</span><br><span class="line">63</span><br><span class="line">64</span><br><span class="line">65</span><br><span class="line">66</span><br><span class="line">67</span><br><span class="line">68</span><br><span class="line">69</span><br><span class="line">70</span><br><span class="line">71</span><br><span class="line">72</span><br><span class="line">73</span><br><span class="line">74</span><br><span class="line">75</span><br><span class="line">76</span><br><span class="line">77</span><br><span class="line">78</span><br><span class="line">79</span><br><span class="line">80</span><br><span class="line">81</span><br><span class="line">82</span><br></pre></td><td class="code"><pre><span class="line">@implementation MZCreatePermanentThreadController</span><br><span class="line"></span><br><span class="line">- (void)dealloc &#123;</span><br><span class="line">    </span><br><span class="line">    NSLog(@&quot;veryitman---MZCreatePermanentThreadController dealloc.&quot;);</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line">- (void)viewDidLoad &#123;</span><br><span class="line">    </span><br><span class="line">    [super viewDidLoad];</span><br><span class="line">    </span><br><span class="line">    self.view.backgroundColor = [UIColor lightGrayColor];</span><br><span class="line">    self.navigationItem.title = @&quot;创建常驻线程&quot;;</span><br><span class="line">    </span><br><span class="line">    // 启动线程</span><br><span class="line">    [self permanentThread];</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line">- (void)viewDidDisappear:(BOOL)animated &#123;</span><br><span class="line">    </span><br><span class="line">    [super viewDidDisappear:animated];</span><br><span class="line">    </span><br><span class="line">    // 取消线程</span><br><span class="line">    // 实际业务场景中自行决定 canCancel 的设置, 这里只是示例</span><br><span class="line">    BOOL canCancel = YES;</span><br><span class="line">    if (canCancel) &#123;</span><br><span class="line">        [[self permanentThread] cancel];</span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line">- (void)touchesBegan:(NSSet&lt;UITouch *&gt; *)touches withEvent:(UIEvent *)event &#123;</span><br><span class="line">    </span><br><span class="line">    // 模拟在指定线程上面再次执行方法</span><br><span class="line">    SEL seltor = NSSelectorFromString(@&quot;runAnyTime&quot;);</span><br><span class="line">    </span><br><span class="line">    [self performSelector:seltor onThread:[self permanentThread] withObject:nil waitUntilDone:NO];</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line">- (NSThread *)permanentThread &#123;</span><br><span class="line">    </span><br><span class="line">    static NSThread *thread = nil;</span><br><span class="line">    static dispatch_once_t onceToken;</span><br><span class="line">    dispatch_once(&amp;onceToken, ^&#123;</span><br><span class="line"></span><br><span class="line">        thread = [[NSThread alloc] initWithTarget:self selector:@selector(asyncRun) object:nil];</span><br><span class="line">        [thread setName:@&quot;veryitman-thread&quot;];</span><br><span class="line">        </span><br><span class="line">        // 同一个线程连续多次 start 会导致 crash</span><br><span class="line">        [thread start];</span><br><span class="line">    &#125;);</span><br><span class="line">    </span><br><span class="line">    return thread;</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line">- (void)asyncRun &#123;</span><br><span class="line">    </span><br><span class="line">    @autoreleasepool &#123;</span><br><span class="line">        </span><br><span class="line">        NSLog(@&quot;veryitman--asyncRun. Current Thread: %@&quot;, [NSThread currentThread]);</span><br><span class="line">        </span><br><span class="line">        NSRunLoop *runLoop = [NSRunLoop currentRunLoop];</span><br><span class="line">        </span><br><span class="line">        // 添加 source</span><br><span class="line">        NSPort *port = [NSMachPort port];</span><br><span class="line">        [runLoop addPort:port forMode:NSRunLoopCommonModes];</span><br><span class="line">        </span><br><span class="line">        NSLog(@&quot;veryitman--asyncRun. Current RunLoop: %@&quot;, runLoop);</span><br><span class="line">        </span><br><span class="line">        // 执行其他逻辑</span><br><span class="line">        //...</span><br><span class="line">        </span><br><span class="line">        // 手动开启 RunLoop</span><br><span class="line">        [runLoop run];</span><br><span class="line">        </span><br><span class="line">        NSLog(@&quot;veryitman--asyncRun. End Run.&quot;);</span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line">- (void)runAnyTime &#123;</span><br><span class="line">    </span><br><span class="line">    NSLog(@&quot;veryitman--runAnyTime. Current Thread: %@&quot;, [NSThread currentThread]);</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<h2 id="参考文档"><a href="#参考文档" class="headerlink" title="参考文档"></a>参考文档</h2><p><a target="_blank" rel="noopener" href="https://developer.apple.com/library/content/documentation/General/Conceptual/CocoaEncyclopedia/Toll-FreeBridgin/Toll-FreeBridgin.html">Toll-Free Bridging</a></p>
+<p><a target="_blank" rel="noopener" href="https://developer.apple.com/library/content/documentation/Cocoa/Conceptual/Multithreading/RunLoopManagement/RunLoopManagement.html">Run Loops</a></p>
+
+
+
+
+</article>
+
+<div class="related-wrap reveal" id="read-next"><section class="header cap theme"><span>接下来阅读</span></section><section class="body fs14"><a id="next" href="/2018/04/17/%E5%8F%91%E4%BA%BA%E5%91%98%E9%9C%80%E5%85%B7%E5%A4%87%E4%B8%80%E7%82%B9%E4%BA%A7%E5%93%81%E8%83%BD%E5%8A%9B/">发人员需具备一点产品能力<span class="note">较早</span></a><div class="line"></div><a id="prev" href="/2018/05/06/RunLoop-NSTimer-%E5%AE%9E%E7%8E%B0%E5%B8%B8%E9%A9%BB%E7%BA%BF%E7%A8%8B%E7%9A%84%E9%97%AE%E9%A2%98/">RunLoop: NSTimer 实现常驻线程的问题<span class="note">较新</span></a></section></div>
+
+
+
+
+
+
+  <div class='related-wrap md reveal' id="comments">
+    <div class='cmt-title cap theme'>
+      快来参与讨论吧
+    </div>
+    <div class='cmt-body valine'>
+      
+
+<div id="valine_container" class="valine_thread"><svg class="loading" style="vertical-align: middle;fill: currentColor;overflow: hidden;" viewBox="0 0 1024 1024" version="1.1" xmlns="http://www.w3.org/2000/svg" p-id="2709"><path d="M832 512c0-176-144-320-320-320V128c211.2 0 384 172.8 384 384h-64zM192 512c0 176 144 320 320 320v64C300.8 896 128 723.2 128 512h64z" p-id="2710"></path></svg></div>
+
+    </div>
+  </div>
+
+
+
+      
+<footer class="page-footer reveal fs12"><hr><div class="text"><p>本博客所有文章除特别声明外，均采用 <a target="_blank" rel="noopener" href="https://creativecommons.org/licenses/by-nc-sa/4.0/">CC BY-NC-SA 4.0</a> 许可协议，转载请注明出处。</p>
+<p>veryitman</p>
+</div></footer>
+
+      <div class='float-panel mobile-only blur' style='display:none'>
+  <button type='button' class='sidebar-toggle mobile' onclick='sidebar.toggle()'>
+    <svg class="icon" style="width: 1em; height: 1em;vertical-align: middle;fill: currentColor;overflow: hidden;" viewBox="0 0 1024 1024" version="1.1" xmlns="http://www.w3.org/2000/svg" p-id="15301"><path d="M566.407 808.3c26.9-0.1 49.3-20.8 51.6-47.6-1.9-27.7-23.9-49.7-51.6-51.6h-412.6c-28.2-1.4-52.6 19.5-55.5 47.6 2.3 26.8 24.6 47.5 51.6 47.6h416.5v4z m309.3-249.9c26.9-0.1 49.3-20.8 51.6-47.6-2.2-26.8-24.6-47.5-51.6-47.6h-721.9c-27.7-2.8-52.5 17.4-55.3 45.1-0.1 0.8-0.1 1.7-0.2 2.5 0.9 27.2 23.6 48.5 50.7 47.6H875.707z m-103.1-245.9c26.9-0.1 49.3-20.8 51.6-47.6-0.4-28.3-23.2-51.1-51.5-51.6h-618.9c-29.5-1.1-54.3 21.9-55.5 51.4v0.2c1.4 27.8 25.2 49.2 53 47.8 0.8 0 1.7-0.1 2.5-0.2h618.8z" p-id="15302"></path><path d="M566.407 808.3c26.9-0.1 49.3-20.8 51.6-47.6-1.9-27.7-23.9-49.7-51.6-51.6h-412.6c-28.2-1.4-52.6 19.5-55.5 47.6 1.9 27.7 23.9 49.7 51.6 51.6h416.5z m309.3-249.9c26.9-0.1 49.3-20.8 51.6-47.6-2.2-26.8-24.6-47.5-51.6-47.6h-721.9c-27.7-2.8-52.5 17.4-55.3 45.1-0.1 0.8-0.1 1.7-0.2 2.5 0.9 27.2 23.6 48.5 50.7 47.6H875.707z m-103.1-245.9c26.9-0.1 49.3-20.8 51.6-47.6-0.4-28.3-23.2-51.1-51.5-51.6h-618.9c-29.5-1.1-54.3 21.9-55.5 51.4v0.2c1.4 27.8 25.2 49.2 53 47.8 0.8 0 1.7-0.1 2.5-0.2h618.8z" p-id="15303"></path></svg>
+  </button>
+</div>
+
+    </div>
+  </div>
+  <div class='scripts'>
+    <script type="text/javascript">
+  stellar = {
+    // 懒加载 css https://github.com/filamentgroup/loadCSS
+    loadCSS: (href, before, media, attributes) => {
+      var doc = window.document;
+      var ss = doc.createElement("link");
+      var ref;
+      if (before) {
+        ref = before;
+      } else {
+        var refs = (doc.body || doc.getElementsByTagName("head")[0]).childNodes;
+        ref = refs[refs.length - 1];
+      }
+      var sheets = doc.styleSheets;
+      if (attributes) {
+        for (var attributeName in attributes) {
+          if (attributes.hasOwnProperty(attributeName)) {
+            ss.setAttribute(attributeName, attributes[attributeName]);
+          }
+        }
+      }
+      ss.rel = "stylesheet";
+      ss.href = href;
+      ss.media = "only x";
+      function ready(cb) {
+        if (doc.body) {
+          return cb();
+        }
+        setTimeout(function () {
+          ready(cb);
+        });
+      }
+      ready(function () {
+        ref.parentNode.insertBefore(ss, before ? ref : ref.nextSibling);
+      });
+      var onloadcssdefined = function (cb) {
+        var resolvedHref = ss.href;
+        var i = sheets.length;
+        while (i--) {
+          if (sheets[i].href === resolvedHref) {
+            return cb();
+          }
+        }
+        setTimeout(function () {
+          onloadcssdefined(cb);
+        });
+      };
+      function loadCB() {
+        if (ss.addEventListener) {
+          ss.removeEventListener("load", loadCB);
+        }
+        ss.media = media || "all";
+      }
+      if (ss.addEventListener) {
+        ss.addEventListener("load", loadCB);
+      }
+      ss.onloadcssdefined = onloadcssdefined;
+      onloadcssdefined(loadCB);
+      return ss;
+    },
+
+    // 从 butterfly 和 volantis 获得灵感
+    loadScript: (src, opt) => new Promise((resolve, reject) => {
+      var script = document.createElement('script');
+      script.src = src;
+      if (opt) {
+        for (let key of Object.keys(opt)) {
+          script[key] = opt[key]
+        }
+      } else {
+        // 默认异步，如果需要同步，第二个参数传入 {} 即可
+        script.async = true
+      }
+      script.onerror = reject
+      script.onload = script.onreadystatechange = function() {
+        const loadState = this.readyState
+        if (loadState && loadState !== 'loaded' && loadState !== 'complete') return
+        script.onload = script.onreadystatechange = null
+        resolve()
+      }
+      document.head.appendChild(script)
+    }),
+
+    // https://github.com/jerryc127/hexo-theme-butterfly
+    jQuery: (fn) => {
+      if (typeof jQuery === 'undefined') {
+        stellar.loadScript(stellar.plugins.jQuery).then(fn)
+      } else {
+        fn()
+      }
+    }
+  };
+  stellar.github = 'https://github.com/xaoxuu/hexo-theme-stellar/tree/1.6.1';
+  stellar.config = {
+    date_suffix: {
+      just: '刚刚',
+      min: '分钟前',
+      hour: '小时前',
+      day: '天前',
+      month: '个月前',
+    },
+  };
+
+  // required plugins (only load if needs)
+  stellar.plugins = {
+    jQuery: 'https://cdn.jsdelivr.net/npm/jquery@3.5.1/dist/jquery.min.js',
+    sitesjs: '/js/plugins/sites.js',
+    friendsjs: '/js/plugins/friends.js',
+  };
+
+  // optional plugins
+  if ('true' == 'true') {
+    stellar.plugins.lazyload = Object.assign({"enable":true,"js":"https://cdn.jsdelivr.net/npm/vanilla-lazyload@17.3.1/dist/lazyload.min.js","transition":"blur"});
+  }
+  if ('true' == 'true') {
+    stellar.plugins.swiper = Object.assign({"enable":true,"css":"https://unpkg.com/swiper@6/swiper-bundle.min.css","js":"https://unpkg.com/swiper@6/swiper-bundle.min.js"});
+  }
+  if ('' == 'true') {
+    stellar.plugins.scrollreveal = Object.assign({"enable":null,"js":"https://cdn.jsdelivr.net/npm/scrollreveal@4.0.9/dist/scrollreveal.min.js","distance":"8px","duration":500,"interval":100,"scale":1});
+  }
+  if ('true' == 'true') {
+    stellar.plugins.preload = Object.assign({"enable":true,"service":"flying_pages","instant_page":"https://cdn.jsdelivr.net/gh/volantis-x/cdn-volantis@4.1.2/js/instant_page.js","flying_pages":"https://cdn.jsdelivr.net/gh/gijo-varghese/flying-pages@2.1.2/flying-pages.min.js"});
+  }
+</script>
+
+<!-- required -->
+
+  
+<script src="/js/main.js" async></script>
+
+
+
+<!-- optional -->
+
+  <script>
+  function getEmojiMaps() {
+    function emoji(path, idx, ext) {
+      return path + "/" + path + "-" + idx + "." + ext;
+    }
+    var emojiMaps = {};
+    for (var i = 1; i <= 54; i++) {
+      emojiMaps['tieba-' + i] = emoji('tieba', i, 'png');
+    }
+    for (var i = 1; i <= 101; i++) {
+      emojiMaps['qq-' + i] = emoji('qq', i, 'gif');
+    }
+    for (var i = 1; i <= 116; i++) {
+      emojiMaps['aru-' + i] = emoji('aru', i, 'gif');
+    }
+    for (var i = 1; i <= 125; i++) {
+      emojiMaps['twemoji-' + i] = emoji('twemoji', i, 'png');
+    }
+    for (var i = 1; i <= 4; i++) {
+      emojiMaps['weibo-' + i] = emoji('weibo', i, 'png');
+    }
+    return emojiMaps;
+  }
+  function load_comment(){
+    if(!document.getElementById("valine_container"))return;
+    stellar.loadScript('https://cdn.jsdelivr.net/gh/XuxuGood/simple-blog-cdn@main/js/Valine.min.js', {defer:true}).then(function () {
+      const el = document.getElementById("valine_container");
+      var path = el.getAttribute('comment_id');
+      const placeholder = "欢迎您留言~";
+      if (!path) {
+        path = decodeURI(window.location.pathname);
+      }
+      var valine = new Valine();
+      valine.init(Object.assign({"js":"https://cdn.jsdelivr.net/gh/XuxuGood/simple-blog-cdn@main/js/Valine.min.js","appId":"FY2C9UCttYNaE1j8umenqdCE-gzGzoHsz","appKey":"4i7xMwkfSEGmEDhi6SceKFxz","placeholder":"欢迎您留言~","requiredFields":["nick","mail"],"enableQQ":true,"recordIP":false,"avatar":"robohash","pageSize":10,"lang":"zh-cn","highlight":true,"mathJax":false,"tagMeta":["博主","小伙伴","访客"],"metaPlaceholder":{"nick":"昵称/QQ号(必填)","mail":"邮箱（必填，完全保密）"},"master":["6783037F2DF30EAB99F9FC256157D875"],"friends":["6783037F2DF30EAB99F9FC256157D875"],"comment_count":true}, {
+        el: '#valine_container',
+        path: path,
+        placeholder: placeholder,
+        emojiCDN: 'https://cdn.jsdelivr.net/gh/volantis-x/cdn-emoji/valine/',
+        emojiMaps: getEmojiMaps(),
+      }));
+    });
+  }
+  window.addEventListener('DOMContentLoaded', (event) => {
+    console.log('DOM fully loaded and parsed');
+    load_comment();
+  });
+
+</script>
+
+
+
+
+<!-- inject -->
+
+
+  </div>
+</body>
+</html>

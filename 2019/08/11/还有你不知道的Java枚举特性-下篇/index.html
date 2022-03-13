@@ -1,0 +1,398 @@
+<!DOCTYPE html>
+<html lang='zh-CN'>
+
+<head>
+  <meta name="generator" content="Hexo 6.0.0">
+  <meta charset="utf-8">
+  
+
+  <meta http-equiv='x-dns-prefetch-control' content='on' />
+  <link rel='dns-prefetch' href='https://cdn.jsdelivr.net'>
+  <link rel="preconnect" href="https://cdn.jsdelivr.net" crossorigin>
+
+  <meta name="renderer" content="webkit">
+  <meta name="force-rendering" content="webkit">
+  <meta http-equiv="X-UA-Compatible" content="IE=Edge,chrome=1">
+  <meta name="HandheldFriendly" content="True" >
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1">
+  <meta name="theme-color" content="#f8f8f8">
+  <title>还有你不知道的Java枚举特性(下篇) - Veryitman</title>
+
+  
+    <meta name="description" content="简介这篇是博文 还有你不知道的Java枚举特性(上篇) 的下篇，可以点击下面的链接前往。 本篇主要内容：  Java 枚举是一个特殊的类，聊聊其方法的重写 如何使用接口来组织 Java 枚举？ 如何使用枚举实现 Java 的单例模式 JDK 数据结构中关于枚举的集合 EnumSet 和字典 EnumMap  重写枚举的方法所有的枚举类都继承自 Enum，在这个父类当中 toString、equal">
+<meta property="og:type" content="article">
+<meta property="og:title" content="还有你不知道的Java枚举特性(下篇)">
+<meta property="og:url" content="http://example.com/2019/08/11/%E8%BF%98%E6%9C%89%E4%BD%A0%E4%B8%8D%E7%9F%A5%E9%81%93%E7%9A%84Java%E6%9E%9A%E4%B8%BE%E7%89%B9%E6%80%A7-%E4%B8%8B%E7%AF%87/index.html">
+<meta property="og:site_name" content="Veryitman">
+<meta property="og:description" content="简介这篇是博文 还有你不知道的Java枚举特性(上篇) 的下篇，可以点击下面的链接前往。 本篇主要内容：  Java 枚举是一个特殊的类，聊聊其方法的重写 如何使用接口来组织 Java 枚举？ 如何使用枚举实现 Java 的单例模式 JDK 数据结构中关于枚举的集合 EnumSet 和字典 EnumMap  重写枚举的方法所有的枚举类都继承自 Enum，在这个父类当中 toString、equal">
+<meta property="og:locale" content="zh_CN">
+<meta property="og:image" content="http://example.com/upload/images/2019/08/11/1.png">
+<meta property="og:image" content="http://example.com/upload/images/2019/08/11/2.png">
+<meta property="og:image" content="http://example.com/upload/me/qrcode_wx.jpg">
+<meta property="article:published_time" content="2019-08-11T06:31:00.000Z">
+<meta property="article:modified_time" content="2022-03-09T14:53:24.318Z">
+<meta property="article:author" content="veryitman">
+<meta property="article:tag" content="java enum">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:image" content="http://example.com/upload/images/2019/08/11/1.png">
+  
+  
+
+  <!-- feed -->
+  
+
+  
+    
+<link rel="stylesheet" href="/css/main.css">
+
+  
+
+  
+
+  
+</head>
+
+<body>
+  
+
+
+  <div class='l_body' id='start'>
+    <aside class='l_left' layout='post'>
+    
+
+
+<header class="header">
+
+<div class="logo-wrap"><a class="title" href="/"><div class="main">Veryitman</div></a></div>
+<nav class="menu dis-select"></nav></header>
+
+<div class="widgets">
+
+<div class="widget-wrap single" id="toc"><div class="widget-header cap dis-select"><span class="name">本文目录</span></div><div class="widget-body fs14"><div class="doc-tree active"><ol class="toc"><li class="toc-item toc-level-2"><a class="toc-link" href="#%E7%AE%80%E4%BB%8B"><span class="toc-text">简介</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#%E9%87%8D%E5%86%99%E6%9E%9A%E4%B8%BE%E7%9A%84%E6%96%B9%E6%B3%95"><span class="toc-text">重写枚举的方法</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#%E4%BD%BF%E7%94%A8%E6%8E%A5%E5%8F%A3%E7%BB%84%E7%BB%87%E6%9E%9A%E4%B8%BE"><span class="toc-text">使用接口组织枚举</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#%E6%9E%9A%E4%B8%BE%E5%AE%9E%E7%8E%B0%E5%8D%95%E4%BE%8B%E6%A8%A1%E5%BC%8F"><span class="toc-text">枚举实现单例模式</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#%E6%9E%9A%E4%B8%BE%E9%9B%86%E5%90%88"><span class="toc-text">枚举集合</span></a></li></ol></div></div></div>
+
+
+</div>
+
+
+    </aside>
+    <div class='l_main'>
+      
+
+      
+
+
+<div class="bread-nav fs12"><div id="breadcrumb"><a class="cap breadcrumb" href="/">主页</a><span class="sep"></span><a class="cap breadcrumb" href="/">文章</a><span class="sep"></span><a class="cap breadcrumb-link" href="/categories/Java/">Java</a></div><div id="post-meta">发布于&nbsp;<time datetime="2019-08-11T06:31:00.000Z">2019-08-11</time></div></div>
+
+<article class='content md post'>
+<h1 class="article-title"><span>还有你不知道的Java枚举特性(下篇)</span></h1>
+<h2 id="简介"><a href="#简介" class="headerlink" title="简介"></a>简介</h2><p>这篇是博文 <a target="_blank" rel="noopener" href="http://www.veryitman.com/2019/08/09/%E8%BF%98%E6%9C%89%E4%BD%A0%E4%B8%8D%E7%9F%A5%E9%81%93%E7%9A%84Java%E6%9E%9A%E4%B8%BE%E7%89%B9%E6%80%A7%28%E4%B8%8A%E7%AF%87%29/">还有你不知道的Java枚举特性(上篇)</a> 的下篇，可以点击下面的链接前往。</p>
+<p>本篇主要内容：</p>
+<ul>
+<li>Java 枚举是一个特殊的类，聊聊其方法的重写</li>
+<li>如何使用接口来组织 Java 枚举？</li>
+<li>如何使用枚举实现 Java 的单例模式</li>
+<li>JDK 数据结构中关于枚举的集合 <code>EnumSet</code> 和字典 <code>EnumMap</code></li>
+</ul>
+<h2 id="重写枚举的方法"><a href="#重写枚举的方法" class="headerlink" title="重写枚举的方法"></a>重写枚举的方法</h2><p>所有的枚举类都继承自 <code>Enum</code>，在这个父类当中 <code>toString</code>、<code>equals</code> 和<code>hashCode</code> 的三个方法，可以看一下，源码如下：</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">public</span> String <span class="title function_">toString</span><span class="params">()</span> &#123;</span><br><span class="line">	<span class="keyword">return</span> name;</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line"><span class="keyword">public</span> <span class="keyword">final</span> <span class="type">boolean</span> <span class="title function_">equals</span><span class="params">(Object other)</span> &#123; </span><br><span class="line">	<span class="type">return</span> <span class="variable">this</span> <span class="operator">=</span>= other;</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line"><span class="keyword">public</span> <span class="keyword">final</span> <span class="type">int</span> <span class="title function_">hashCode</span><span class="params">()</span> &#123;</span><br><span class="line">	<span class="keyword">return</span> <span class="built_in">super</span>.hashCode();</span><br><span class="line">&#125;</span><br><span class="line"></span><br></pre></td></tr></table></figure>
+
+<p>可以看出在这三个方法当中，我们只能重写 <code>toString</code> 方法，另外两个方法都是 <code>final</code> 修饰的方法，不可以被子类重写。</p>
+<p>我们在自定义的枚举中，可以重写  <code>toString</code> 方法的，示例如下：</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">public</span> <span class="keyword">enum</span> <span class="title class_">Color</span> &#123;</span><br><span class="line">    RED(<span class="string">&quot;red color&quot;</span>),</span><br><span class="line">    GREEN(<span class="string">&quot;green color&quot;</span>),</span><br><span class="line">    BLUE(<span class="string">&quot;blue color&quot;</span>),</span><br><span class="line">    YELLOW(<span class="string">&quot;yellow color&quot;</span>);</span><br><span class="line"></span><br><span class="line">    Color(String name) &#123;</span><br><span class="line">        _name = name;</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    <span class="keyword">private</span> String _name;</span><br><span class="line">    </span><br><span class="line">    <span class="meta">@Override</span></span><br><span class="line">    <span class="keyword">public</span> String <span class="title function_">toString</span><span class="params">()</span> &#123;</span><br><span class="line">        <span class="keyword">return</span> <span class="string">&quot;this.name: &quot;</span> + _name;</span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<p>关于 <code>Enum</code> 的源码，可以在博文 <a target="_blank" rel="noopener" href="http://www.veryitman.com/2019/03/16/Java-%E6%9E%9A%E4%B8%BE%E7%9A%84%E6%9C%AC%E8%B4%A8/">Java 枚举的本质</a> 中的文末翻阅。</p>
+<p>对于 Java 中所有枚举都是继承自 <code>Enum</code>，大家可以去使用 <code>javap</code> 命令反编译看看，如下代码是 <code>javap</code> 后的简单示例：</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">public</span> <span class="keyword">final</span> <span class="keyword">class</span> <span class="title class_">com</span>.veryitman.Color <span class="keyword">extends</span> <span class="title class_">java</span>.lang.Enum&lt;com.veryitman.Color&gt; &#123;</span><br><span class="line">  <span class="keyword">public</span> <span class="keyword">static</span> <span class="keyword">final</span> com.veryitman.Color RED;</span><br><span class="line">  <span class="keyword">public</span> <span class="keyword">static</span> <span class="keyword">final</span> com.veryitman.Color GREEN;</span><br><span class="line">  <span class="keyword">public</span> <span class="keyword">static</span> <span class="keyword">final</span> com.veryitman.Color BLUE;</span><br><span class="line">  <span class="keyword">public</span> <span class="keyword">static</span> <span class="keyword">final</span> com.veryitman.Color YELLOW;</span><br><span class="line">  <span class="keyword">public</span> <span class="keyword">static</span> com.veryitman.Color[] values();</span><br><span class="line">  <span class="keyword">public</span> <span class="keyword">static</span> com.veryitman.Color <span class="title function_">valueOf</span><span class="params">(java.lang.String)</span>;</span><br><span class="line">  <span class="keyword">static</span> &#123;&#125;;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<p>可以看到 <code>Color</code> 是继承自 <code>java.lang.Enum</code> 的，<code>Enum</code> 是一个抽象类并实现了 <code>Comparable</code> 和 <code>Serializable</code> 这两个接口，如下：</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">public</span> <span class="keyword">abstract</span> <span class="keyword">class</span> <span class="title class_">Enum</span>&lt;E <span class="keyword">extends</span> <span class="title class_">Enum</span>&lt;E&gt;&gt; <span class="keyword">implements</span> <span class="title class_">Comparable</span>&lt;E&gt;, Serializable </span><br></pre></td></tr></table></figure>
+
+<h2 id="使用接口组织枚举"><a href="#使用接口组织枚举" class="headerlink" title="使用接口组织枚举"></a>使用接口组织枚举</h2><p>当我们定义的枚举过多且又有很多嵌套，可以使用接口来组织这些枚举，将其归类，这样一来不仅代码看起来很规范，并且也很好管理代码。</p>
+<p>如下示例，使用接口 <code>MobileTool</code> 来组织两个枚举。</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">public</span> <span class="keyword">interface</span> <span class="title class_">MobileTool</span> &#123;</span><br><span class="line">        <span class="keyword">enum</span> <span class="title class_">Phone</span> <span class="keyword">implements</span> <span class="title class_">MobileTool</span> &#123;</span><br><span class="line">            HUAWEI, iPhone, OPPO, XIAOMI</span><br><span class="line">        &#125;</span><br><span class="line"></span><br><span class="line">        <span class="keyword">enum</span> <span class="title class_">Pad</span> <span class="keyword">implements</span> <span class="title class_">MobileTool</span> &#123;</span><br><span class="line">            iPad, WEPad, sPad</span><br><span class="line">        &#125;</span><br><span class="line">    &#125;</span><br></pre></td></tr></table></figure>
+
+<p>简单的可以这样使用，示例如下：</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br></pre></td><td class="code"><pre><span class="line"><span class="type">MobileTool</span> <span class="variable">mphone</span> <span class="operator">=</span> MobileTool.Phone.HUAWEI;</span><br><span class="line">mphone = MobileTool.Phone.iPhone;</span><br><span class="line"></span><br><span class="line"><span class="type">MobileTool</span> <span class="variable">mpad</span> <span class="operator">=</span> MobileTool.Pad.iPad;</span><br><span class="line">mpad = MobileTool.Pad.sPad;</span><br></pre></td></tr></table></figure>
+
+<h2 id="枚举实现单例模式"><a href="#枚举实现单例模式" class="headerlink" title="枚举实现单例模式"></a>枚举实现单例模式</h2><p>在 <code>Effective Java</code> 这本书籍中，作者有个这样下面的描述：</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line"><span class="string">&quot;This approach is functionally equivalent to the public field approach, except that it is more concise, provides the serialization machinery for free, and provides an ironclad guarantee against multiple instantiation, even in the face of sophisticated serialization or reflection attacks. While this approach has yet to be widely adopted, a single-element enum type is the best way to implement a singleton.&quot;</span></span><br></pre></td></tr></table></figure>
+
+<p>核心的意思是</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">使用枚举实现单例的方法虽然还没有广泛采用，但单元素的枚举类型已经成为实现 Java 单例模式的最佳方法。</span><br></pre></td></tr></table></figure>
+
+<p>我们用枚举实现一下单例模式，示例代码如下：</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">public</span> <span class="keyword">enum</span> <span class="title class_">Foo</span> &#123;</span><br><span class="line">	INSTANCE;</span><br><span class="line"></span><br><span class="line">	<span class="keyword">public</span> <span class="keyword">void</span> <span class="title function_">printFoo</span><span class="params">()</span> &#123;</span><br><span class="line">		System.out.println(<span class="string">&quot;Foo here.&quot;</span>);</span><br><span class="line">	&#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<p>相比 Java 中其他的单例实现方式，此时此刻你会发现，枚举实现单例的代码会精简很多。</p>
+<p>那么，枚举实现单例模式到底有哪些优势呢？或者换句话说，就这样实现单例靠谱吗？</p>
+<p>经过大量例子和 Java 编程专家的讲解，枚举实现单例模式相当靠谱，它具有以下一些特点：</p>
+<p>1、枚举实现的单例模式是线程安全的</p>
+<p>本质上面来讲，枚举实现的单例之所以是线程安全的，这个跟 Java 的类加载机制有关。从上面反编译的代码来看，枚举是 <code>final class</code> 并且每个枚举值都是 <code>static</code> 的，这里牵扯到 <code>ClassLoader</code> 的相关知识，如果有兴趣建议大家去研究一下。</p>
+<p>总之，对于我们任何一个枚举在第一次被真正用到之时，会被 Java 虚拟机加载并且完成初始化，而这个初始化过程是线程安全的，所以你需要记住枚举实现的单例模式是多线程安全的就可以了。</p>
+<p>2、枚举可解决反射&#x2F;反序列化问题</p>
+<p>我们知道，一般的单例模式都存在两个问题，一个是可以通过反射调用，另一个就是可以通过序列化和反序列化来破坏单例。</p>
+<p>一般解决反射调用可以通过私有构造方法中做处理，示例代码如下：</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">private</span> <span class="keyword">static</span> <span class="type">boolean</span> <span class="variable">flag</span> <span class="operator">=</span> <span class="literal">false</span>;</span><br><span class="line"></span><br><span class="line"><span class="keyword">private</span> <span class="title function_">Foo</span><span class="params">()</span> &#123;</span><br><span class="line">	<span class="keyword">synchronized</span> (<span class="built_in">this</span>) &#123;</span><br><span class="line">		<span class="keyword">if</span> (<span class="literal">false</span> == flag) &#123;</span><br><span class="line">			flag = <span class="literal">true</span>;</span><br><span class="line">		&#125; <span class="keyword">else</span> &#123;</span><br><span class="line">			<span class="keyword">throw</span> <span class="keyword">new</span> <span class="title class_">RuntimeException</span>(<span class="string">&quot;不能反复创建&quot;</span>);</span><br><span class="line">		&#125;</span><br><span class="line">	&#125;</span><br><span class="line">&#125;;</span><br></pre></td></tr></table></figure>
+
+<p>了解序列化原理的同学，可以通过在单例类中实现 <code>readResolve</code> 方法就可以避免反序列化攻击这个问题了。示例代码如下：</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">private</span> Object <span class="title function_">readResolve</span><span class="params">()</span> &#123;</span><br><span class="line">    <span class="keyword">return</span> INSTANCE;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<p>Java 的枚举的反序列化实现并不是通过反射实现的，也就是说枚举的序列化和反序列化是有经过特殊定制和处理的，这就可以避免反序列化过程中由于反射而导致的单例被破坏问题。</p>
+<p>总之，枚举实现的单例模式不仅可以防止反射破坏，还可以防止序列化破坏单例。</p>
+<p>除枚举实现单这种方式以外，我一般使用下面两种方式来实现单例模式。</p>
+<p><strong>饿汉式的单例模式写法</strong></p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">public</span> <span class="keyword">class</span> <span class="title class_">Foo</span> &#123;</span><br><span class="line">    <span class="keyword">private</span> <span class="keyword">static</span> <span class="type">Foo</span> <span class="variable">instance</span> <span class="operator">=</span> <span class="keyword">new</span> <span class="title class_">Foo</span>();</span><br><span class="line">    </span><br><span class="line">    <span class="keyword">private</span> <span class="title function_">Foo</span> <span class="params">()</span> &#123;</span><br><span class="line">        </span><br><span class="line">    &#125;</span><br><span class="line">    </span><br><span class="line">    <span class="keyword">public</span> <span class="keyword">static</span> Foo <span class="title function_">getInstance</span><span class="params">()</span> &#123;</span><br><span class="line">    	<span class="keyword">return</span> instance;</span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<p><strong>静态内部类实现单例模式</strong></p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">public</span> <span class="keyword">class</span> <span class="title class_">Foo</span> &#123;</span><br><span class="line">    <span class="keyword">private</span> <span class="keyword">static</span> <span class="keyword">class</span> <span class="title class_">FooHolder</span> &#123;</span><br><span class="line">    	<span class="keyword">private</span> <span class="keyword">static</span> <span class="keyword">final</span> <span class="type">Foo</span> <span class="variable">INSTANCE</span> <span class="operator">=</span> <span class="keyword">new</span> <span class="title class_">Foo</span>();  </span><br><span class="line">    &#125;</span><br><span class="line">    </span><br><span class="line">    <span class="keyword">private</span> <span class="title function_">Foo</span> <span class="params">()</span> &#123;</span><br><span class="line">    	</span><br><span class="line">    &#125;</span><br><span class="line">    </span><br><span class="line">    <span class="keyword">public</span> <span class="keyword">static</span> <span class="keyword">final</span> Foo <span class="title function_">getInstance</span><span class="params">()</span> &#123;  </span><br><span class="line">    	<span class="keyword">return</span> FooHolder.INSTANCE;</span><br><span class="line">    &#125;</span><br><span class="line">&#125;  </span><br></pre></td></tr></table></figure>
+
+<h2 id="枚举集合"><a href="#枚举集合" class="headerlink" title="枚举集合"></a>枚举集合</h2><p><code>EnumSet</code> 是一个专为枚举设计的集合类，<code>EnumSet</code> 中的所有元素都必须是指定枚举类型的枚举值。</p>
+<p><code>EnumSet</code> 类结构图如下：</p>
+<p><img class="lazy" src="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAABGdBTUEAALGPC/xhBQAAADhlWElmTU0AKgAAAAgAAYdpAAQAAAABAAAAGgAAAAAAAqACAAQAAAABAAAAAaADAAQAAAABAAAAAQAAAADa6r/EAAAAC0lEQVQIHWNgAAIAAAUAAY27m/MAAAAASUVORK5CYII=" data-src="/upload/images/2019/08/11/1.png" alt="1"></p>
+<p><code>EnumSet</code> 是一个抽象类，无法被实例化，但是可以通过静态方法获取该类的实例。</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">public</span> <span class="keyword">abstract</span> <span class="keyword">class</span> <span class="title class_">EnumSet</span>&lt;E <span class="keyword">extends</span> <span class="title class_">Enum</span>&lt;E&gt;&gt; <span class="keyword">extends</span> <span class="title class_">AbstractSet</span>&lt;E&gt;</span><br><span class="line">    <span class="keyword">implements</span> <span class="title class_">Cloneable</span>, java.io.Serializable</span><br></pre></td></tr></table></figure>
+
+<p><code>EnumMap</code> 类结构图如下：</p>
+<p><img class="lazy" src="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAABGdBTUEAALGPC/xhBQAAADhlWElmTU0AKgAAAAgAAYdpAAQAAAABAAAAGgAAAAAAAqACAAQAAAABAAAAAaADAAQAAAABAAAAAQAAAADa6r/EAAAAC0lEQVQIHWNgAAIAAAUAAY27m/MAAAAASUVORK5CYII=" data-src="/upload/images/2019/08/11/2.png" alt="1"></p>
+<p><code>EnumMap</code> 定义如下：</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">public</span> <span class="keyword">class</span> <span class="title class_">EnumMap</span>&lt;K <span class="keyword">extends</span> <span class="title class_">Enum</span>&lt;K&gt;, V&gt; <span class="keyword">extends</span> <span class="title class_">AbstractMap</span>&lt;K, V&gt;</span><br><span class="line">    <span class="keyword">implements</span> <span class="title class_">java</span>.io.Serializable, Cloneable</span><br></pre></td></tr></table></figure>
+
+<p><code>EnumSet</code> 保证集合中的元素不重复；<code>EnumMap</code> 中的  key 是 enum 类型，而 value 则可以是任意类型。</p>
+<p>关于这两个数据结构的使用方法，大家可以参考 JDK 手册。</p>
+<hr>
+<p><strong>赠人玫瑰，手留余香~</strong></p>
+<p><img class="lazy" src="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAABGdBTUEAALGPC/xhBQAAADhlWElmTU0AKgAAAAgAAYdpAAQAAAABAAAAGgAAAAAAAqACAAQAAAABAAAAAaADAAQAAAABAAAAAQAAAADa6r/EAAAAC0lEQVQIHWNgAAIAAAUAAY27m/MAAAAASUVORK5CYII=" data-src="/upload/me/qrcode_wx.jpg"></p>
+
+
+
+
+</article>
+
+<div class="related-wrap reveal" id="read-next"><section class="header cap theme"><span>接下来阅读</span></section><section class="body fs14"><a id="next" href="/2019/08/09/%E8%BF%98%E6%9C%89%E4%BD%A0%E4%B8%8D%E7%9F%A5%E9%81%93%E7%9A%84Java%E6%9E%9A%E4%B8%BE%E7%89%B9%E6%80%A7(%E4%B8%8A%E7%AF%87)/">还有你不知道的Java枚举特性(上篇)<span class="note">较早</span></a><div class="line"></div><a id="prev" href="/2019/08/24/%E8%B7%B3%E7%BB%B3%E7%9A%84%E6%95%85%E4%BA%8B/">跳绳的故事<span class="note">较新</span></a></section></div>
+
+
+
+
+
+
+  <div class='related-wrap md reveal' id="comments">
+    <div class='cmt-title cap theme'>
+      快来参与讨论吧
+    </div>
+    <div class='cmt-body valine'>
+      
+
+<div id="valine_container" class="valine_thread"><svg class="loading" style="vertical-align: middle;fill: currentColor;overflow: hidden;" viewBox="0 0 1024 1024" version="1.1" xmlns="http://www.w3.org/2000/svg" p-id="2709"><path d="M832 512c0-176-144-320-320-320V128c211.2 0 384 172.8 384 384h-64zM192 512c0 176 144 320 320 320v64C300.8 896 128 723.2 128 512h64z" p-id="2710"></path></svg></div>
+
+    </div>
+  </div>
+
+
+
+      
+<footer class="page-footer reveal fs12"><hr><div class="text"><p>本博客所有文章除特别声明外，均采用 <a target="_blank" rel="noopener" href="https://creativecommons.org/licenses/by-nc-sa/4.0/">CC BY-NC-SA 4.0</a> 许可协议，转载请注明出处。</p>
+<p>veryitman</p>
+</div></footer>
+
+      <div class='float-panel mobile-only blur' style='display:none'>
+  <button type='button' class='sidebar-toggle mobile' onclick='sidebar.toggle()'>
+    <svg class="icon" style="width: 1em; height: 1em;vertical-align: middle;fill: currentColor;overflow: hidden;" viewBox="0 0 1024 1024" version="1.1" xmlns="http://www.w3.org/2000/svg" p-id="15301"><path d="M566.407 808.3c26.9-0.1 49.3-20.8 51.6-47.6-1.9-27.7-23.9-49.7-51.6-51.6h-412.6c-28.2-1.4-52.6 19.5-55.5 47.6 2.3 26.8 24.6 47.5 51.6 47.6h416.5v4z m309.3-249.9c26.9-0.1 49.3-20.8 51.6-47.6-2.2-26.8-24.6-47.5-51.6-47.6h-721.9c-27.7-2.8-52.5 17.4-55.3 45.1-0.1 0.8-0.1 1.7-0.2 2.5 0.9 27.2 23.6 48.5 50.7 47.6H875.707z m-103.1-245.9c26.9-0.1 49.3-20.8 51.6-47.6-0.4-28.3-23.2-51.1-51.5-51.6h-618.9c-29.5-1.1-54.3 21.9-55.5 51.4v0.2c1.4 27.8 25.2 49.2 53 47.8 0.8 0 1.7-0.1 2.5-0.2h618.8z" p-id="15302"></path><path d="M566.407 808.3c26.9-0.1 49.3-20.8 51.6-47.6-1.9-27.7-23.9-49.7-51.6-51.6h-412.6c-28.2-1.4-52.6 19.5-55.5 47.6 1.9 27.7 23.9 49.7 51.6 51.6h416.5z m309.3-249.9c26.9-0.1 49.3-20.8 51.6-47.6-2.2-26.8-24.6-47.5-51.6-47.6h-721.9c-27.7-2.8-52.5 17.4-55.3 45.1-0.1 0.8-0.1 1.7-0.2 2.5 0.9 27.2 23.6 48.5 50.7 47.6H875.707z m-103.1-245.9c26.9-0.1 49.3-20.8 51.6-47.6-0.4-28.3-23.2-51.1-51.5-51.6h-618.9c-29.5-1.1-54.3 21.9-55.5 51.4v0.2c1.4 27.8 25.2 49.2 53 47.8 0.8 0 1.7-0.1 2.5-0.2h618.8z" p-id="15303"></path></svg>
+  </button>
+</div>
+
+    </div>
+  </div>
+  <div class='scripts'>
+    <script type="text/javascript">
+  stellar = {
+    // 懒加载 css https://github.com/filamentgroup/loadCSS
+    loadCSS: (href, before, media, attributes) => {
+      var doc = window.document;
+      var ss = doc.createElement("link");
+      var ref;
+      if (before) {
+        ref = before;
+      } else {
+        var refs = (doc.body || doc.getElementsByTagName("head")[0]).childNodes;
+        ref = refs[refs.length - 1];
+      }
+      var sheets = doc.styleSheets;
+      if (attributes) {
+        for (var attributeName in attributes) {
+          if (attributes.hasOwnProperty(attributeName)) {
+            ss.setAttribute(attributeName, attributes[attributeName]);
+          }
+        }
+      }
+      ss.rel = "stylesheet";
+      ss.href = href;
+      ss.media = "only x";
+      function ready(cb) {
+        if (doc.body) {
+          return cb();
+        }
+        setTimeout(function () {
+          ready(cb);
+        });
+      }
+      ready(function () {
+        ref.parentNode.insertBefore(ss, before ? ref : ref.nextSibling);
+      });
+      var onloadcssdefined = function (cb) {
+        var resolvedHref = ss.href;
+        var i = sheets.length;
+        while (i--) {
+          if (sheets[i].href === resolvedHref) {
+            return cb();
+          }
+        }
+        setTimeout(function () {
+          onloadcssdefined(cb);
+        });
+      };
+      function loadCB() {
+        if (ss.addEventListener) {
+          ss.removeEventListener("load", loadCB);
+        }
+        ss.media = media || "all";
+      }
+      if (ss.addEventListener) {
+        ss.addEventListener("load", loadCB);
+      }
+      ss.onloadcssdefined = onloadcssdefined;
+      onloadcssdefined(loadCB);
+      return ss;
+    },
+
+    // 从 butterfly 和 volantis 获得灵感
+    loadScript: (src, opt) => new Promise((resolve, reject) => {
+      var script = document.createElement('script');
+      script.src = src;
+      if (opt) {
+        for (let key of Object.keys(opt)) {
+          script[key] = opt[key]
+        }
+      } else {
+        // 默认异步，如果需要同步，第二个参数传入 {} 即可
+        script.async = true
+      }
+      script.onerror = reject
+      script.onload = script.onreadystatechange = function() {
+        const loadState = this.readyState
+        if (loadState && loadState !== 'loaded' && loadState !== 'complete') return
+        script.onload = script.onreadystatechange = null
+        resolve()
+      }
+      document.head.appendChild(script)
+    }),
+
+    // https://github.com/jerryc127/hexo-theme-butterfly
+    jQuery: (fn) => {
+      if (typeof jQuery === 'undefined') {
+        stellar.loadScript(stellar.plugins.jQuery).then(fn)
+      } else {
+        fn()
+      }
+    }
+  };
+  stellar.github = 'https://github.com/xaoxuu/hexo-theme-stellar/tree/1.6.1';
+  stellar.config = {
+    date_suffix: {
+      just: '刚刚',
+      min: '分钟前',
+      hour: '小时前',
+      day: '天前',
+      month: '个月前',
+    },
+  };
+
+  // required plugins (only load if needs)
+  stellar.plugins = {
+    jQuery: 'https://cdn.jsdelivr.net/npm/jquery@3.5.1/dist/jquery.min.js',
+    sitesjs: '/js/plugins/sites.js',
+    friendsjs: '/js/plugins/friends.js',
+  };
+
+  // optional plugins
+  if ('true' == 'true') {
+    stellar.plugins.lazyload = Object.assign({"enable":true,"js":"https://cdn.jsdelivr.net/npm/vanilla-lazyload@17.3.1/dist/lazyload.min.js","transition":"blur"});
+  }
+  if ('true' == 'true') {
+    stellar.plugins.swiper = Object.assign({"enable":true,"css":"https://unpkg.com/swiper@6/swiper-bundle.min.css","js":"https://unpkg.com/swiper@6/swiper-bundle.min.js"});
+  }
+  if ('' == 'true') {
+    stellar.plugins.scrollreveal = Object.assign({"enable":null,"js":"https://cdn.jsdelivr.net/npm/scrollreveal@4.0.9/dist/scrollreveal.min.js","distance":"8px","duration":500,"interval":100,"scale":1});
+  }
+  if ('true' == 'true') {
+    stellar.plugins.preload = Object.assign({"enable":true,"service":"flying_pages","instant_page":"https://cdn.jsdelivr.net/gh/volantis-x/cdn-volantis@4.1.2/js/instant_page.js","flying_pages":"https://cdn.jsdelivr.net/gh/gijo-varghese/flying-pages@2.1.2/flying-pages.min.js"});
+  }
+</script>
+
+<!-- required -->
+
+  
+<script src="/js/main.js" async></script>
+
+
+
+<!-- optional -->
+
+  <script>
+  function getEmojiMaps() {
+    function emoji(path, idx, ext) {
+      return path + "/" + path + "-" + idx + "." + ext;
+    }
+    var emojiMaps = {};
+    for (var i = 1; i <= 54; i++) {
+      emojiMaps['tieba-' + i] = emoji('tieba', i, 'png');
+    }
+    for (var i = 1; i <= 101; i++) {
+      emojiMaps['qq-' + i] = emoji('qq', i, 'gif');
+    }
+    for (var i = 1; i <= 116; i++) {
+      emojiMaps['aru-' + i] = emoji('aru', i, 'gif');
+    }
+    for (var i = 1; i <= 125; i++) {
+      emojiMaps['twemoji-' + i] = emoji('twemoji', i, 'png');
+    }
+    for (var i = 1; i <= 4; i++) {
+      emojiMaps['weibo-' + i] = emoji('weibo', i, 'png');
+    }
+    return emojiMaps;
+  }
+  function load_comment(){
+    if(!document.getElementById("valine_container"))return;
+    stellar.loadScript('https://cdn.jsdelivr.net/gh/XuxuGood/simple-blog-cdn@main/js/Valine.min.js', {defer:true}).then(function () {
+      const el = document.getElementById("valine_container");
+      var path = el.getAttribute('comment_id');
+      const placeholder = "欢迎您留言~";
+      if (!path) {
+        path = decodeURI(window.location.pathname);
+      }
+      var valine = new Valine();
+      valine.init(Object.assign({"js":"https://cdn.jsdelivr.net/gh/XuxuGood/simple-blog-cdn@main/js/Valine.min.js","appId":"FY2C9UCttYNaE1j8umenqdCE-gzGzoHsz","appKey":"4i7xMwkfSEGmEDhi6SceKFxz","placeholder":"欢迎您留言~","requiredFields":["nick","mail"],"enableQQ":true,"recordIP":false,"avatar":"robohash","pageSize":10,"lang":"zh-cn","highlight":true,"mathJax":false,"tagMeta":["博主","小伙伴","访客"],"metaPlaceholder":{"nick":"昵称/QQ号(必填)","mail":"邮箱（必填，完全保密）"},"master":["6783037F2DF30EAB99F9FC256157D875"],"friends":["6783037F2DF30EAB99F9FC256157D875"],"comment_count":true}, {
+        el: '#valine_container',
+        path: path,
+        placeholder: placeholder,
+        emojiCDN: 'https://cdn.jsdelivr.net/gh/volantis-x/cdn-emoji/valine/',
+        emojiMaps: getEmojiMaps(),
+      }));
+    });
+  }
+  window.addEventListener('DOMContentLoaded', (event) => {
+    console.log('DOM fully loaded and parsed');
+    load_comment();
+  });
+
+</script>
+
+
+
+
+<!-- inject -->
+
+
+  </div>
+</body>
+</html>

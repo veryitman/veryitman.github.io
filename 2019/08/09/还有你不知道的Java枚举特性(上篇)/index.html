@@ -1,0 +1,377 @@
+<!DOCTYPE html>
+<html lang='zh-CN'>
+
+<head>
+  <meta name="generator" content="Hexo 6.0.0">
+  <meta charset="utf-8">
+  
+
+  <meta http-equiv='x-dns-prefetch-control' content='on' />
+  <link rel='dns-prefetch' href='https://cdn.jsdelivr.net'>
+  <link rel="preconnect" href="https://cdn.jsdelivr.net" crossorigin>
+
+  <meta name="renderer" content="webkit">
+  <meta name="force-rendering" content="webkit">
+  <meta http-equiv="X-UA-Compatible" content="IE=Edge,chrome=1">
+  <meta name="HandheldFriendly" content="True" >
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1">
+  <meta name="theme-color" content="#f8f8f8">
+  <title>还有你不知道的Java枚举特性(上篇) - Veryitman</title>
+
+  
+    <meta name="description" content="简介博文 Java 枚举的本质 跟大家一起学习了 Java 语言中枚举到底是什么，探索其本质和原理。用一句话来概括其本质就是：“Java 中的枚举是一个特殊的 Java 类”，有兴趣的同学可以点击了解上面那篇文章。 今天跟大家一起学习和总结一下 Java 中的枚举的其他特性和用途，由于内容较多，这次的分享分为两篇文章来写，欢迎大家拍砖、指正和交流！ 本篇主要内容：  Java switch 语句支">
+<meta property="og:type" content="article">
+<meta property="og:title" content="还有你不知道的Java枚举特性(上篇)">
+<meta property="og:url" content="http://example.com/2019/08/09/%E8%BF%98%E6%9C%89%E4%BD%A0%E4%B8%8D%E7%9F%A5%E9%81%93%E7%9A%84Java%E6%9E%9A%E4%B8%BE%E7%89%B9%E6%80%A7(%E4%B8%8A%E7%AF%87)/index.html">
+<meta property="og:site_name" content="Veryitman">
+<meta property="og:description" content="简介博文 Java 枚举的本质 跟大家一起学习了 Java 语言中枚举到底是什么，探索其本质和原理。用一句话来概括其本质就是：“Java 中的枚举是一个特殊的 Java 类”，有兴趣的同学可以点击了解上面那篇文章。 今天跟大家一起学习和总结一下 Java 中的枚举的其他特性和用途，由于内容较多，这次的分享分为两篇文章来写，欢迎大家拍砖、指正和交流！ 本篇主要内容：  Java switch 语句支">
+<meta property="og:locale" content="zh_CN">
+<meta property="og:image" content="http://example.com/upload/me/qrcode_wx.jpg">
+<meta property="article:published_time" content="2019-08-09T14:02:41.000Z">
+<meta property="article:modified_time" content="2022-03-09T14:53:24.318Z">
+<meta property="article:author" content="veryitman">
+<meta property="article:tag" content="java enum switch">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:image" content="http://example.com/upload/me/qrcode_wx.jpg">
+  
+  
+
+  <!-- feed -->
+  
+
+  
+    
+<link rel="stylesheet" href="/css/main.css">
+
+  
+
+  
+
+  
+</head>
+
+<body>
+  
+
+
+  <div class='l_body' id='start'>
+    <aside class='l_left' layout='post'>
+    
+
+
+<header class="header">
+
+<div class="logo-wrap"><a class="title" href="/"><div class="main">Veryitman</div></a></div>
+<nav class="menu dis-select"></nav></header>
+
+<div class="widgets">
+
+<div class="widget-wrap single" id="toc"><div class="widget-header cap dis-select"><span class="name">本文目录</span></div><div class="widget-body fs14"><div class="doc-tree active"><ol class="toc"><li class="toc-item toc-level-2"><a class="toc-link" href="#%E7%AE%80%E4%BB%8B"><span class="toc-text">简介</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#switch-%E8%AF%AD%E5%8F%A5%E6%94%AF%E6%8C%81%E6%9E%9A%E4%B8%BE"><span class="toc-text">switch 语句支持枚举</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#%E5%BD%93%E5%B8%B8%E9%87%8F%E4%BD%BF%E7%94%A8"><span class="toc-text">当常量使用</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#%E8%87%AA%E5%AE%9A%E4%B9%89%E6%96%B9%E6%B3%95%E3%80%81%E6%88%90%E5%91%98%E5%8F%98%E9%87%8F"><span class="toc-text">自定义方法、成员变量</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#%E5%AE%9E%E7%8E%B0%E6%8E%A5%E5%8F%A3"><span class="toc-text">实现接口</span></a></li></ol></div></div></div>
+
+
+</div>
+
+
+    </aside>
+    <div class='l_main'>
+      
+
+      
+
+
+<div class="bread-nav fs12"><div id="breadcrumb"><a class="cap breadcrumb" href="/">主页</a><span class="sep"></span><a class="cap breadcrumb" href="/">文章</a><span class="sep"></span><a class="cap breadcrumb-link" href="/categories/Java/">Java</a></div><div id="post-meta">发布于&nbsp;<time datetime="2019-08-09T14:02:41.000Z">2019-08-09</time></div></div>
+
+<article class='content md post'>
+<h1 class="article-title"><span>还有你不知道的Java枚举特性(上篇)</span></h1>
+<h2 id="简介"><a href="#简介" class="headerlink" title="简介"></a>简介</h2><p>博文 <a target="_blank" rel="noopener" href="http://www.veryitman.com/2019/03/16/Java-%E6%9E%9A%E4%B8%BE%E7%9A%84%E6%9C%AC%E8%B4%A8/">Java 枚举的本质</a> 跟大家一起学习了 Java 语言中枚举到底是什么，探索其本质和原理。用一句话来概括其本质就是：“Java 中的枚举是一个特殊的 Java 类”，有兴趣的同学可以点击了解上面那篇文章。</p>
+<p>今天跟大家一起学习和总结一下 Java 中的枚举的其他特性和用途，由于内容较多，这次的分享分为两篇文章来写，欢迎大家拍砖、指正和交流！</p>
+<p>本篇主要内容：</p>
+<ul>
+<li>Java switch 语句支持枚举类型以及注意事项</li>
+<li>Java 枚举的常量使用</li>
+<li>如何在自定义枚举中自定义成员变量和成员方法、静态方法</li>
+<li>Java 枚举实现接口</li>
+</ul>
+<p>下篇主要内容：</p>
+<ul>
+<li>Java 枚举是一个特殊的类，聊聊其方法的重写</li>
+<li>如何使用接口来组织 Java 枚举？</li>
+<li>JDK 数据结构中关于枚举的集合 <code>EnumSet</code> 和字典 <code>EnumMap</code></li>
+</ul>
+<h2 id="switch-语句支持枚举"><a href="#switch-语句支持枚举" class="headerlink" title="switch 语句支持枚举"></a>switch 语句支持枚举</h2><p>JDK1.5 才开始有枚举类型，同时可爱的 Java 组织丰富了 <code>switch</code> 语句，即支持枚举。</p>
+<p>我们还是动手写个例子~</p>
+<p>定义一个枚举 <code>Color</code>，示例如下：</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br><span class="line">39</span><br><span class="line">40</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">public</span> <span class="keyword">enum</span> <span class="title class_">Color</span> &#123;</span><br><span class="line">	RED(<span class="string">&quot;red color&quot;</span>, <span class="number">0</span>), </span><br><span class="line">	GREEN(<span class="string">&quot;green color&quot;</span>, <span class="number">1</span>),</span><br><span class="line">	BLUE(<span class="string">&quot;blue color&quot;</span>, <span class="number">2</span>), </span><br><span class="line">	YELLOW(<span class="string">&quot;yellow color&quot;</span>, <span class="number">3</span>);</span><br><span class="line"> </span><br><span class="line">    <span class="comment">// 构造方法</span></span><br><span class="line">	Color(String name, <span class="type">int</span> id) &#123;</span><br><span class="line">		_name = name;</span><br><span class="line">		_id = id;</span><br><span class="line">	&#125;</span><br><span class="line"> </span><br><span class="line">	<span class="keyword">private</span> String _name;</span><br><span class="line">	<span class="keyword">private</span> <span class="type">int</span> _id;</span><br><span class="line"> </span><br><span class="line">	<span class="keyword">public</span> String <span class="title function_">getName</span><span class="params">()</span> &#123;</span><br><span class="line">		<span class="keyword">return</span> _name;</span><br><span class="line">	&#125;</span><br><span class="line"> </span><br><span class="line">	<span class="keyword">public</span> <span class="type">int</span> <span class="title function_">getId</span><span class="params">()</span> &#123;</span><br><span class="line">		<span class="keyword">return</span> _id;</span><br><span class="line">	&#125;</span><br><span class="line"> </span><br><span class="line">	<span class="keyword">public</span> <span class="keyword">static</span> Color <span class="title function_">getColor</span><span class="params">(<span class="type">int</span> max)</span> &#123;</span><br><span class="line">		<span class="type">Random</span> <span class="variable">random</span> <span class="operator">=</span> <span class="keyword">new</span> <span class="title class_">Random</span>(System.currentTimeMillis());</span><br><span class="line">		<span class="type">int</span> <span class="variable">num</span> <span class="operator">=</span> random.nextInt(max);</span><br><span class="line">		<span class="keyword">switch</span> (num) &#123;</span><br><span class="line">		<span class="keyword">case</span> <span class="number">0</span>:</span><br><span class="line">			<span class="keyword">return</span> Color.RED;</span><br><span class="line">		<span class="keyword">case</span> <span class="number">1</span>:</span><br><span class="line">			<span class="keyword">return</span> Color.GREEN;</span><br><span class="line">		<span class="keyword">case</span> <span class="number">2</span>:</span><br><span class="line">			<span class="keyword">return</span> Color.BLUE;</span><br><span class="line">		<span class="keyword">case</span> <span class="number">3</span>:</span><br><span class="line">			<span class="keyword">return</span> Color.YELLOW;</span><br><span class="line">		<span class="keyword">default</span>:</span><br><span class="line">			<span class="keyword">return</span> Color.BLUE;</span><br><span class="line">		&#125;</span><br><span class="line">	&#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<p>为枚举 <code>Color</code> 提供了一个静态方法 <code>getColor</code>，可以获取随机的颜色值。</p>
+<p>那么，可以结合 <code>switch</code> 语句这样使用，示例代码如下：</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">public</span> <span class="keyword">static</span> <span class="keyword">void</span> <span class="title function_">main</span><span class="params">(String[] args)</span> &#123;</span><br><span class="line">	<span class="type">int</span> <span class="variable">len</span> <span class="operator">=</span> Color.values().length;</span><br><span class="line">	<span class="type">Color</span> <span class="variable">color</span> <span class="operator">=</span> Color.getColor(len);</span><br><span class="line">	<span class="keyword">switch</span> (color) &#123;</span><br><span class="line">	<span class="keyword">case</span> RED:</span><br><span class="line">		System.out.println(<span class="string">&quot;select &quot;</span> + <span class="string">&quot;RED&quot;</span>);</span><br><span class="line">		<span class="keyword">break</span>;</span><br><span class="line">	<span class="keyword">case</span> GREEN:</span><br><span class="line">		System.out.println(<span class="string">&quot;select &quot;</span> + <span class="string">&quot;GREEN&quot;</span>);</span><br><span class="line">		<span class="keyword">break</span>;</span><br><span class="line">	<span class="keyword">case</span> BLUE:</span><br><span class="line">		System.out.println(<span class="string">&quot;select &quot;</span> + <span class="string">&quot;BLUE&quot;</span>);</span><br><span class="line">		<span class="keyword">break</span>;</span><br><span class="line">	<span class="keyword">case</span> YELLOW:</span><br><span class="line">		System.out.println(<span class="string">&quot;select &quot;</span> + <span class="string">&quot;YELLOW&quot;</span>);</span><br><span class="line">		<span class="keyword">break</span>;</span><br><span class="line">	<span class="keyword">default</span>:</span><br><span class="line">		System.out.println(<span class="string">&quot;select &quot;</span> + <span class="string">&quot;unknow!!&quot;</span>);</span><br><span class="line">		<span class="keyword">break</span>;</span><br><span class="line">	&#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<p>可以看出，<code>switch</code> 语句中条件值是 <code>Color</code> 对象。</p>
+<p>这里提醒大家要注意一个问题，如果 <code>case</code> 的条件带上类的名字，代码是无法通过编译的。如下面的代码（错误示例）：</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment">// Error</span></span><br><span class="line"><span class="keyword">case</span> Color.RED:</span><br><span class="line">	System.out.println(<span class="string">&quot;select &quot;</span> + <span class="string">&quot;RED&quot;</span>);</span><br><span class="line">    <span class="keyword">break</span>;</span><br></pre></td></tr></table></figure>
+
+<p>编译的错误信息：</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">Error: An <span class="keyword">enum</span> <span class="title class_">switch</span> <span class="keyword">case</span> label must be the unqualified name of an enumeration constant</span><br></pre></td></tr></table></figure>
+
+<p>即 <code>switch</code> <code>case</code> 语句结合枚举使用时，只能写枚举类定义的变量名称，不能加类名。</p>
+<h2 id="当常量使用"><a href="#当常量使用" class="headerlink" title="当常量使用"></a>当常量使用</h2><p>一般在 Java 中我们定义常量最常用的方式就是使用下面的方式，如下：</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">public</span> <span class="keyword">static</span> <span class="keyword">final</span> <span class="type">int</span> <span class="variable">MAX_NAME_LENGTH</span> <span class="operator">=</span> <span class="number">0x1112</span>;</span><br></pre></td></tr></table></figure>
+
+<p>有了枚举之后，也可以使用枚举来定义常量。</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">public</span> <span class="keyword">enum</span> <span class="title class_">Color</span> &#123;</span><br><span class="line">    YELLOW, BLANK, RED, GREEN</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<p>这样就可以把一些相关的常量放到定义的枚举当中了。</p>
+<h2 id="自定义方法、成员变量"><a href="#自定义方法、成员变量" class="headerlink" title="自定义方法、成员变量"></a>自定义方法、成员变量</h2><p>上面的例子中自定义的一个枚举 <code>Color</code>，大家可以看到可以给它添加成员变量 <code>_id</code>、<code>_name</code>，构造方法和其他方法 <code>getColor</code>（静态方法）。</p>
+<p>如果这部分很难理解，建议去阅读 <a target="_blank" rel="noopener" href="http://www.veryitman.com/2019/03/16/Java-%E6%9E%9A%E4%B8%BE%E7%9A%84%E6%9C%AC%E8%B4%A8/">Java 枚举的本质</a> 这篇文章。</p>
+<h2 id="实现接口"><a href="#实现接口" class="headerlink" title="实现接口"></a>实现接口</h2><p>所有的枚举类都继承自 <code>Enum</code>，因为 Java 不支持多继承，所以枚举无法继承其它类。</p>
+<p>枚举既然是和 Java 的普通类基本一样，那么，枚举当然也可以实现接口。</p>
+<p>下面是枚举 <code>Color</code> 实现接口 <code>Paint</code> 的例子，如下：</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">interface</span> <span class="title class_">Paint</span> &#123;</span><br><span class="line">        <span class="keyword">void</span> <span class="title function_">setColor</span><span class="params">()</span>;</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line"><span class="keyword">public</span> <span class="keyword">enum</span> <span class="title class_">Color</span> <span class="keyword">implements</span> <span class="title class_">Paint</span> &#123;</span><br><span class="line">    RED(<span class="string">&quot;red color&quot;</span>),</span><br><span class="line">    GREEN(<span class="string">&quot;green color&quot;</span>),</span><br><span class="line">    BLUE(<span class="string">&quot;blue color&quot;</span>),</span><br><span class="line">    YELLOW(<span class="string">&quot;yellow color&quot;</span>);</span><br><span class="line"></span><br><span class="line">    Color(String name) &#123;</span><br><span class="line">        _name = name;</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    <span class="keyword">private</span> String _name;</span><br><span class="line"></span><br><span class="line">    <span class="meta">@Override</span></span><br><span class="line">    <span class="keyword">public</span> <span class="keyword">void</span> <span class="title function_">setColor</span><span class="params">()</span> &#123;</span><br><span class="line">        System.out.println(<span class="string">&quot;Current paint color: &quot;</span> + _name);</span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<p>还可以采用匿名内部类的方式，让每个枚举值实现接口 <code>Paint</code> 的方法，示例如下：</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">public</span> <span class="keyword">enum</span> <span class="title class_">Color</span> <span class="keyword">implements</span> <span class="title class_">Paint</span> &#123;</span><br><span class="line">        RED(<span class="string">&quot;red color&quot;</span>) &#123;</span><br><span class="line">            <span class="meta">@Override</span></span><br><span class="line">            <span class="keyword">public</span> <span class="keyword">void</span> <span class="title function_">setColor</span><span class="params">()</span> &#123;</span><br><span class="line">                System.out.println(<span class="string">&quot;Current paint color: &quot;</span> + RED._name);</span><br><span class="line">            &#125;</span><br><span class="line">        &#125;,</span><br><span class="line">        GREEN(<span class="string">&quot;green color&quot;</span>) &#123;</span><br><span class="line">            <span class="meta">@Override</span></span><br><span class="line">            <span class="keyword">public</span> <span class="keyword">void</span> <span class="title function_">setColor</span><span class="params">()</span> &#123;</span><br><span class="line">                System.out.println(<span class="string">&quot;Current paint color: &quot;</span> + GREEN._name);</span><br><span class="line">            &#125;</span><br><span class="line">        &#125;,</span><br><span class="line">        BLUE(<span class="string">&quot;blue color&quot;</span>) &#123;</span><br><span class="line">            <span class="meta">@Override</span></span><br><span class="line">            <span class="keyword">public</span> <span class="keyword">void</span> <span class="title function_">setColor</span><span class="params">()</span> &#123;</span><br><span class="line">                System.out.println(<span class="string">&quot;Current paint color: &quot;</span> + BLUE._name);</span><br><span class="line">            &#125;</span><br><span class="line">        &#125;,</span><br><span class="line">        YELLOW(<span class="string">&quot;yellow color&quot;</span>) &#123;</span><br><span class="line">            <span class="meta">@Override</span></span><br><span class="line">            <span class="keyword">public</span> <span class="keyword">void</span> <span class="title function_">setColor</span><span class="params">()</span> &#123;</span><br><span class="line">                System.out.println(<span class="string">&quot;Current paint color: &quot;</span> + YELLOW._name);</span><br><span class="line">            &#125;</span><br><span class="line">        &#125;;</span><br><span class="line"></span><br><span class="line">        Color(String name) &#123;</span><br><span class="line">            _name = name;</span><br><span class="line">        &#125;</span><br><span class="line"></span><br><span class="line">        <span class="keyword">private</span> String _name;</span><br><span class="line"></span><br><span class="line">        <span class="meta">@Override</span></span><br><span class="line">        <span class="keyword">public</span> <span class="keyword">void</span> <span class="title function_">setColor</span><span class="params">()</span> &#123;</span><br><span class="line">            System.out.println(<span class="string">&quot;Current paint color: &quot;</span> + _name);</span><br><span class="line">        &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<p>可以写个方法测试一下，如下：</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">public</span> <span class="keyword">static</span> <span class="keyword">void</span> <span class="title function_">main</span><span class="params">(String[] args)</span> &#123;</span><br><span class="line">    <span class="keyword">for</span> (Color color : Color.values()) &#123;</span><br><span class="line">        color.setColor();</span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<p>输出结果，如下：</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><span class="line">Current paint color: red color</span><br><span class="line">Current paint color: green color</span><br><span class="line">Current paint color: blue color</span><br><span class="line">Current paint color: yellow color</span><br></pre></td></tr></table></figure>
+
+<hr>
+<p><strong>人生没有永远的赢家，切勿大喜大悲，要以平常心对待一切~</strong></p>
+<p><img class="lazy" src="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAABGdBTUEAALGPC/xhBQAAADhlWElmTU0AKgAAAAgAAYdpAAQAAAABAAAAGgAAAAAAAqACAAQAAAABAAAAAaADAAQAAAABAAAAAQAAAADa6r/EAAAAC0lEQVQIHWNgAAIAAAUAAY27m/MAAAAASUVORK5CYII=" data-src="/upload/me/qrcode_wx.jpg"></p>
+
+
+
+
+</article>
+
+<div class="related-wrap reveal" id="read-next"><section class="header cap theme"><span>接下来阅读</span></section><section class="body fs14"><a id="next" href="/2019/08/04/%E5%BE%AE%E6%9C%8D%E5%8A%A1-%E5%AD%A6%E4%B9%A0%E5%87%A0%E4%B8%AA%E5%AE%B9%E6%98%93%E6%B7%B7%E6%B7%86%E7%9A%84URL%E6%B3%A8%E8%A7%A3/">微服务: 学习几个容易混淆的URL注解<span class="note">较早</span></a><div class="line"></div><a id="prev" href="/2019/08/11/%E8%BF%98%E6%9C%89%E4%BD%A0%E4%B8%8D%E7%9F%A5%E9%81%93%E7%9A%84Java%E6%9E%9A%E4%B8%BE%E7%89%B9%E6%80%A7-%E4%B8%8B%E7%AF%87/">还有你不知道的Java枚举特性(下篇)<span class="note">较新</span></a></section></div>
+
+
+
+
+
+
+  <div class='related-wrap md reveal' id="comments">
+    <div class='cmt-title cap theme'>
+      快来参与讨论吧
+    </div>
+    <div class='cmt-body valine'>
+      
+
+<div id="valine_container" class="valine_thread"><svg class="loading" style="vertical-align: middle;fill: currentColor;overflow: hidden;" viewBox="0 0 1024 1024" version="1.1" xmlns="http://www.w3.org/2000/svg" p-id="2709"><path d="M832 512c0-176-144-320-320-320V128c211.2 0 384 172.8 384 384h-64zM192 512c0 176 144 320 320 320v64C300.8 896 128 723.2 128 512h64z" p-id="2710"></path></svg></div>
+
+    </div>
+  </div>
+
+
+
+      
+<footer class="page-footer reveal fs12"><hr><div class="text"><p>本博客所有文章除特别声明外，均采用 <a target="_blank" rel="noopener" href="https://creativecommons.org/licenses/by-nc-sa/4.0/">CC BY-NC-SA 4.0</a> 许可协议，转载请注明出处。</p>
+<p>veryitman</p>
+</div></footer>
+
+      <div class='float-panel mobile-only blur' style='display:none'>
+  <button type='button' class='sidebar-toggle mobile' onclick='sidebar.toggle()'>
+    <svg class="icon" style="width: 1em; height: 1em;vertical-align: middle;fill: currentColor;overflow: hidden;" viewBox="0 0 1024 1024" version="1.1" xmlns="http://www.w3.org/2000/svg" p-id="15301"><path d="M566.407 808.3c26.9-0.1 49.3-20.8 51.6-47.6-1.9-27.7-23.9-49.7-51.6-51.6h-412.6c-28.2-1.4-52.6 19.5-55.5 47.6 2.3 26.8 24.6 47.5 51.6 47.6h416.5v4z m309.3-249.9c26.9-0.1 49.3-20.8 51.6-47.6-2.2-26.8-24.6-47.5-51.6-47.6h-721.9c-27.7-2.8-52.5 17.4-55.3 45.1-0.1 0.8-0.1 1.7-0.2 2.5 0.9 27.2 23.6 48.5 50.7 47.6H875.707z m-103.1-245.9c26.9-0.1 49.3-20.8 51.6-47.6-0.4-28.3-23.2-51.1-51.5-51.6h-618.9c-29.5-1.1-54.3 21.9-55.5 51.4v0.2c1.4 27.8 25.2 49.2 53 47.8 0.8 0 1.7-0.1 2.5-0.2h618.8z" p-id="15302"></path><path d="M566.407 808.3c26.9-0.1 49.3-20.8 51.6-47.6-1.9-27.7-23.9-49.7-51.6-51.6h-412.6c-28.2-1.4-52.6 19.5-55.5 47.6 1.9 27.7 23.9 49.7 51.6 51.6h416.5z m309.3-249.9c26.9-0.1 49.3-20.8 51.6-47.6-2.2-26.8-24.6-47.5-51.6-47.6h-721.9c-27.7-2.8-52.5 17.4-55.3 45.1-0.1 0.8-0.1 1.7-0.2 2.5 0.9 27.2 23.6 48.5 50.7 47.6H875.707z m-103.1-245.9c26.9-0.1 49.3-20.8 51.6-47.6-0.4-28.3-23.2-51.1-51.5-51.6h-618.9c-29.5-1.1-54.3 21.9-55.5 51.4v0.2c1.4 27.8 25.2 49.2 53 47.8 0.8 0 1.7-0.1 2.5-0.2h618.8z" p-id="15303"></path></svg>
+  </button>
+</div>
+
+    </div>
+  </div>
+  <div class='scripts'>
+    <script type="text/javascript">
+  stellar = {
+    // 懒加载 css https://github.com/filamentgroup/loadCSS
+    loadCSS: (href, before, media, attributes) => {
+      var doc = window.document;
+      var ss = doc.createElement("link");
+      var ref;
+      if (before) {
+        ref = before;
+      } else {
+        var refs = (doc.body || doc.getElementsByTagName("head")[0]).childNodes;
+        ref = refs[refs.length - 1];
+      }
+      var sheets = doc.styleSheets;
+      if (attributes) {
+        for (var attributeName in attributes) {
+          if (attributes.hasOwnProperty(attributeName)) {
+            ss.setAttribute(attributeName, attributes[attributeName]);
+          }
+        }
+      }
+      ss.rel = "stylesheet";
+      ss.href = href;
+      ss.media = "only x";
+      function ready(cb) {
+        if (doc.body) {
+          return cb();
+        }
+        setTimeout(function () {
+          ready(cb);
+        });
+      }
+      ready(function () {
+        ref.parentNode.insertBefore(ss, before ? ref : ref.nextSibling);
+      });
+      var onloadcssdefined = function (cb) {
+        var resolvedHref = ss.href;
+        var i = sheets.length;
+        while (i--) {
+          if (sheets[i].href === resolvedHref) {
+            return cb();
+          }
+        }
+        setTimeout(function () {
+          onloadcssdefined(cb);
+        });
+      };
+      function loadCB() {
+        if (ss.addEventListener) {
+          ss.removeEventListener("load", loadCB);
+        }
+        ss.media = media || "all";
+      }
+      if (ss.addEventListener) {
+        ss.addEventListener("load", loadCB);
+      }
+      ss.onloadcssdefined = onloadcssdefined;
+      onloadcssdefined(loadCB);
+      return ss;
+    },
+
+    // 从 butterfly 和 volantis 获得灵感
+    loadScript: (src, opt) => new Promise((resolve, reject) => {
+      var script = document.createElement('script');
+      script.src = src;
+      if (opt) {
+        for (let key of Object.keys(opt)) {
+          script[key] = opt[key]
+        }
+      } else {
+        // 默认异步，如果需要同步，第二个参数传入 {} 即可
+        script.async = true
+      }
+      script.onerror = reject
+      script.onload = script.onreadystatechange = function() {
+        const loadState = this.readyState
+        if (loadState && loadState !== 'loaded' && loadState !== 'complete') return
+        script.onload = script.onreadystatechange = null
+        resolve()
+      }
+      document.head.appendChild(script)
+    }),
+
+    // https://github.com/jerryc127/hexo-theme-butterfly
+    jQuery: (fn) => {
+      if (typeof jQuery === 'undefined') {
+        stellar.loadScript(stellar.plugins.jQuery).then(fn)
+      } else {
+        fn()
+      }
+    }
+  };
+  stellar.github = 'https://github.com/xaoxuu/hexo-theme-stellar/tree/1.6.1';
+  stellar.config = {
+    date_suffix: {
+      just: '刚刚',
+      min: '分钟前',
+      hour: '小时前',
+      day: '天前',
+      month: '个月前',
+    },
+  };
+
+  // required plugins (only load if needs)
+  stellar.plugins = {
+    jQuery: 'https://cdn.jsdelivr.net/npm/jquery@3.5.1/dist/jquery.min.js',
+    sitesjs: '/js/plugins/sites.js',
+    friendsjs: '/js/plugins/friends.js',
+  };
+
+  // optional plugins
+  if ('true' == 'true') {
+    stellar.plugins.lazyload = Object.assign({"enable":true,"js":"https://cdn.jsdelivr.net/npm/vanilla-lazyload@17.3.1/dist/lazyload.min.js","transition":"blur"});
+  }
+  if ('true' == 'true') {
+    stellar.plugins.swiper = Object.assign({"enable":true,"css":"https://unpkg.com/swiper@6/swiper-bundle.min.css","js":"https://unpkg.com/swiper@6/swiper-bundle.min.js"});
+  }
+  if ('' == 'true') {
+    stellar.plugins.scrollreveal = Object.assign({"enable":null,"js":"https://cdn.jsdelivr.net/npm/scrollreveal@4.0.9/dist/scrollreveal.min.js","distance":"8px","duration":500,"interval":100,"scale":1});
+  }
+  if ('true' == 'true') {
+    stellar.plugins.preload = Object.assign({"enable":true,"service":"flying_pages","instant_page":"https://cdn.jsdelivr.net/gh/volantis-x/cdn-volantis@4.1.2/js/instant_page.js","flying_pages":"https://cdn.jsdelivr.net/gh/gijo-varghese/flying-pages@2.1.2/flying-pages.min.js"});
+  }
+</script>
+
+<!-- required -->
+
+  
+<script src="/js/main.js" async></script>
+
+
+
+<!-- optional -->
+
+  <script>
+  function getEmojiMaps() {
+    function emoji(path, idx, ext) {
+      return path + "/" + path + "-" + idx + "." + ext;
+    }
+    var emojiMaps = {};
+    for (var i = 1; i <= 54; i++) {
+      emojiMaps['tieba-' + i] = emoji('tieba', i, 'png');
+    }
+    for (var i = 1; i <= 101; i++) {
+      emojiMaps['qq-' + i] = emoji('qq', i, 'gif');
+    }
+    for (var i = 1; i <= 116; i++) {
+      emojiMaps['aru-' + i] = emoji('aru', i, 'gif');
+    }
+    for (var i = 1; i <= 125; i++) {
+      emojiMaps['twemoji-' + i] = emoji('twemoji', i, 'png');
+    }
+    for (var i = 1; i <= 4; i++) {
+      emojiMaps['weibo-' + i] = emoji('weibo', i, 'png');
+    }
+    return emojiMaps;
+  }
+  function load_comment(){
+    if(!document.getElementById("valine_container"))return;
+    stellar.loadScript('https://cdn.jsdelivr.net/gh/XuxuGood/simple-blog-cdn@main/js/Valine.min.js', {defer:true}).then(function () {
+      const el = document.getElementById("valine_container");
+      var path = el.getAttribute('comment_id');
+      const placeholder = "欢迎您留言~";
+      if (!path) {
+        path = decodeURI(window.location.pathname);
+      }
+      var valine = new Valine();
+      valine.init(Object.assign({"js":"https://cdn.jsdelivr.net/gh/XuxuGood/simple-blog-cdn@main/js/Valine.min.js","appId":"FY2C9UCttYNaE1j8umenqdCE-gzGzoHsz","appKey":"4i7xMwkfSEGmEDhi6SceKFxz","placeholder":"欢迎您留言~","requiredFields":["nick","mail"],"enableQQ":true,"recordIP":false,"avatar":"robohash","pageSize":10,"lang":"zh-cn","highlight":true,"mathJax":false,"tagMeta":["博主","小伙伴","访客"],"metaPlaceholder":{"nick":"昵称/QQ号(必填)","mail":"邮箱（必填，完全保密）"},"master":["6783037F2DF30EAB99F9FC256157D875"],"friends":["6783037F2DF30EAB99F9FC256157D875"],"comment_count":true}, {
+        el: '#valine_container',
+        path: path,
+        placeholder: placeholder,
+        emojiCDN: 'https://cdn.jsdelivr.net/gh/volantis-x/cdn-emoji/valine/',
+        emojiMaps: getEmojiMaps(),
+      }));
+    });
+  }
+  window.addEventListener('DOMContentLoaded', (event) => {
+    console.log('DOM fully loaded and parsed');
+    load_comment();
+  });
+
+</script>
+
+
+
+
+<!-- inject -->
+
+
+  </div>
+</body>
+</html>

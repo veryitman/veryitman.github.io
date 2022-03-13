@@ -1,0 +1,379 @@
+<!DOCTYPE html>
+<html lang='zh-CN'>
+
+<head>
+  <meta name="generator" content="Hexo 6.0.0">
+  <meta charset="utf-8">
+  
+
+  <meta http-equiv='x-dns-prefetch-control' content='on' />
+  <link rel='dns-prefetch' href='https://cdn.jsdelivr.net'>
+  <link rel="preconnect" href="https://cdn.jsdelivr.net" crossorigin>
+
+  <meta name="renderer" content="webkit">
+  <meta name="force-rendering" content="webkit">
+  <meta http-equiv="X-UA-Compatible" content="IE=Edge,chrome=1">
+  <meta name="HandheldFriendly" content="True" >
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1">
+  <meta name="theme-color" content="#f8f8f8">
+  <title>iOS 项目: 打造本地 pod 库 - Veryitman</title>
+
+  
+    <meta name="description" content="本篇的姊妹篇 Cocoapods 管理开源项目 已准备完毕，直戳 链接 即可达到。 Cocoapods 管理代码的必要性项目到了一定规模, 代码组织和结构显得尤为重要. 重构项目结构，可以从分离代码开始，代码分离，可以把常用稳定的组件封装抽离出来. 分离代码, 常用的有几种方式:   放到不同的文件夹, 管理和组织代码. 使用 framework 的方式, 提供给项目使用. 工具管理如 Cocoa">
+<meta property="og:type" content="article">
+<meta property="og:title" content="iOS 项目: 打造本地 pod 库">
+<meta property="og:url" content="http://example.com/2016/09/25/iOS-%E9%A1%B9%E7%9B%AE-%E6%89%93%E9%80%A0%E6%9C%AC%E5%9C%B0-pod-%E5%BA%93/index.html">
+<meta property="og:site_name" content="Veryitman">
+<meta property="og:description" content="本篇的姊妹篇 Cocoapods 管理开源项目 已准备完毕，直戳 链接 即可达到。 Cocoapods 管理代码的必要性项目到了一定规模, 代码组织和结构显得尤为重要. 重构项目结构，可以从分离代码开始，代码分离，可以把常用稳定的组件封装抽离出来. 分离代码, 常用的有几种方式:   放到不同的文件夹, 管理和组织代码. 使用 framework 的方式, 提供给项目使用. 工具管理如 Cocoa">
+<meta property="og:locale" content="zh_CN">
+<meta property="og:image" content="http://example.com/upload/images/2016/9/25/pod_lib_dir.png">
+<meta property="og:image" content="http://example.com/upload/images/2016/9/25/pod_lib_pro.png">
+<meta property="og:image" content="http://example.com/upload/me/qrcode_wx.jpg">
+<meta property="article:published_time" content="2016-09-25T12:50:42.000Z">
+<meta property="article:modified_time" content="2022-03-09T14:53:24.354Z">
+<meta property="article:author" content="veryitman">
+<meta property="article:tag" content="iOS Cocoapods">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:image" content="http://example.com/upload/images/2016/9/25/pod_lib_dir.png">
+  
+  
+
+  <!-- feed -->
+  
+
+  
+    
+<link rel="stylesheet" href="/css/main.css">
+
+  
+
+  
+
+  
+</head>
+
+<body>
+  
+
+
+  <div class='l_body' id='start'>
+    <aside class='l_left' layout='post'>
+    
+
+
+<header class="header">
+
+<div class="logo-wrap"><a class="title" href="/"><div class="main">Veryitman</div></a></div>
+<nav class="menu dis-select"></nav></header>
+
+<div class="widgets">
+
+<div class="widget-wrap single" id="toc"><div class="widget-header cap dis-select"><span class="name">本文目录</span></div><div class="widget-body fs14"><div class="doc-tree active"><ol class="toc"><li class="toc-item toc-level-2"><a class="toc-link" href="#Cocoapods-%E7%AE%A1%E7%90%86%E4%BB%A3%E7%A0%81%E7%9A%84%E5%BF%85%E8%A6%81%E6%80%A7"><span class="toc-text">Cocoapods 管理代码的必要性</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#%E5%88%9B%E5%BB%BA%E5%B7%A5%E7%A8%8B"><span class="toc-text">创建工程</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#%E5%88%9B%E5%BB%BA-podspec-%E6%96%87%E4%BB%B6"><span class="toc-text">创建 podspec 文件</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#%E4%BF%AE%E6%94%B9-podspec-%E6%96%87%E4%BB%B6"><span class="toc-text">修改 podspec 文件</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#%E5%B7%A5%E7%A8%8B%E4%BD%BF%E7%94%A8-pod-%E5%BA%93"><span class="toc-text">工程使用 pod 库</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#%E7%A4%BA%E4%BE%8B%E4%B8%8B%E8%BD%BD"><span class="toc-text">示例下载</span></a></li></ol></div></div></div>
+
+
+</div>
+
+
+    </aside>
+    <div class='l_main'>
+      
+
+      
+
+
+<div class="bread-nav fs12"><div id="breadcrumb"><a class="cap breadcrumb" href="/">主页</a><span class="sep"></span><a class="cap breadcrumb" href="/">文章</a><span class="sep"></span><a class="cap breadcrumb-link" href="/categories/iOS/">iOS</a></div><div id="post-meta">发布于&nbsp;<time datetime="2016-09-25T12:50:42.000Z">2016-09-25</time></div></div>
+
+<article class='content md post'>
+<h1 class="article-title"><span>iOS 项目: 打造本地 pod 库</span></h1>
+<p>本篇的姊妹篇 <a target="_blank" rel="noopener" href="http://www.veryitman.com/2016/11/01/Cocoapods-%E7%AE%A1%E7%90%86%E5%BC%80%E6%BA%90%E9%A1%B9%E7%9B%AE/">Cocoapods 管理开源项目</a> 已准备完毕，直戳 <a target="_blank" rel="noopener" href="http://www.veryitman.com/2016/11/01/Cocoapods-%E7%AE%A1%E7%90%86%E5%BC%80%E6%BA%90%E9%A1%B9%E7%9B%AE/">链接</a> 即可达到。</p>
+<h2 id="Cocoapods-管理代码的必要性"><a href="#Cocoapods-管理代码的必要性" class="headerlink" title="Cocoapods 管理代码的必要性"></a>Cocoapods 管理代码的必要性</h2><p>项目到了一定规模, 代码组织和结构显得尤为重要.</p>
+<p>重构项目结构，可以从分离代码开始，代码分离，可以把常用稳定的组件封装抽离出来.</p>
+<p>分离代码, 常用的有几种方式:</p>
+<blockquote>
+<ol>
+<li>放到不同的文件夹, 管理和组织代码.</li>
+<li>使用 framework 的方式, 提供给项目使用.</li>
+<li>工具管理如 Cocoapods.</li>
+</ol>
+</blockquote>
+<p>这几种方式, 各有所长, 各有优劣, 无所谓好与坏, 根据自己的项目特点来组织即可.</p>
+<p>我的做法是使用 cocoapods 来管理.</p>
+<p>下面进入今天的主题:</p>
+<blockquote>
+<p>使用 cocoapods 管理自己的本地代码.</p>
+</blockquote>
+<p>博客 <a target="_blank" rel="noopener" href="http://blog.csdn.net/veryitman/article/details/50769069">Mac OSX 10.11.1+ 安装 Cocoapods</a><br>介绍了如何在最新版 MacOS 中安装 Cocoapods 以及注意事项, 并且作者保证持续「更新, 更正」内容.</p>
+<h2 id="创建工程"><a href="#创建工程" class="headerlink" title="创建工程"></a>创建工程</h2><p>使用 Xcode 创建一个工程, 工程名就起为 <code>TestPods</code> 吧.</p>
+<blockquote>
+<p>工程目录可以防止在桌面或者你喜欢的目录下面都可以.</p>
+</blockquote>
+<p>在 TestPods 下面创建 LocalLib 目录, 用来放置分离的代码.当然, 你也可以将 LocalLib 这个目录放到其他目录.</p>
+<p>在 LocalLib 下面, 我的 pod 库代码名称为 download.</p>
+<p>可以新建这个目录.</p>
+<p>目录如下:<br><img class="lazy" src="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAABGdBTUEAALGPC/xhBQAAADhlWElmTU0AKgAAAAgAAYdpAAQAAAABAAAAGgAAAAAAAqACAAQAAAABAAAAAaADAAQAAAABAAAAAQAAAADa6r/EAAAAC0lEQVQIHWNgAAIAAAUAAY27m/MAAAAASUVORK5CYII=" data-src="/upload/images/2016/9/25/pod_lib_dir.png" alt="1"></p>
+<h2 id="创建-podspec-文件"><a href="#创建-podspec-文件" class="headerlink" title="创建 podspec 文件"></a>创建 podspec 文件</h2><p>在 download 目录下面, 创建 podspec 文件</p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">pod spec create download</span><br></pre></td></tr></table></figure>
+
+<p>创建完成后, 会生成 download.podspec 文件.</p>
+<p>具体内容, 创建后, 大家可以自行查看.</p>
+<h2 id="修改-podspec-文件"><a href="#修改-podspec-文件" class="headerlink" title="修改 podspec 文件"></a>修改 podspec 文件</h2><p>修改 download.podspec, 主要修改几个关键地方:</p>
+<blockquote>
+<p>源码位置<br>源码版本</p>
+</blockquote>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br></pre></td><td class="code"><pre><span class="line">――― Source Location ―――――――――――――――――――――――――――――――――――――――――――――#</span><br><span class="line">  #</span><br><span class="line">  #  Specify the location from where the source should be retrieved.</span><br><span class="line">  #  Supports git, hg, bzr, svn and HTTP.</span><br><span class="line">  #</span><br><span class="line">  s.source       = &#123; :git =&gt; &quot;&quot;, :tag =&gt; &quot;0.0.1&quot; &#125;</span><br><span class="line">  # ――― Source Code ――――――――――――――――――――――――――――――――――――――――――――#</span><br><span class="line">  #</span><br><span class="line">  #  CocoaPods is smart about how it includes source code. For source files</span><br><span class="line">  #  giving a folder will include any swift, h, m, mm, c &amp; cpp files.</span><br><span class="line">  #  For header files it will include any header in the folder.</span><br><span class="line">  #  Not including the public_header_files will make all headers public.</span><br><span class="line">  #</span><br><span class="line">  s.source_files  = &quot;Source&quot;, &quot;Source/**/*.&#123;h,m&#125;&quot;</span><br><span class="line">  s.exclude_files = &quot;Source/Exclude&quot;</span><br></pre></td></tr></table></figure>
+
+<p>另外, 配置好相关描述信息, 不要包含 ‘Example’ 的字样, 不然, 新版的 Cocoapods 执行 pod install 时候, 会报出警告和错误.</p>
+<p>这样, 工程可以使用 pods 库了.</p>
+<h2 id="工程使用-pod-库"><a href="#工程使用-pod-库" class="headerlink" title="工程使用 pod 库"></a>工程使用 pod 库</h2><p>将 TestPods 改为 cocoapods 项目.</p>
+<p>在 TestPods 目录, 执行</p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">pod init</span><br></pre></td></tr></table></figure>
+
+<p>会生成 Podfile 等文件.</p>
+<p>修改 Podfile 文件</p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br></pre></td><td class="code"><pre><span class="line"># Uncomment this line to define a global platform for your project</span><br><span class="line"># platform :ios, &#x27;7.0&#x27;</span><br><span class="line"># Uncomment this line if you&#x27;re using Swift</span><br><span class="line"># use_frameworks!</span><br><span class="line">target &#x27;TestPods&#x27; do</span><br><span class="line">pod &#x27;download&#x27;, :path =&gt; &#x27;./LocalLib/download/&#x27;</span><br><span class="line">#pod &#x27;core_lib_spec&#x27;, :svn =&gt; &#x27;http://svn.ids111.com/o2o/client/ios/trunks/master/Frameworks/CoreLibrary&#x27;</span><br><span class="line">end</span><br><span class="line">target &#x27;TestPodsTests&#x27; do</span><br><span class="line">end</span><br><span class="line">target &#x27;TestPodsUITests&#x27; do</span><br><span class="line">end</span><br></pre></td></tr></table></figure>
+
+<p>关键是指明 pod 库的位置.<br>路径一定要正确.否则无法找到该库.</p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">pod &#x27;download&#x27;, :path =&gt; &#x27;./LocalLib/download/&#x27;</span><br></pre></td></tr></table></figure>
+
+<p>在 TestPods 下面, pod install 即可.</p>
+<p>如果, pod install 报错, 一般都是你的 pod 库的配置文件(.podspec)里面写的不符合要求.</p>
+<p>根据报错信息, 加以修改即可.</p>
+<p>xcode 打开工程.<br><img class="lazy" src="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAABGdBTUEAALGPC/xhBQAAADhlWElmTU0AKgAAAAgAAYdpAAQAAAABAAAAGgAAAAAAAqACAAQAAAABAAAAAaADAAQAAAABAAAAAQAAAADa6r/EAAAAC0lEQVQIHWNgAAIAAAUAAY27m/MAAAAASUVORK5CYII=" data-src="/upload/images/2016/9/25/pod_lib_pro.png" alt="1"></p>
+<h2 id="示例下载"><a href="#示例下载" class="headerlink" title="示例下载"></a>示例下载</h2><p>工程示例代码, 可以 <a target="_blank" rel="noopener" href="http://download.csdn.net/download/androidbluetooth/9520262">戳这里下载</a> 玩耍!</p>
+<hr>
+<p><strong>扫码关注，你我就各多一个朋友~</strong></p>
+<p><img class="lazy" src="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAABGdBTUEAALGPC/xhBQAAADhlWElmTU0AKgAAAAgAAYdpAAQAAAABAAAAGgAAAAAAAqACAAQAAAABAAAAAaADAAQAAAABAAAAAQAAAADa6r/EAAAAC0lEQVQIHWNgAAIAAAUAAY27m/MAAAAASUVORK5CYII=" data-src="/upload/me/qrcode_wx.jpg"></p>
+
+
+
+
+</article>
+
+<div class="related-wrap reveal" id="read-next"><section class="header cap theme"><span>接下来阅读</span></section><section class="body fs14"><a id="next" href="/2016/09/22/RN-%E5%A6%82%E4%BD%95%E5%90%AF%E5%8A%A8-local-server/">RN: 如何启动 local server<span class="note">较早</span></a><div class="line"></div><a id="prev" href="/2016/09/26/RN-0-34-%E8%BF%90%E8%A1%8C%E5%9C%A8-Android-%E7%9A%84%E9%97%AE%E9%A2%98/">RN: 0.34 运行在 Android 的问题<span class="note">较新</span></a></section></div>
+
+
+
+
+
+
+  <div class='related-wrap md reveal' id="comments">
+    <div class='cmt-title cap theme'>
+      快来参与讨论吧
+    </div>
+    <div class='cmt-body valine'>
+      
+
+<div id="valine_container" class="valine_thread"><svg class="loading" style="vertical-align: middle;fill: currentColor;overflow: hidden;" viewBox="0 0 1024 1024" version="1.1" xmlns="http://www.w3.org/2000/svg" p-id="2709"><path d="M832 512c0-176-144-320-320-320V128c211.2 0 384 172.8 384 384h-64zM192 512c0 176 144 320 320 320v64C300.8 896 128 723.2 128 512h64z" p-id="2710"></path></svg></div>
+
+    </div>
+  </div>
+
+
+
+      
+<footer class="page-footer reveal fs12"><hr><div class="text"><p>本博客所有文章除特别声明外，均采用 <a target="_blank" rel="noopener" href="https://creativecommons.org/licenses/by-nc-sa/4.0/">CC BY-NC-SA 4.0</a> 许可协议，转载请注明出处。</p>
+<p>veryitman</p>
+</div></footer>
+
+      <div class='float-panel mobile-only blur' style='display:none'>
+  <button type='button' class='sidebar-toggle mobile' onclick='sidebar.toggle()'>
+    <svg class="icon" style="width: 1em; height: 1em;vertical-align: middle;fill: currentColor;overflow: hidden;" viewBox="0 0 1024 1024" version="1.1" xmlns="http://www.w3.org/2000/svg" p-id="15301"><path d="M566.407 808.3c26.9-0.1 49.3-20.8 51.6-47.6-1.9-27.7-23.9-49.7-51.6-51.6h-412.6c-28.2-1.4-52.6 19.5-55.5 47.6 2.3 26.8 24.6 47.5 51.6 47.6h416.5v4z m309.3-249.9c26.9-0.1 49.3-20.8 51.6-47.6-2.2-26.8-24.6-47.5-51.6-47.6h-721.9c-27.7-2.8-52.5 17.4-55.3 45.1-0.1 0.8-0.1 1.7-0.2 2.5 0.9 27.2 23.6 48.5 50.7 47.6H875.707z m-103.1-245.9c26.9-0.1 49.3-20.8 51.6-47.6-0.4-28.3-23.2-51.1-51.5-51.6h-618.9c-29.5-1.1-54.3 21.9-55.5 51.4v0.2c1.4 27.8 25.2 49.2 53 47.8 0.8 0 1.7-0.1 2.5-0.2h618.8z" p-id="15302"></path><path d="M566.407 808.3c26.9-0.1 49.3-20.8 51.6-47.6-1.9-27.7-23.9-49.7-51.6-51.6h-412.6c-28.2-1.4-52.6 19.5-55.5 47.6 1.9 27.7 23.9 49.7 51.6 51.6h416.5z m309.3-249.9c26.9-0.1 49.3-20.8 51.6-47.6-2.2-26.8-24.6-47.5-51.6-47.6h-721.9c-27.7-2.8-52.5 17.4-55.3 45.1-0.1 0.8-0.1 1.7-0.2 2.5 0.9 27.2 23.6 48.5 50.7 47.6H875.707z m-103.1-245.9c26.9-0.1 49.3-20.8 51.6-47.6-0.4-28.3-23.2-51.1-51.5-51.6h-618.9c-29.5-1.1-54.3 21.9-55.5 51.4v0.2c1.4 27.8 25.2 49.2 53 47.8 0.8 0 1.7-0.1 2.5-0.2h618.8z" p-id="15303"></path></svg>
+  </button>
+</div>
+
+    </div>
+  </div>
+  <div class='scripts'>
+    <script type="text/javascript">
+  stellar = {
+    // 懒加载 css https://github.com/filamentgroup/loadCSS
+    loadCSS: (href, before, media, attributes) => {
+      var doc = window.document;
+      var ss = doc.createElement("link");
+      var ref;
+      if (before) {
+        ref = before;
+      } else {
+        var refs = (doc.body || doc.getElementsByTagName("head")[0]).childNodes;
+        ref = refs[refs.length - 1];
+      }
+      var sheets = doc.styleSheets;
+      if (attributes) {
+        for (var attributeName in attributes) {
+          if (attributes.hasOwnProperty(attributeName)) {
+            ss.setAttribute(attributeName, attributes[attributeName]);
+          }
+        }
+      }
+      ss.rel = "stylesheet";
+      ss.href = href;
+      ss.media = "only x";
+      function ready(cb) {
+        if (doc.body) {
+          return cb();
+        }
+        setTimeout(function () {
+          ready(cb);
+        });
+      }
+      ready(function () {
+        ref.parentNode.insertBefore(ss, before ? ref : ref.nextSibling);
+      });
+      var onloadcssdefined = function (cb) {
+        var resolvedHref = ss.href;
+        var i = sheets.length;
+        while (i--) {
+          if (sheets[i].href === resolvedHref) {
+            return cb();
+          }
+        }
+        setTimeout(function () {
+          onloadcssdefined(cb);
+        });
+      };
+      function loadCB() {
+        if (ss.addEventListener) {
+          ss.removeEventListener("load", loadCB);
+        }
+        ss.media = media || "all";
+      }
+      if (ss.addEventListener) {
+        ss.addEventListener("load", loadCB);
+      }
+      ss.onloadcssdefined = onloadcssdefined;
+      onloadcssdefined(loadCB);
+      return ss;
+    },
+
+    // 从 butterfly 和 volantis 获得灵感
+    loadScript: (src, opt) => new Promise((resolve, reject) => {
+      var script = document.createElement('script');
+      script.src = src;
+      if (opt) {
+        for (let key of Object.keys(opt)) {
+          script[key] = opt[key]
+        }
+      } else {
+        // 默认异步，如果需要同步，第二个参数传入 {} 即可
+        script.async = true
+      }
+      script.onerror = reject
+      script.onload = script.onreadystatechange = function() {
+        const loadState = this.readyState
+        if (loadState && loadState !== 'loaded' && loadState !== 'complete') return
+        script.onload = script.onreadystatechange = null
+        resolve()
+      }
+      document.head.appendChild(script)
+    }),
+
+    // https://github.com/jerryc127/hexo-theme-butterfly
+    jQuery: (fn) => {
+      if (typeof jQuery === 'undefined') {
+        stellar.loadScript(stellar.plugins.jQuery).then(fn)
+      } else {
+        fn()
+      }
+    }
+  };
+  stellar.github = 'https://github.com/xaoxuu/hexo-theme-stellar/tree/1.6.1';
+  stellar.config = {
+    date_suffix: {
+      just: '刚刚',
+      min: '分钟前',
+      hour: '小时前',
+      day: '天前',
+      month: '个月前',
+    },
+  };
+
+  // required plugins (only load if needs)
+  stellar.plugins = {
+    jQuery: 'https://cdn.jsdelivr.net/npm/jquery@3.5.1/dist/jquery.min.js',
+    sitesjs: '/js/plugins/sites.js',
+    friendsjs: '/js/plugins/friends.js',
+  };
+
+  // optional plugins
+  if ('true' == 'true') {
+    stellar.plugins.lazyload = Object.assign({"enable":true,"js":"https://cdn.jsdelivr.net/npm/vanilla-lazyload@17.3.1/dist/lazyload.min.js","transition":"blur"});
+  }
+  if ('true' == 'true') {
+    stellar.plugins.swiper = Object.assign({"enable":true,"css":"https://unpkg.com/swiper@6/swiper-bundle.min.css","js":"https://unpkg.com/swiper@6/swiper-bundle.min.js"});
+  }
+  if ('' == 'true') {
+    stellar.plugins.scrollreveal = Object.assign({"enable":null,"js":"https://cdn.jsdelivr.net/npm/scrollreveal@4.0.9/dist/scrollreveal.min.js","distance":"8px","duration":500,"interval":100,"scale":1});
+  }
+  if ('true' == 'true') {
+    stellar.plugins.preload = Object.assign({"enable":true,"service":"flying_pages","instant_page":"https://cdn.jsdelivr.net/gh/volantis-x/cdn-volantis@4.1.2/js/instant_page.js","flying_pages":"https://cdn.jsdelivr.net/gh/gijo-varghese/flying-pages@2.1.2/flying-pages.min.js"});
+  }
+</script>
+
+<!-- required -->
+
+  
+<script src="/js/main.js" async></script>
+
+
+
+<!-- optional -->
+
+  <script>
+  function getEmojiMaps() {
+    function emoji(path, idx, ext) {
+      return path + "/" + path + "-" + idx + "." + ext;
+    }
+    var emojiMaps = {};
+    for (var i = 1; i <= 54; i++) {
+      emojiMaps['tieba-' + i] = emoji('tieba', i, 'png');
+    }
+    for (var i = 1; i <= 101; i++) {
+      emojiMaps['qq-' + i] = emoji('qq', i, 'gif');
+    }
+    for (var i = 1; i <= 116; i++) {
+      emojiMaps['aru-' + i] = emoji('aru', i, 'gif');
+    }
+    for (var i = 1; i <= 125; i++) {
+      emojiMaps['twemoji-' + i] = emoji('twemoji', i, 'png');
+    }
+    for (var i = 1; i <= 4; i++) {
+      emojiMaps['weibo-' + i] = emoji('weibo', i, 'png');
+    }
+    return emojiMaps;
+  }
+  function load_comment(){
+    if(!document.getElementById("valine_container"))return;
+    stellar.loadScript('https://cdn.jsdelivr.net/gh/XuxuGood/simple-blog-cdn@main/js/Valine.min.js', {defer:true}).then(function () {
+      const el = document.getElementById("valine_container");
+      var path = el.getAttribute('comment_id');
+      const placeholder = "欢迎您留言~";
+      if (!path) {
+        path = decodeURI(window.location.pathname);
+      }
+      var valine = new Valine();
+      valine.init(Object.assign({"js":"https://cdn.jsdelivr.net/gh/XuxuGood/simple-blog-cdn@main/js/Valine.min.js","appId":"FY2C9UCttYNaE1j8umenqdCE-gzGzoHsz","appKey":"4i7xMwkfSEGmEDhi6SceKFxz","placeholder":"欢迎您留言~","requiredFields":["nick","mail"],"enableQQ":true,"recordIP":false,"avatar":"robohash","pageSize":10,"lang":"zh-cn","highlight":true,"mathJax":false,"tagMeta":["博主","小伙伴","访客"],"metaPlaceholder":{"nick":"昵称/QQ号(必填)","mail":"邮箱（必填，完全保密）"},"master":["6783037F2DF30EAB99F9FC256157D875"],"friends":["6783037F2DF30EAB99F9FC256157D875"],"comment_count":true}, {
+        el: '#valine_container',
+        path: path,
+        placeholder: placeholder,
+        emojiCDN: 'https://cdn.jsdelivr.net/gh/volantis-x/cdn-emoji/valine/',
+        emojiMaps: getEmojiMaps(),
+      }));
+    });
+  }
+  window.addEventListener('DOMContentLoaded', (event) => {
+    console.log('DOM fully loaded and parsed');
+    load_comment();
+  });
+
+</script>
+
+
+
+
+<!-- inject -->
+
+
+  </div>
+</body>
+</html>

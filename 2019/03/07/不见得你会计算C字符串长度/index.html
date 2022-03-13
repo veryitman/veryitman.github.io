@@ -1,0 +1,391 @@
+<!DOCTYPE html>
+<html lang='zh-CN'>
+
+<head>
+  <meta name="generator" content="Hexo 6.0.0">
+  <meta charset="utf-8">
+  
+
+  <meta http-equiv='x-dns-prefetch-control' content='on' />
+  <link rel='dns-prefetch' href='https://cdn.jsdelivr.net'>
+  <link rel="preconnect" href="https://cdn.jsdelivr.net" crossorigin>
+
+  <meta name="renderer" content="webkit">
+  <meta name="force-rendering" content="webkit">
+  <meta http-equiv="X-UA-Compatible" content="IE=Edge,chrome=1">
+  <meta name="HandheldFriendly" content="True" >
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1">
+  <meta name="theme-color" content="#f8f8f8">
+  <title>不见得你会计算C字符串长度 - Veryitman</title>
+
+  
+    <meta name="description" content="最近在看人工智能相关的知识，无意中发现了一个巨牛的 人工智能教程，分享一下给大家。 教程不仅是零基础，通俗易懂，而且非常风趣幽默，像看小说一样！觉得太牛了，所以分享给大家。点 这里 可以直接看教程。 C 字符串在 C 语言中，字符串实际上是使用字符 &#39;\0&#39; 终止的一维字符数组。 以下几种方式表示的都是 C 字符串的正确表达方式。 1234567891011121314&#x2F;&#x2F; 要以">
+<meta property="og:type" content="article">
+<meta property="og:title" content="不见得你会计算C字符串长度">
+<meta property="og:url" content="http://example.com/2019/03/07/%E4%B8%8D%E8%A7%81%E5%BE%97%E4%BD%A0%E4%BC%9A%E8%AE%A1%E7%AE%97C%E5%AD%97%E7%AC%A6%E4%B8%B2%E9%95%BF%E5%BA%A6/index.html">
+<meta property="og:site_name" content="Veryitman">
+<meta property="og:description" content="最近在看人工智能相关的知识，无意中发现了一个巨牛的 人工智能教程，分享一下给大家。 教程不仅是零基础，通俗易懂，而且非常风趣幽默，像看小说一样！觉得太牛了，所以分享给大家。点 这里 可以直接看教程。 C 字符串在 C 语言中，字符串实际上是使用字符 &#39;\0&#39; 终止的一维字符数组。 以下几种方式表示的都是 C 字符串的正确表达方式。 1234567891011121314&#x2F;&#x2F; 要以">
+<meta property="og:locale" content="zh_CN">
+<meta property="og:image" content="http://example.com/upload/images/2019/03/07/1.jpg">
+<meta property="og:image" content="http://example.com/upload/me/qrcode_wx.jpg">
+<meta property="article:published_time" content="2019-03-07T15:19:38.000Z">
+<meta property="article:modified_time" content="2022-03-09T14:53:24.308Z">
+<meta property="article:author" content="veryitman">
+<meta property="article:tag" content="C char strlen sizeof">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:image" content="http://example.com/upload/images/2019/03/07/1.jpg">
+  
+  
+
+  <!-- feed -->
+  
+
+  
+    
+<link rel="stylesheet" href="/css/main.css">
+
+  
+
+  
+
+  
+</head>
+
+<body>
+  
+
+
+  <div class='l_body' id='start'>
+    <aside class='l_left' layout='post'>
+    
+
+
+<header class="header">
+
+<div class="logo-wrap"><a class="title" href="/"><div class="main">Veryitman</div></a></div>
+<nav class="menu dis-select"></nav></header>
+
+<div class="widgets">
+
+<div class="widget-wrap single" id="toc"><div class="widget-header cap dis-select"><span class="name">本文目录</span></div><div class="widget-body fs14"><div class="doc-tree active"><ol class="toc"><li class="toc-item toc-level-2"><a class="toc-link" href="#C-%E5%AD%97%E7%AC%A6%E4%B8%B2"><span class="toc-text">C 字符串</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#%E5%AD%97%E7%AC%A6%E4%B8%B2%E9%95%BF%E5%BA%A6"><span class="toc-text">字符串长度</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#sizeof%E3%80%81strlen"><span class="toc-text">sizeof、strlen</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#%E6%8E%A2%E7%B4%A2%E6%97%A0%E6%AD%A2%E5%A2%83"><span class="toc-text">探索无止境</span></a></li></ol></div></div></div>
+
+
+</div>
+
+
+    </aside>
+    <div class='l_main'>
+      
+
+      
+
+
+<div class="bread-nav fs12"><div id="breadcrumb"><a class="cap breadcrumb" href="/">主页</a><span class="sep"></span><a class="cap breadcrumb" href="/">文章</a><span class="sep"></span><a class="cap breadcrumb-link" href="/categories/C-C/">C/C++</a></div><div id="post-meta">发布于&nbsp;<time datetime="2019-03-07T15:19:38.000Z">2019-03-07</time></div></div>
+
+<article class='content md post'>
+<h1 class="article-title"><span>不见得你会计算C字符串长度</span></h1>
+<p>最近在看人工智能相关的知识，无意中发现了一个巨牛的 <a target="_blank" rel="noopener" href="https://www.cbedai.net/androidbluetooth">人工智能教程</a>，分享一下给大家。</p>
+<p>教程不仅是零基础，通俗易懂，而且非常风趣幽默，像看小说一样！觉得太牛了，所以分享给大家。点 <a target="_blank" rel="noopener" href="https://www.cbedai.net/androidbluetooth">这里</a> 可以直接看教程。</p>
+<h2 id="C-字符串"><a href="#C-字符串" class="headerlink" title="C 字符串"></a>C 字符串</h2><p>在 C 语言中，字符串实际上是使用字符 <code>&#39;\0&#39;</code> 终止的一维字符数组。</p>
+<p>以下几种方式表示的都是 C 字符串的正确表达方式。</p>
+<figure class="highlight c"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment">// 要以 &#x27;\0&#x27; 结尾</span></span><br><span class="line"><span class="type">char</span> greeting[<span class="number">6</span>] = &#123;<span class="string">&#x27;H&#x27;</span>, <span class="string">&#x27;e&#x27;</span>, <span class="string">&#x27;l&#x27;</span>, <span class="string">&#x27;l&#x27;</span>, <span class="string">&#x27;o&#x27;</span>, <span class="string">&#x27;\0&#x27;</span>&#125;;</span><br><span class="line"></span><br><span class="line"><span class="comment">// 要以 &#x27;\0&#x27; 结尾</span></span><br><span class="line"><span class="type">char</span> greeting[] = &#123;<span class="string">&#x27;H&#x27;</span>, <span class="string">&#x27;e&#x27;</span>, <span class="string">&#x27;l&#x27;</span>, <span class="string">&#x27;l&#x27;</span>, <span class="string">&#x27;o&#x27;</span>, <span class="string">&#x27;\0&#x27;</span>&#125;;</span><br><span class="line"></span><br><span class="line"><span class="comment">// 默认会在末尾增加&#x27;\0&#x27;</span></span><br><span class="line"><span class="type">char</span> greeting[] = &#123;<span class="string">&quot;Hello&quot;</span>&#125;;</span><br><span class="line"></span><br><span class="line"><span class="comment">// 上面的简写形式</span></span><br><span class="line"><span class="type">char</span> greeting[] = <span class="string">&quot;Hello&quot;</span>;</span><br><span class="line"></span><br><span class="line"><span class="comment">// 默认会在末尾增加&#x27;\0&#x27;</span></span><br><span class="line"><span class="type">char</span> *greeting = <span class="string">&quot;Hello&quot;</span>;</span><br></pre></td></tr></table></figure>
+
+<p>看下面另外一种声明方式：</p>
+<figure class="highlight c"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line"><span class="type">char</span> greeting[] = &#123;<span class="string">&#x27;h&#x27;</span>, <span class="string">&#x27;e&#x27;</span>, <span class="string">&#x27;l&#x27;</span>, <span class="string">&#x27;l&#x27;</span>, <span class="string">&#x27;o&#x27;</span>&#125;;</span><br><span class="line"></span><br><span class="line"><span class="built_in">printf</span>(<span class="string">&quot;greeting: %s\n&quot;</span>, greeting);</span><br></pre></td></tr></table></figure>
+
+<p>输出结果：</p>
+<figure class="highlight c"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">greeting: hello\<span class="number">376</span></span><br></pre></td></tr></table></figure>
+
+<p>这个结果在不同编译器下面可能还会不一样，总之输出都不是我们想要的结果。这种方式创建的字符串没有 <code>&#39;\0&#39;</code>，不算是真正的 C 字符串，所以建议大家在声明 C 字符串的时候使用字符指针（char *）的方式。</p>
+<p><code>string.h</code> 里面声明了很多关于操作 C 字符串的库函数。</p>
+<h2 id="字符串长度"><a href="#字符串长度" class="headerlink" title="字符串长度"></a>字符串长度</h2><p>这里在说计算字符串长度的前提是字符编码都是按照UTF-8（中文占用3个字节，英文占用1个字节）的编码形式为前提的。我们先来看下面这个例子，如下：</p>
+<figure class="highlight c"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br></pre></td><td class="code"><pre><span class="line"><span class="type">char</span> *greeting1 = <span class="string">&quot;hello&quot;</span>;</span><br><span class="line"><span class="type">char</span> greeting2[] = &#123;<span class="string">&#x27;h&#x27;</span>, <span class="string">&#x27;e&#x27;</span>, <span class="string">&#x27;l&#x27;</span>, <span class="string">&#x27;l&#x27;</span>, <span class="string">&#x27;o&#x27;</span>&#125;;</span><br><span class="line"><span class="type">char</span> greeting3[] = &#123;<span class="string">&#x27;h&#x27;</span>, <span class="string">&#x27;e&#x27;</span>, <span class="string">&#x27;l&#x27;</span>, <span class="string">&#x27;l&#x27;</span>, <span class="string">&#x27;o&#x27;</span>, <span class="string">&#x27;\0&#x27;</span>&#125;;</span><br><span class="line"><span class="type">char</span> greeting4[] = <span class="string">&quot;hello&quot;</span>;</span><br><span class="line">    </span><br><span class="line"><span class="built_in">printf</span>(<span class="string">&quot;greeting1 sizeOf: %ld, strlen: %ld\n&quot;</span>, <span class="keyword">sizeof</span>(greeting1), <span class="built_in">strlen</span>(greeting1));</span><br><span class="line"></span><br><span class="line"><span class="built_in">printf</span>(<span class="string">&quot;greeting2 sizeOf: %ld, strlen: %ld\n&quot;</span>, <span class="keyword">sizeof</span>(greeting2), <span class="built_in">strlen</span>(greeting2));</span><br><span class="line"></span><br><span class="line"><span class="built_in">printf</span>(<span class="string">&quot;greeting3 sizeOf: %ld, strlen: %ld\n&quot;</span>, <span class="keyword">sizeof</span>(greeting3), <span class="built_in">strlen</span>(greeting3));</span><br><span class="line"></span><br><span class="line"><span class="built_in">printf</span>(<span class="string">&quot;greeting4 sizeOf: %ld, strlen: %ld\n&quot;</span>, <span class="keyword">sizeof</span>(greeting4), <span class="built_in">strlen</span>(greeting4));</span><br></pre></td></tr></table></figure>
+
+<p>如果你能说出上面 <code>printf</code> 的结果，基本上关于计算字符串长度的问题就迎刃而解了。</p>
+<p>按照 UTF-8 编码，上面例子的输出结果如下所示：</p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><span class="line">greeting1 sizeOf: 8, strlen: 5</span><br><span class="line">greeting2 sizeOf: 5, strlen: 7</span><br><span class="line">greeting3 sizeOf: 6, strlen: 5</span><br><span class="line">greeting4 sizeOf: 6, strlen: 5</span><br></pre></td></tr></table></figure>
+
+<p>如果输出结果令你无法相信，可以选择继续往下看或者你自己写代码试试。</p>
+<h2 id="sizeof、strlen"><a href="#sizeof、strlen" class="headerlink" title="sizeof、strlen"></a>sizeof、strlen</h2><p>在 <a target="_blank" rel="noopener" href="https://linux.die.net/man/3/strlen">linux.die</a> 可以查到 strlen 的说明，如下：</p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br></pre></td><td class="code"><pre><span class="line">Synopsis:</span><br><span class="line">#include &lt;string.h&gt;</span><br><span class="line">size_t strlen(const char *s);</span><br><span class="line"></span><br><span class="line">Description:</span><br><span class="line">The strlen() function calculates the length of the string s, excluding the terminating null byte (aq\0aq).</span><br><span class="line"></span><br><span class="line">Return Value:</span><br><span class="line">The strlen() function returns the number of bytes in the string s.</span><br></pre></td></tr></table></figure>
+
+<p>函数 <code>strlen</code> 返回字符串里的字符数，不包括终止字符 <code>&#39;\0&#39;</code>，这里注意 <code>strlen</code> 是一个 C 的函数，而 <code>sizeof</code> 只是一个操作符。</p>
+<p>我们知道，<code>sizeof</code> 操作符的参数可以是数组、指针、类型、对象、函数等，函数 <code>strlen</code> 的参数只能是字符串。</p>
+<p>对于 <code>sizeof</code>， 其参数不同时，其返回的值也不一样，如下：</p>
+<p>1、数组：编译时分配的数组空间大小；<br>2、指针：存储该指针所用的空间大小(32位机器上是4，64位机器上是8)；<br>3、类型：该类型所占的空间大小；<br>4、对象：对象的实际占用空间大小(这个指的是在 C++ 中)；<br>5、函数：函数的返回类型所占的空间大小。函数的返回类型不能是 void 类型；</p>
+<p>那我们再回头看看上面的例子，我把要说明的写在注释上面了。</p>
+<figure class="highlight c"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment">// 注意这里是指针</span></span><br><span class="line"><span class="type">char</span> *greeting1 = <span class="string">&quot;hello&quot;</span>;</span><br><span class="line"></span><br><span class="line"><span class="comment">// 没有结束符 &#x27;\0&#x27;，其 strlen 结果不确定</span></span><br><span class="line"><span class="type">char</span> greeting2[] = &#123;<span class="string">&#x27;h&#x27;</span>, <span class="string">&#x27;e&#x27;</span>, <span class="string">&#x27;l&#x27;</span>, <span class="string">&#x27;l&#x27;</span>, <span class="string">&#x27;o&#x27;</span>&#125;;</span><br><span class="line"></span><br><span class="line"><span class="type">char</span> greeting3[] = &#123;<span class="string">&#x27;h&#x27;</span>, <span class="string">&#x27;e&#x27;</span>, <span class="string">&#x27;l&#x27;</span>, <span class="string">&#x27;l&#x27;</span>, <span class="string">&#x27;o&#x27;</span>, <span class="string">&#x27;\0&#x27;</span>&#125;;</span><br><span class="line"><span class="type">char</span> greeting4[] = <span class="string">&quot;hello&quot;</span>;</span><br><span class="line">    </span><br><span class="line"><span class="comment">/* 结果是 8、5 */</span></span><br><span class="line"><span class="comment">/* greeting1是指针，sizeOf计算的是其存储该指针所用的空间大小，因为我使用的是64位 macOS，所以输出是8 */</span></span><br><span class="line"><span class="comment">/*strlen 计算的是字符个数但是不包括结束符 &#x27;\0&#x27;*/</span></span><br><span class="line"><span class="built_in">printf</span>(<span class="string">&quot;greeting1 sizeOf: %ld, strlen: %ld\n&quot;</span>, <span class="keyword">sizeof</span>(greeting1), <span class="built_in">strlen</span>(greeting1));</span><br><span class="line"></span><br><span class="line"><span class="comment">/* 结果是 5、7 */</span></span><br><span class="line"><span class="comment">/* sizeof 计算的是编译时分配的数组空间大小，这里是5 */</span></span><br><span class="line"><span class="comment">/* greeting2没有结束符，strlen 的计算结果不确定 */</span></span><br><span class="line"><span class="built_in">printf</span>(<span class="string">&quot;greeting2 sizeOf: %ld, strlen: %ld\n&quot;</span>, <span class="keyword">sizeof</span>(greeting2), <span class="built_in">strlen</span>(greeting2));</span><br><span class="line"></span><br><span class="line"><span class="comment">/* 结果是 6、5 */</span></span><br><span class="line"><span class="comment">/* sizeof 计算的是编译时分配的数组空间大小，这里是6，因为多了结束符 */</span></span><br><span class="line"><span class="comment">/*strlen 计算的是字符个数但是不包括结束符 &#x27;\0&#x27;*/</span></span><br><span class="line"><span class="built_in">printf</span>(<span class="string">&quot;greeting3 sizeOf: %ld, strlen: %ld\n&quot;</span>, <span class="keyword">sizeof</span>(greeting3), <span class="built_in">strlen</span>(greeting3));</span><br><span class="line"></span><br><span class="line"><span class="comment">/* 结果是 6、5，这里类似上面的情况，不再赘述 */</span></span><br><span class="line"><span class="built_in">printf</span>(<span class="string">&quot;greeting4 sizeOf: %ld, strlen: %ld\n&quot;</span>, <span class="keyword">sizeof</span>(greeting4), <span class="built_in">strlen</span>(greeting4));</span><br></pre></td></tr></table></figure>
+
+<p><strong>小结</strong>：</p>
+<p>1、<code>sizeof</code> 是一个操作符，而 <code>strlen</code> 是 C 语言的库函数。</p>
+<p>2、<code>sizeof</code> 的参数可以是任意数据类型或者表达式，而 <code>strlen</code> 只能以结尾为 <code>&#39;\0&#39;</code> 的字符串作参数。</p>
+<p>3、<code>sizeof</code> 的结果在编译时就计算出了，而 <code>strlen</code> 必须在运行时才能计算出来。</p>
+<p>4、<code>sizeof</code> 计算数据类型占内存的大小，<code>strlen</code> 计算字符串实际长度，要记住 <code>strlen</code> 计算出来的结果不包括结束符 <code>&#39;\0&#39;</code>。</p>
+<p>5、<code>sizeof</code> 反应的并非真实字符串长度而是所占空间大小，所以<code>memset</code> 初始化字符串的时候用 <code>sizeof</code> 较好。</p>
+<p>6、系统函数返回值是 <code>char *</code> (字符指针)类型的会在末尾加上结束符 <code>&#39;\0&#39;</code>。</p>
+<p>7、无论是 <code>sizeof</code> 还是 <code>strlen</code> 计算结果的单位都是字节。</p>
+<p>我们还需要注意一点，<code>strlen</code> 函数，当数组名作为参数传入时，实际上数组就退化成指针了。举个例子，如下图所示：</p>
+<p><img class="lazy" src="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAABGdBTUEAALGPC/xhBQAAADhlWElmTU0AKgAAAAgAAYdpAAQAAAABAAAAGgAAAAAAAqACAAQAAAABAAAAAaADAAQAAAABAAAAAQAAAADa6r/EAAAAC0lEQVQIHWNgAAIAAAUAAY27m/MAAAAASUVORK5CYII=" data-src="/upload/images/2019/03/07/1.jpg"></p>
+<p>可以看出传入进来的参数会被退化为指针。</p>
+<h2 id="探索无止境"><a href="#探索无止境" class="headerlink" title="探索无止境"></a>探索无止境</h2><p>在文章的开始，我给出了几种 C 字符串的正确表达方式，那我们再来看另外一种。</p>
+<figure class="highlight c"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line"><span class="type">char</span> greeting[<span class="number">4</span>] = <span class="string">&quot;blog&quot;</span>;</span><br></pre></td></tr></table></figure>
+
+<p>这种方式看起来好像很完美的样子，其实是不对的，写个例子给大家，如下：</p>
+<figure class="highlight c"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br></pre></td><td class="code"><pre><span class="line"><span class="type">int</span> <span class="title function_">main</span><span class="params">(<span class="type">int</span> argc, <span class="type">const</span> <span class="type">char</span> *argv[])</span></span><br><span class="line">&#123;</span><br><span class="line">	<span class="type">char</span> greeting[<span class="number">4</span>] = <span class="string">&quot;blog&quot;</span>;</span><br><span class="line">	<span class="type">size_t</span> len = <span class="built_in">strlen</span>(greeting);</span><br><span class="line">	<span class="built_in">printf</span>(<span class="string">&quot;greeting len: %ld\n&quot;</span>, len);</span><br><span class="line">	<span class="built_in">printf</span>(<span class="string">&quot;greeting: %s\n&quot;</span>, greeting);</span><br><span class="line">	</span><br><span class="line">	<span class="keyword">return</span> <span class="number">0</span>;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<p>编译运行，结果如下：</p>
+<figure class="highlight sh"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line">greeting len: 10</span><br><span class="line">greeting: blog\330\365\277\357\376</span><br></pre></td></tr></table></figure>
+
+<p>苍天呀，这结果让人无语。。。</p>
+<p>对于 <code>char greeting[4] = &quot;blog&quot;</code> 其实是定义一个长度为 4 的字符数组，但是字符串 <code>&quot;blog&quot;</code> 实际是要包括结束符 <code>\0</code> 的，也就是说下面的代码</p>
+<figure class="highlight c"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line"><span class="type">char</span> greeting[<span class="number">4</span>] = <span class="string">&quot;blog&quot;</span>;</span><br></pre></td></tr></table></figure>
+
+<p>本质和下面代码是一样的，如下：</p>
+<figure class="highlight c"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line"><span class="type">char</span> greeting[] = &#123;<span class="string">&#x27;b&#x27;</span>, <span class="string">&#x27;l&#x27;</span>, <span class="string">&#x27;o&#x27;</span>, <span class="string">&#x27;g&#x27;</span>&#125;;</span><br></pre></td></tr></table></figure>
+
+<p>显然是不正确的，那我们修改一下代码，如下：</p>
+<figure class="highlight c"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br></pre></td><td class="code"><pre><span class="line"><span class="type">int</span> <span class="title function_">main</span><span class="params">(<span class="type">int</span> argc, <span class="type">const</span> <span class="type">char</span> *argv[])</span></span><br><span class="line">&#123;</span><br><span class="line">	<span class="comment">// 注意这里是 5</span></span><br><span class="line">	<span class="type">char</span> greeting[<span class="number">5</span>] = <span class="string">&quot;blog&quot;</span>;</span><br><span class="line">	<span class="type">size_t</span> len = <span class="built_in">strlen</span>(greeting);</span><br><span class="line">	<span class="built_in">printf</span>(<span class="string">&quot;greeting len: %ld\n&quot;</span>, len);</span><br><span class="line">	<span class="built_in">printf</span>(<span class="string">&quot;greeting: %s\n&quot;</span>, greeting);</span><br><span class="line">    </span><br><span class="line">	<span class="keyword">return</span> <span class="number">0</span>;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<p>或者这样写：</p>
+<figure class="highlight c"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br></pre></td><td class="code"><pre><span class="line"><span class="type">int</span> <span class="title function_">main</span><span class="params">(<span class="type">int</span> argc, <span class="type">const</span> <span class="type">char</span> *argv[])</span></span><br><span class="line">&#123;</span><br><span class="line">	<span class="comment">// 这里干脆不要写数字</span></span><br><span class="line">	<span class="type">char</span> greeting[] = <span class="string">&quot;blog&quot;</span>;</span><br><span class="line">  	<span class="type">size_t</span> len = <span class="built_in">strlen</span>(greeting);</span><br><span class="line">	<span class="built_in">printf</span>(<span class="string">&quot;greeting len: %ld\n&quot;</span>, len);</span><br><span class="line">	<span class="built_in">printf</span>(<span class="string">&quot;greeting: %s\n&quot;</span>, greeting);</span><br><span class="line">    </span><br><span class="line">    <span class="keyword">return</span> <span class="number">0</span>;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<p>这样修改后，再编译运行结果就对了，如下：</p>
+<figure class="highlight c"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line">greeting len: <span class="number">4</span></span><br><span class="line">greeting: blog</span><br></pre></td></tr></table></figure>
+
+<hr>
+<p><strong>我们知道的东西是有限的，我们不知道的东西则是无穷的。</strong></p>
+<p><img class="lazy" src="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAABGdBTUEAALGPC/xhBQAAADhlWElmTU0AKgAAAAgAAYdpAAQAAAABAAAAGgAAAAAAAqACAAQAAAABAAAAAaADAAQAAAABAAAAAQAAAADa6r/EAAAAC0lEQVQIHWNgAAIAAAUAAY27m/MAAAAASUVORK5CYII=" data-src="/upload/me/qrcode_wx.jpg"></p>
+
+
+
+
+</article>
+
+<div class="related-wrap reveal" id="read-next"><section class="header cap theme"><span>接下来阅读</span></section><section class="body fs14"><a id="next" href="/2019/03/03/iOS-%E4%BD%BF%E7%94%A8-libcurl/">iOS 使用 libcurl<span class="note">较早</span></a><div class="line"></div><a id="prev" href="/2019/03/10/json-c/">json-c<span class="note">较新</span></a></section></div>
+
+
+
+
+
+
+  <div class='related-wrap md reveal' id="comments">
+    <div class='cmt-title cap theme'>
+      快来参与讨论吧
+    </div>
+    <div class='cmt-body valine'>
+      
+
+<div id="valine_container" class="valine_thread"><svg class="loading" style="vertical-align: middle;fill: currentColor;overflow: hidden;" viewBox="0 0 1024 1024" version="1.1" xmlns="http://www.w3.org/2000/svg" p-id="2709"><path d="M832 512c0-176-144-320-320-320V128c211.2 0 384 172.8 384 384h-64zM192 512c0 176 144 320 320 320v64C300.8 896 128 723.2 128 512h64z" p-id="2710"></path></svg></div>
+
+    </div>
+  </div>
+
+
+
+      
+<footer class="page-footer reveal fs12"><hr><div class="text"><p>本博客所有文章除特别声明外，均采用 <a target="_blank" rel="noopener" href="https://creativecommons.org/licenses/by-nc-sa/4.0/">CC BY-NC-SA 4.0</a> 许可协议，转载请注明出处。</p>
+<p>veryitman</p>
+</div></footer>
+
+      <div class='float-panel mobile-only blur' style='display:none'>
+  <button type='button' class='sidebar-toggle mobile' onclick='sidebar.toggle()'>
+    <svg class="icon" style="width: 1em; height: 1em;vertical-align: middle;fill: currentColor;overflow: hidden;" viewBox="0 0 1024 1024" version="1.1" xmlns="http://www.w3.org/2000/svg" p-id="15301"><path d="M566.407 808.3c26.9-0.1 49.3-20.8 51.6-47.6-1.9-27.7-23.9-49.7-51.6-51.6h-412.6c-28.2-1.4-52.6 19.5-55.5 47.6 2.3 26.8 24.6 47.5 51.6 47.6h416.5v4z m309.3-249.9c26.9-0.1 49.3-20.8 51.6-47.6-2.2-26.8-24.6-47.5-51.6-47.6h-721.9c-27.7-2.8-52.5 17.4-55.3 45.1-0.1 0.8-0.1 1.7-0.2 2.5 0.9 27.2 23.6 48.5 50.7 47.6H875.707z m-103.1-245.9c26.9-0.1 49.3-20.8 51.6-47.6-0.4-28.3-23.2-51.1-51.5-51.6h-618.9c-29.5-1.1-54.3 21.9-55.5 51.4v0.2c1.4 27.8 25.2 49.2 53 47.8 0.8 0 1.7-0.1 2.5-0.2h618.8z" p-id="15302"></path><path d="M566.407 808.3c26.9-0.1 49.3-20.8 51.6-47.6-1.9-27.7-23.9-49.7-51.6-51.6h-412.6c-28.2-1.4-52.6 19.5-55.5 47.6 1.9 27.7 23.9 49.7 51.6 51.6h416.5z m309.3-249.9c26.9-0.1 49.3-20.8 51.6-47.6-2.2-26.8-24.6-47.5-51.6-47.6h-721.9c-27.7-2.8-52.5 17.4-55.3 45.1-0.1 0.8-0.1 1.7-0.2 2.5 0.9 27.2 23.6 48.5 50.7 47.6H875.707z m-103.1-245.9c26.9-0.1 49.3-20.8 51.6-47.6-0.4-28.3-23.2-51.1-51.5-51.6h-618.9c-29.5-1.1-54.3 21.9-55.5 51.4v0.2c1.4 27.8 25.2 49.2 53 47.8 0.8 0 1.7-0.1 2.5-0.2h618.8z" p-id="15303"></path></svg>
+  </button>
+</div>
+
+    </div>
+  </div>
+  <div class='scripts'>
+    <script type="text/javascript">
+  stellar = {
+    // 懒加载 css https://github.com/filamentgroup/loadCSS
+    loadCSS: (href, before, media, attributes) => {
+      var doc = window.document;
+      var ss = doc.createElement("link");
+      var ref;
+      if (before) {
+        ref = before;
+      } else {
+        var refs = (doc.body || doc.getElementsByTagName("head")[0]).childNodes;
+        ref = refs[refs.length - 1];
+      }
+      var sheets = doc.styleSheets;
+      if (attributes) {
+        for (var attributeName in attributes) {
+          if (attributes.hasOwnProperty(attributeName)) {
+            ss.setAttribute(attributeName, attributes[attributeName]);
+          }
+        }
+      }
+      ss.rel = "stylesheet";
+      ss.href = href;
+      ss.media = "only x";
+      function ready(cb) {
+        if (doc.body) {
+          return cb();
+        }
+        setTimeout(function () {
+          ready(cb);
+        });
+      }
+      ready(function () {
+        ref.parentNode.insertBefore(ss, before ? ref : ref.nextSibling);
+      });
+      var onloadcssdefined = function (cb) {
+        var resolvedHref = ss.href;
+        var i = sheets.length;
+        while (i--) {
+          if (sheets[i].href === resolvedHref) {
+            return cb();
+          }
+        }
+        setTimeout(function () {
+          onloadcssdefined(cb);
+        });
+      };
+      function loadCB() {
+        if (ss.addEventListener) {
+          ss.removeEventListener("load", loadCB);
+        }
+        ss.media = media || "all";
+      }
+      if (ss.addEventListener) {
+        ss.addEventListener("load", loadCB);
+      }
+      ss.onloadcssdefined = onloadcssdefined;
+      onloadcssdefined(loadCB);
+      return ss;
+    },
+
+    // 从 butterfly 和 volantis 获得灵感
+    loadScript: (src, opt) => new Promise((resolve, reject) => {
+      var script = document.createElement('script');
+      script.src = src;
+      if (opt) {
+        for (let key of Object.keys(opt)) {
+          script[key] = opt[key]
+        }
+      } else {
+        // 默认异步，如果需要同步，第二个参数传入 {} 即可
+        script.async = true
+      }
+      script.onerror = reject
+      script.onload = script.onreadystatechange = function() {
+        const loadState = this.readyState
+        if (loadState && loadState !== 'loaded' && loadState !== 'complete') return
+        script.onload = script.onreadystatechange = null
+        resolve()
+      }
+      document.head.appendChild(script)
+    }),
+
+    // https://github.com/jerryc127/hexo-theme-butterfly
+    jQuery: (fn) => {
+      if (typeof jQuery === 'undefined') {
+        stellar.loadScript(stellar.plugins.jQuery).then(fn)
+      } else {
+        fn()
+      }
+    }
+  };
+  stellar.github = 'https://github.com/xaoxuu/hexo-theme-stellar/tree/1.6.1';
+  stellar.config = {
+    date_suffix: {
+      just: '刚刚',
+      min: '分钟前',
+      hour: '小时前',
+      day: '天前',
+      month: '个月前',
+    },
+  };
+
+  // required plugins (only load if needs)
+  stellar.plugins = {
+    jQuery: 'https://cdn.jsdelivr.net/npm/jquery@3.5.1/dist/jquery.min.js',
+    sitesjs: '/js/plugins/sites.js',
+    friendsjs: '/js/plugins/friends.js',
+  };
+
+  // optional plugins
+  if ('true' == 'true') {
+    stellar.plugins.lazyload = Object.assign({"enable":true,"js":"https://cdn.jsdelivr.net/npm/vanilla-lazyload@17.3.1/dist/lazyload.min.js","transition":"blur"});
+  }
+  if ('true' == 'true') {
+    stellar.plugins.swiper = Object.assign({"enable":true,"css":"https://unpkg.com/swiper@6/swiper-bundle.min.css","js":"https://unpkg.com/swiper@6/swiper-bundle.min.js"});
+  }
+  if ('' == 'true') {
+    stellar.plugins.scrollreveal = Object.assign({"enable":null,"js":"https://cdn.jsdelivr.net/npm/scrollreveal@4.0.9/dist/scrollreveal.min.js","distance":"8px","duration":500,"interval":100,"scale":1});
+  }
+  if ('true' == 'true') {
+    stellar.plugins.preload = Object.assign({"enable":true,"service":"flying_pages","instant_page":"https://cdn.jsdelivr.net/gh/volantis-x/cdn-volantis@4.1.2/js/instant_page.js","flying_pages":"https://cdn.jsdelivr.net/gh/gijo-varghese/flying-pages@2.1.2/flying-pages.min.js"});
+  }
+</script>
+
+<!-- required -->
+
+  
+<script src="/js/main.js" async></script>
+
+
+
+<!-- optional -->
+
+  <script>
+  function getEmojiMaps() {
+    function emoji(path, idx, ext) {
+      return path + "/" + path + "-" + idx + "." + ext;
+    }
+    var emojiMaps = {};
+    for (var i = 1; i <= 54; i++) {
+      emojiMaps['tieba-' + i] = emoji('tieba', i, 'png');
+    }
+    for (var i = 1; i <= 101; i++) {
+      emojiMaps['qq-' + i] = emoji('qq', i, 'gif');
+    }
+    for (var i = 1; i <= 116; i++) {
+      emojiMaps['aru-' + i] = emoji('aru', i, 'gif');
+    }
+    for (var i = 1; i <= 125; i++) {
+      emojiMaps['twemoji-' + i] = emoji('twemoji', i, 'png');
+    }
+    for (var i = 1; i <= 4; i++) {
+      emojiMaps['weibo-' + i] = emoji('weibo', i, 'png');
+    }
+    return emojiMaps;
+  }
+  function load_comment(){
+    if(!document.getElementById("valine_container"))return;
+    stellar.loadScript('https://cdn.jsdelivr.net/gh/XuxuGood/simple-blog-cdn@main/js/Valine.min.js', {defer:true}).then(function () {
+      const el = document.getElementById("valine_container");
+      var path = el.getAttribute('comment_id');
+      const placeholder = "欢迎您留言~";
+      if (!path) {
+        path = decodeURI(window.location.pathname);
+      }
+      var valine = new Valine();
+      valine.init(Object.assign({"js":"https://cdn.jsdelivr.net/gh/XuxuGood/simple-blog-cdn@main/js/Valine.min.js","appId":"FY2C9UCttYNaE1j8umenqdCE-gzGzoHsz","appKey":"4i7xMwkfSEGmEDhi6SceKFxz","placeholder":"欢迎您留言~","requiredFields":["nick","mail"],"enableQQ":true,"recordIP":false,"avatar":"robohash","pageSize":10,"lang":"zh-cn","highlight":true,"mathJax":false,"tagMeta":["博主","小伙伴","访客"],"metaPlaceholder":{"nick":"昵称/QQ号(必填)","mail":"邮箱（必填，完全保密）"},"master":["6783037F2DF30EAB99F9FC256157D875"],"friends":["6783037F2DF30EAB99F9FC256157D875"],"comment_count":true}, {
+        el: '#valine_container',
+        path: path,
+        placeholder: placeholder,
+        emojiCDN: 'https://cdn.jsdelivr.net/gh/volantis-x/cdn-emoji/valine/',
+        emojiMaps: getEmojiMaps(),
+      }));
+    });
+  }
+  window.addEventListener('DOMContentLoaded', (event) => {
+    console.log('DOM fully loaded and parsed');
+    load_comment();
+  });
+
+</script>
+
+
+
+
+<!-- inject -->
+
+
+  </div>
+</body>
+</html>

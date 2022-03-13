@@ -1,0 +1,440 @@
+<!DOCTYPE html>
+<html lang='zh-CN'>
+
+<head>
+  <meta name="generator" content="Hexo 6.0.0">
+  <meta charset="utf-8">
+  
+
+  <meta http-equiv='x-dns-prefetch-control' content='on' />
+  <link rel='dns-prefetch' href='https://cdn.jsdelivr.net'>
+  <link rel="preconnect" href="https://cdn.jsdelivr.net" crossorigin>
+
+  <meta name="renderer" content="webkit">
+  <meta name="force-rendering" content="webkit">
+  <meta http-equiv="X-UA-Compatible" content="IE=Edge,chrome=1">
+  <meta name="HandheldFriendly" content="True" >
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1">
+  <meta name="theme-color" content="#f8f8f8">
+  <title>微服务: 学习几个容易混淆的URL注解 - Veryitman</title>
+
+  
+    <meta name="description" content="了解 URL首先，大家需要知道下面这三个东西的定义：  URI，Universal Resource Identifier，统一资源标志符 URL，Universal Resource Locator，统一资源定位符 URN，Universal Resource Name，统一资源名称  在 WWW 上，每一信息资源都有统一的且在网上唯一的地址，该地址就叫 URL，它是 WWW 的统一资源定位标志">
+<meta property="og:type" content="article">
+<meta property="og:title" content="微服务: 学习几个容易混淆的URL注解">
+<meta property="og:url" content="http://example.com/2019/08/04/%E5%BE%AE%E6%9C%8D%E5%8A%A1-%E5%AD%A6%E4%B9%A0%E5%87%A0%E4%B8%AA%E5%AE%B9%E6%98%93%E6%B7%B7%E6%B7%86%E7%9A%84URL%E6%B3%A8%E8%A7%A3/index.html">
+<meta property="og:site_name" content="Veryitman">
+<meta property="og:description" content="了解 URL首先，大家需要知道下面这三个东西的定义：  URI，Universal Resource Identifier，统一资源标志符 URL，Universal Resource Locator，统一资源定位符 URN，Universal Resource Name，统一资源名称  在 WWW 上，每一信息资源都有统一的且在网上唯一的地址，该地址就叫 URL，它是 WWW 的统一资源定位标志">
+<meta property="og:locale" content="zh_CN">
+<meta property="og:image" content="http://example.com/upload/images/2019/08/04/1.png">
+<meta property="og:image" content="http://example.com/upload/images/2019/08/04/2.png">
+<meta property="og:image" content="http://example.com/upload/images/2019/08/04/3.png">
+<meta property="og:image" content="http://example.com/upload/me/qrcode_wx.jpg">
+<meta property="article:published_time" content="2019-08-04T05:14:43.000Z">
+<meta property="article:modified_time" content="2022-03-09T14:53:24.318Z">
+<meta property="article:author" content="veryitman">
+<meta property="article:tag" content="SpringBoot 微服务 注解">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:image" content="http://example.com/upload/images/2019/08/04/1.png">
+  
+  
+
+  <!-- feed -->
+  
+
+  
+    
+<link rel="stylesheet" href="/css/main.css">
+
+  
+
+  
+
+  
+</head>
+
+<body>
+  
+
+
+  <div class='l_body' id='start'>
+    <aside class='l_left' layout='post'>
+    
+
+
+<header class="header">
+
+<div class="logo-wrap"><a class="title" href="/"><div class="main">Veryitman</div></a></div>
+<nav class="menu dis-select"></nav></header>
+
+<div class="widgets">
+
+<div class="widget-wrap single" id="toc"><div class="widget-header cap dis-select"><span class="name">本文目录</span></div><div class="widget-body fs14"><div class="doc-tree active"><ol class="toc"><li class="toc-item toc-level-2"><a class="toc-link" href="#%E4%BA%86%E8%A7%A3-URL"><span class="toc-text">了解 URL</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#RequestParam"><span class="toc-text">@RequestParam</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#QueryParam"><span class="toc-text">@QueryParam</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#PathVariable"><span class="toc-text">@PathVariable</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#PathParam"><span class="toc-text">@PathParam</span></a></li></ol></div></div></div>
+
+
+</div>
+
+
+    </aside>
+    <div class='l_main'>
+      
+
+      
+
+
+<div class="bread-nav fs12"><div id="breadcrumb"><a class="cap breadcrumb" href="/">主页</a><span class="sep"></span><a class="cap breadcrumb" href="/">文章</a><span class="sep"></span><a class="cap breadcrumb-link" href="/categories/Server/">Server</a></div><div id="post-meta">发布于&nbsp;<time datetime="2019-08-04T05:14:43.000Z">2019-08-04</time></div></div>
+
+<article class='content md post'>
+<h1 class="article-title"><span>微服务: 学习几个容易混淆的URL注解</span></h1>
+<h2 id="了解-URL"><a href="#了解-URL" class="headerlink" title="了解 URL"></a>了解 URL</h2><p>首先，大家需要知道下面这三个东西的定义：</p>
+<blockquote>
+<p>URI，Universal Resource Identifier，统一资源标志符</p>
+<p>URL，Universal Resource Locator，统一资源定位符</p>
+<p>URN，Universal Resource Name，统一资源名称</p>
+</blockquote>
+<p>在 WWW 上，每一信息资源都有统一的且在网上唯一的地址，该地址就叫 URL，它是 WWW 的统一资源定位标志，就是指网络地址。</p>
+<p>URL 是 URI 的子集，所有的 URL 都是 URI，但不是每个 URI 都是 URL，还有可能是 URN，他们的关系可以用下面的图来表示：</p>
+<p><img class="lazy" src="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAABGdBTUEAALGPC/xhBQAAADhlWElmTU0AKgAAAAgAAYdpAAQAAAABAAAAGgAAAAAAAqACAAQAAAABAAAAAaADAAQAAAABAAAAAQAAAADa6r/EAAAAC0lEQVQIHWNgAAIAAAUAAY27m/MAAAAASUVORK5CYII=" data-src="/upload/images/2019/08/04/1.png"></p>
+<p>换句话说，URI 分为三种，URL 或者 URN 或者是 URL 和 URI 的组合。</p>
+<p>不管怎么说，大家平时使用HTTP请求的地址基本都是称之为 URL，所以暂时不必要纠结于三者的区别之中而无法自拔，搞懂 URL 的组成部分和规范才是重点。</p>
+<p>URL 由三部分组成即资源类型、存放资源的主机域名和资源文件名。</p>
+<p>URL 的一般语法格式为：</p>
+<figure class="highlight html"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">scheme:[//[user[:password]@]host[:port]][/path][?query][#fragment]</span><br></pre></td></tr></table></figure>
+
+<p>具体参数释义如下：</p>
+<ul>
+<li><p>scheme：传送协议有些地方也写作protocol，如http、https、ftp等</p>
+</li>
+<li><p>user:password：访问资源需要的凭证信息，可省略</p>
+</li>
+<li><p>host：服务器地址，通常为域名，有时为IP地址</p>
+</li>
+<li><p>port：端口号，以数字方式表示，一般使用端口默认值80，可省略</p>
+</li>
+<li><p>path：路径，以“&#x2F;”字符区别路径中的每一个目录名称</p>
+</li>
+<li><p>query：查询，GET模式的窗体参数，以“?”字符为起点，每个参数以“&amp;”隔开，再以“&#x3D;”分开参数名称与数据，通常以UTF8的URL编码，避开字符冲突的问题</p>
+</li>
+<li><p>fragment：片段，以“#”字符为起点</p>
+</li>
+</ul>
+<p>常用的 URL 如下：</p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line">http://www.veryitman.com/article/name=itman&amp;pwd=123</span><br><span class="line"></span><br><span class="line">http://www.veryitman.com/article/1/2</span><br></pre></td></tr></table></figure>
+
+<p>大部分的编程语言都会有针对 URL 处理的系统函数库，最常用的如 <code>URLEncode</code>、<code>URLDecode</code> 针对 URL 编解码的类。</p>
+<p>下面跟大家分享一下在 SpringBoot 中经常使用的 <code>RequestParam</code>、<code>QueryParam</code>、<code>PathVariable</code> 和 <code>PathParam</code> 这三个注解。</p>
+<h2 id="RequestParam"><a href="#RequestParam" class="headerlink" title="@RequestParam"></a>@RequestParam</h2><p>注解 @RequestParam 可以从每个 HTTP Request 中获取参数，该注解支持下面四种参数：</p>
+<ul>
+<li>defaultValue 如果本次请求没有携带这个参数，或者参数为空，那么就会启用默认值</li>
+<li>name 绑定本次参数的名称，要跟 URL 上面的一样，否则会请求失败</li>
+<li>required 用来标示对应的参数是不是必须的，默认是 true，如果对某个参数做可选值可以设置该值为 false</li>
+<li>value 是 name 属性的一个别名，value 和 name 只能出现一个否则会请求报错</li>
+</ul>
+<p>下面是注解 @RequestParam 的源码：</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">package</span> org.springframework.web.bind.annotation;</span><br><span class="line"></span><br><span class="line"><span class="keyword">import</span> java.lang.annotation.Documented;</span><br><span class="line"><span class="keyword">import</span> java.lang.annotation.ElementType;</span><br><span class="line"><span class="keyword">import</span> java.lang.annotation.Retention;</span><br><span class="line"><span class="keyword">import</span> java.lang.annotation.RetentionPolicy;</span><br><span class="line"><span class="keyword">import</span> java.lang.annotation.Target;</span><br><span class="line"><span class="keyword">import</span> org.springframework.core.annotation.AliasFor;</span><br><span class="line"></span><br><span class="line"><span class="meta">@Target(&#123;ElementType.PARAMETER&#125;)</span></span><br><span class="line"><span class="meta">@Retention(RetentionPolicy.RUNTIME)</span></span><br><span class="line"><span class="meta">@Documented</span></span><br><span class="line"><span class="keyword">public</span> <span class="meta">@interface</span> RequestParam &#123;</span><br><span class="line">    <span class="meta">@AliasFor(&quot;name&quot;)</span></span><br><span class="line">    String <span class="title function_">value</span><span class="params">()</span> <span class="keyword">default</span> <span class="string">&quot;&quot;</span>;</span><br><span class="line"></span><br><span class="line">    <span class="meta">@AliasFor(&quot;value&quot;)</span></span><br><span class="line">    String <span class="title function_">name</span><span class="params">()</span> <span class="keyword">default</span> <span class="string">&quot;&quot;</span>;</span><br><span class="line"></span><br><span class="line">    <span class="type">boolean</span> <span class="title function_">required</span><span class="params">()</span> <span class="keyword">default</span> <span class="literal">true</span>;</span><br><span class="line"></span><br><span class="line">    String <span class="title function_">defaultValue</span><span class="params">()</span> <span class="keyword">default</span> <span class="string">&quot;\n\t\t\n\t\t\n\ue000\ue001\ue002\n\t\t\t\t\n&quot;</span>;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<p>这里重点说一下 value 这个值，举个例子。</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><span class="line"><span class="meta">@RequestMapping(value = &quot;/friends&quot;, method = RequestMethod.GET)</span></span><br><span class="line"><span class="keyword">public</span> String <span class="title function_">getFrieds</span><span class="params">(<span class="meta">@RequestParam(value = &quot;page&quot;)</span> String page, <span class="meta">@RequestParam(value = &quot;pageSize&quot;)</span> String pageSize)</span> &#123;</span><br><span class="line">	<span class="keyword">return</span> <span class="string">&quot;Get friend list. &quot;</span> + <span class="string">&quot;page: &quot;</span> + page + <span class="string">&quot; - pagesize: &quot;</span> + pageSize;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<p>该方法有两个参数，分别是 <code>page</code> 和 <code>pageSize</code>，注意这里的参数 <code>pageSize</code> 是大写的，在注解 @RequestParam 中对应的 value 值也是大写的 <code>pageSize</code>，现在启动工程后，请求一下下面的地址。</p>
+<figure class="highlight http"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">http://localhost:8080/friends?page=1&amp;pageSize=2</span><br></pre></td></tr></table></figure>
+
+<p>这个时候可以正常访问且能返回正确的结果，假如我们将 @RequestParam 中对应的 value 值改为小写的 <code>pagesize</code> 再来使用上面的地址访问呢？</p>
+<p>就会报下面的错误，如图所示：</p>
+<p><img class="lazy" src="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAABGdBTUEAALGPC/xhBQAAADhlWElmTU0AKgAAAAgAAYdpAAQAAAABAAAAGgAAAAAAAqACAAQAAAABAAAAAaADAAQAAAABAAAAAQAAAADa6r/EAAAAC0lEQVQIHWNgAAIAAAUAAY27m/MAAAAASUVORK5CYII=" data-src="/upload/images/2019/08/04/2.png"></p>
+<p>所以需要修改访问地址，即将 <code>pageSize</code> 改为 <code>pagesize</code>：</p>
+<figure class="highlight http"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">http://localhost:8080/friends?page=1&amp;pagesize=2</span><br></pre></td></tr></table></figure>
+
+<p>那我们再思考另外一个问题，是否可以修改注解 <code>@RequestParam</code> 中对应的value值的 page 和 pageSize 为其他的比如 xx、yy？</p>
+<p>动手试试就知道了！</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><span class="line"><span class="meta">@RequestMapping(value = &quot;/friends&quot;, method = RequestMethod.GET)</span></span><br><span class="line"><span class="keyword">public</span> String <span class="title function_">getFrieds</span><span class="params">(<span class="meta">@RequestParam(value = &quot;xx&quot;)</span> String page, <span class="meta">@RequestParam(value = &quot;yy&quot;)</span> String pageSize)</span> &#123;</span><br><span class="line">    <span class="keyword">return</span> <span class="string">&quot;Get friend list. &quot;</span> + <span class="string">&quot;page: &quot;</span> + page + <span class="string">&quot; - pagesize: &quot;</span> + pageSize;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<p>函数本身的参数名称 page 和 pageSize 没有做任何修改，只是将注解中的修改为 <code>xx</code> 和 <code>yy</code> 了，再次访问下面的URL：</p>
+<figure class="highlight http"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">http://localhost:8080/friends?xx=1&amp;yy=2</span><br></pre></td></tr></table></figure>
+
+<p>一如既往的正常~ 所以，对于注解 <code>@RequestParam</code> 的参数，URL中对应的参数一定要和value对应。</p>
+<h2 id="QueryParam"><a href="#QueryParam" class="headerlink" title="@QueryParam"></a>@QueryParam</h2><p>这个跟 @RequestParam 基本一致，都是以键值对的方式来或者参数。</p>
+<p>只不过，该注解需要在 pom 文件中导入依赖，如下：</p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br></pre></td><td class="code"><pre><span class="line">&lt;dependency&gt;</span><br><span class="line">	&lt;groupId&gt;javax.ws.rs&lt;/groupId&gt;</span><br><span class="line">	&lt;artifactId&gt;jsr311-api&lt;/artifactId&gt;</span><br><span class="line">	&lt;version&gt;1.1.1&lt;/version&gt;</span><br><span class="line">&lt;/dependency&gt;</span><br></pre></td></tr></table></figure>
+
+<p>然后在工程类中需要导入包，如下：</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">import</span> javax.ws.rs.QueryParam;</span><br></pre></td></tr></table></figure>
+
+<p>注解 @QueryParam 源码：</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br></pre></td><td class="code"><pre><span class="line"><span class="meta">@Target(&#123;ElementType.PARAMETER, ElementType.METHOD, ElementType.FIELD&#125;)</span></span><br><span class="line"><span class="meta">@Retention(RetentionPolicy.RUNTIME)</span></span><br><span class="line"><span class="keyword">public</span> <span class="meta">@interface</span> QueryParam &#123;</span><br><span class="line">    <span class="comment">/**</span></span><br><span class="line"><span class="comment">     * Defines the name of the HTTP query parameter whose value will be used</span></span><br><span class="line"><span class="comment">     * to initialize the value of the annotated method argument, class field or</span></span><br><span class="line"><span class="comment">     * bean property. The name is specified in decoded form, any percent encoded</span></span><br><span class="line"><span class="comment">     * literals within the value will not be decoded and will instead be </span></span><br><span class="line"><span class="comment">     * treated as literal text. E.g. if the parameter name is &quot;a b&quot; then the </span></span><br><span class="line"><span class="comment">     * value of the annotation is &quot;a b&quot;, &lt;i&gt;not&lt;/i&gt; &quot;a+b&quot; or &quot;a%20b&quot;.</span></span><br><span class="line"><span class="comment">     */</span></span><br><span class="line">    String <span class="title function_">value</span><span class="params">()</span>;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<p>可以看到 @QueryParam 只有 value 一个属性，value 对应的值要和函数参数保持一致，否则可能请求会得不到预期的响应结果，这个跟注解 @RequestParam 是不一样的。下面给个示例，如下：</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><span class="line"><span class="meta">@RequestMapping(value = &quot;/friends&quot;, method = RequestMethod.GET)</span></span><br><span class="line"><span class="keyword">public</span> String <span class="title function_">getFrieds</span><span class="params">(<span class="meta">@QueryParam(value = &quot;page&quot;)</span> String page, <span class="meta">@QueryParam(value = &quot;pageSize&quot;)</span> String pageSize)</span> &#123;</span><br><span class="line">	<span class="keyword">return</span> <span class="string">&quot;Get friend list. &quot;</span> + <span class="string">&quot;page: &quot;</span> + page + <span class="string">&quot; - pageSize: &quot;</span> + pageSize;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<p>在浏览器请求下面的地址即可。</p>
+<figure class="highlight http"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">http://localhost:8080/friends?page=1&amp;pageSize=2</span><br></pre></td></tr></table></figure>
+
+<h2 id="PathVariable"><a href="#PathVariable" class="headerlink" title="@PathVariable"></a>@PathVariable</h2><p>注解 @PathVariable 与上面的刚说的注解 @RequestParam 是不同的，@PathVariable 需要从 URI 中获取参数，比如下面的例子，如下：</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><span class="line"><span class="meta">@RequestMapping(value = &quot;/friends/&#123;page&#125;/&#123;pagesize&#125;&quot;, method = RequestMethod.GET)</span></span><br><span class="line"><span class="keyword">public</span> String <span class="title function_">getFrieds</span><span class="params">(<span class="meta">@PathVariable(value = &quot;page&quot;)</span> String page, <span class="meta">@PathVariable(value = &quot;pagesize&quot;)</span> String pageSize)</span> &#123;</span><br><span class="line">    <span class="keyword">return</span> <span class="string">&quot;Get friend list. &quot;</span> + <span class="string">&quot;page: &quot;</span> + page + <span class="string">&quot; - pagesize: &quot;</span> + pageSize;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<p>在 @RequestMapping 中写了 <code>&#123;page&#125;/&#123;pagesize&#125;</code>，二者带上了 <code>&#123;&#125;</code> 这样 @PathVariable 才能识别。</p>
+<p>请求下面的地址，可以正常访问。</p>
+<figure class="highlight http"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">http://localhost:8080/friends/1/2</span><br></pre></td></tr></table></figure>
+
+<p>相当于 page&#x3D;1，pagesize&#x3D;2，所以注解 @PathVariable 是从URI 中匹配参数的，他不是以键值对方式获取对应的值。</p>
+<p>@PathVariable 源码如下：</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">package</span> org.springframework.web.bind.annotation;</span><br><span class="line"></span><br><span class="line"><span class="keyword">import</span> java.lang.annotation.Documented;</span><br><span class="line"><span class="keyword">import</span> java.lang.annotation.ElementType;</span><br><span class="line"><span class="keyword">import</span> java.lang.annotation.Retention;</span><br><span class="line"><span class="keyword">import</span> java.lang.annotation.RetentionPolicy;</span><br><span class="line"><span class="keyword">import</span> java.lang.annotation.Target;</span><br><span class="line"><span class="keyword">import</span> org.springframework.core.annotation.AliasFor;</span><br><span class="line"></span><br><span class="line"><span class="meta">@Target(&#123;ElementType.PARAMETER&#125;)</span></span><br><span class="line"><span class="meta">@Retention(RetentionPolicy.RUNTIME)</span></span><br><span class="line"><span class="meta">@Documented</span></span><br><span class="line"><span class="keyword">public</span> <span class="meta">@interface</span> PathVariable &#123;</span><br><span class="line">    <span class="meta">@AliasFor(&quot;name&quot;)</span></span><br><span class="line">    String <span class="title function_">value</span><span class="params">()</span> <span class="keyword">default</span> <span class="string">&quot;&quot;</span>;</span><br><span class="line"></span><br><span class="line">    <span class="meta">@AliasFor(&quot;value&quot;)</span></span><br><span class="line">    String <span class="title function_">name</span><span class="params">()</span> <span class="keyword">default</span> <span class="string">&quot;&quot;</span>;</span><br><span class="line"></span><br><span class="line">    <span class="type">boolean</span> <span class="title function_">required</span><span class="params">()</span> <span class="keyword">default</span> <span class="literal">true</span>;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<p>有三个属性 value、name 和 required，其中 value 也是 name 的别名。</p>
+<h2 id="PathParam"><a href="#PathParam" class="headerlink" title="@PathParam"></a>@PathParam</h2><p>注解  @PathParam 源码如下：</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">package</span> javax.websocket.server;</span><br><span class="line"></span><br><span class="line"><span class="keyword">import</span> java.lang.annotation.ElementType;</span><br><span class="line"><span class="keyword">import</span> java.lang.annotation.Retention;</span><br><span class="line"><span class="keyword">import</span> java.lang.annotation.RetentionPolicy;</span><br><span class="line"><span class="keyword">import</span> java.lang.annotation.Target;</span><br><span class="line"></span><br><span class="line"><span class="meta">@Retention(RetentionPolicy.RUNTIME)</span></span><br><span class="line"><span class="meta">@Target(&#123;ElementType.PARAMETER&#125;)</span></span><br><span class="line"><span class="keyword">public</span> <span class="meta">@interface</span> PathParam &#123;</span><br><span class="line">    String <span class="title function_">value</span><span class="params">()</span>;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<p>可以看出，@PathVariable 和 @RequestParam 是 <code>org.springframework.x</code> 包下面的即属于spring框架，而 @PathParam 属于 <code>javax.websocket.x</code> 包下面的。</p>
+<p>注解 @PathParam 只有一个属性 value，没有其他属性了。@PathParam 里面的value对应的值一定要和函数参数名称一致（包括大小写），示例：</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><span class="line"><span class="meta">@RequestMapping(value = &quot;/friends&quot;, method = RequestMethod.GET)</span></span><br><span class="line"><span class="keyword">public</span> String <span class="title function_">getFrieds</span><span class="params">(<span class="meta">@PathParam(value = &quot;page&quot;)</span> String page, <span class="meta">@PathParam(value = &quot;pageSize&quot;)</span> String pageSize)</span> &#123;</span><br><span class="line">    <span class="keyword">return</span> <span class="string">&quot;Get friend list. &quot;</span> + <span class="string">&quot;page: &quot;</span> + page + <span class="string">&quot; - pageSize: &quot;</span> + pageSize;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<p>在浏览器中请求下面的地址，请求和响应都是正常的。</p>
+<figure class="highlight http"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">http://localhost:8080/friends?page=1&amp;pageSize=2</span><br></pre></td></tr></table></figure>
+
+<p>如果 @PathParam 中 value 对应的值和函数参数不一致，请求得不到预期的响应。现在修改 value 的 <code>pageSize</code> 为 <code>pagesize</code>，如下：</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><span class="line"><span class="meta">@RequestMapping(value = &quot;/friends&quot;, method = RequestMethod.GET)</span></span><br><span class="line"><span class="keyword">public</span> String <span class="title function_">getFrieds</span><span class="params">(<span class="meta">@PathParam(value = &quot;page&quot;)</span> String page, <span class="meta">@PathParam(value = &quot;pagesize&quot;)</span> String pageSize)</span> &#123;</span><br><span class="line">   <span class="keyword">return</span> <span class="string">&quot;Get friend list. &quot;</span> + <span class="string">&quot;page: &quot;</span> + page + <span class="string">&quot; - pageSize: &quot;</span> + pageSize;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<p>在浏览器中请求下面的地址：</p>
+<figure class="highlight http"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">http://localhost:8080/friends?page=1&amp;pagesize=2</span><br></pre></td></tr></table></figure>
+
+<p>就会得到下面的结果，如下图所示：</p>
+<p><img class="lazy" src="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAABGdBTUEAALGPC/xhBQAAADhlWElmTU0AKgAAAAgAAYdpAAQAAAABAAAAGgAAAAAAAqACAAQAAAABAAAAAaADAAQAAAABAAAAAQAAAADa6r/EAAAAC0lEQVQIHWNgAAIAAAUAAY27m/MAAAAASUVORK5CYII=" data-src="/upload/images/2019/08/04/3.png"></p>
+<p>但是你使用 <code>http://localhost:8080/friends?page=1&amp;pageSize=2</code> 对于上面的代码请求和响应也是正常的，这就说明注解 @PathParam 中请求的 URL 参数是以函数参数为主的，他和注解 @QueryParam 、@RequestParam 都是以键值对方式获取对应的值。</p>
+<p>所以，注解 @PathParam 中 value 对应的值和函数参数尽量保持一致。</p>
+<hr>
+<p><strong>学海无涯苦作舟~</strong></p>
+<p><img class="lazy" src="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAABGdBTUEAALGPC/xhBQAAADhlWElmTU0AKgAAAAgAAYdpAAQAAAABAAAAGgAAAAAAAqACAAQAAAABAAAAAaADAAQAAAABAAAAAQAAAADa6r/EAAAAC0lEQVQIHWNgAAIAAAUAAY27m/MAAAAASUVORK5CYII=" data-src="/upload/me/qrcode_wx.jpg"></p>
+
+
+
+
+</article>
+
+<div class="related-wrap reveal" id="read-next"><section class="header cap theme"><span>接下来阅读</span></section><section class="body fs14"><a id="next" href="/2019/07/03/%E5%BE%AE%E6%9C%8D%E5%8A%A1-%E7%AB%8B%E5%BF%97%E5%81%9A%E4%B8%AA%E4%BC%9F%E5%A4%A7%E7%9A%84%E9%A1%B9%E7%9B%AE/">微服务: 立志做个伟大的项目<span class="note">较早</span></a><div class="line"></div><a id="prev" href="/2019/08/09/%E8%BF%98%E6%9C%89%E4%BD%A0%E4%B8%8D%E7%9F%A5%E9%81%93%E7%9A%84Java%E6%9E%9A%E4%B8%BE%E7%89%B9%E6%80%A7(%E4%B8%8A%E7%AF%87)/">还有你不知道的Java枚举特性(上篇)<span class="note">较新</span></a></section></div>
+
+
+
+
+
+
+  <div class='related-wrap md reveal' id="comments">
+    <div class='cmt-title cap theme'>
+      快来参与讨论吧
+    </div>
+    <div class='cmt-body valine'>
+      
+
+<div id="valine_container" class="valine_thread"><svg class="loading" style="vertical-align: middle;fill: currentColor;overflow: hidden;" viewBox="0 0 1024 1024" version="1.1" xmlns="http://www.w3.org/2000/svg" p-id="2709"><path d="M832 512c0-176-144-320-320-320V128c211.2 0 384 172.8 384 384h-64zM192 512c0 176 144 320 320 320v64C300.8 896 128 723.2 128 512h64z" p-id="2710"></path></svg></div>
+
+    </div>
+  </div>
+
+
+
+      
+<footer class="page-footer reveal fs12"><hr><div class="text"><p>本博客所有文章除特别声明外，均采用 <a target="_blank" rel="noopener" href="https://creativecommons.org/licenses/by-nc-sa/4.0/">CC BY-NC-SA 4.0</a> 许可协议，转载请注明出处。</p>
+<p>veryitman</p>
+</div></footer>
+
+      <div class='float-panel mobile-only blur' style='display:none'>
+  <button type='button' class='sidebar-toggle mobile' onclick='sidebar.toggle()'>
+    <svg class="icon" style="width: 1em; height: 1em;vertical-align: middle;fill: currentColor;overflow: hidden;" viewBox="0 0 1024 1024" version="1.1" xmlns="http://www.w3.org/2000/svg" p-id="15301"><path d="M566.407 808.3c26.9-0.1 49.3-20.8 51.6-47.6-1.9-27.7-23.9-49.7-51.6-51.6h-412.6c-28.2-1.4-52.6 19.5-55.5 47.6 2.3 26.8 24.6 47.5 51.6 47.6h416.5v4z m309.3-249.9c26.9-0.1 49.3-20.8 51.6-47.6-2.2-26.8-24.6-47.5-51.6-47.6h-721.9c-27.7-2.8-52.5 17.4-55.3 45.1-0.1 0.8-0.1 1.7-0.2 2.5 0.9 27.2 23.6 48.5 50.7 47.6H875.707z m-103.1-245.9c26.9-0.1 49.3-20.8 51.6-47.6-0.4-28.3-23.2-51.1-51.5-51.6h-618.9c-29.5-1.1-54.3 21.9-55.5 51.4v0.2c1.4 27.8 25.2 49.2 53 47.8 0.8 0 1.7-0.1 2.5-0.2h618.8z" p-id="15302"></path><path d="M566.407 808.3c26.9-0.1 49.3-20.8 51.6-47.6-1.9-27.7-23.9-49.7-51.6-51.6h-412.6c-28.2-1.4-52.6 19.5-55.5 47.6 1.9 27.7 23.9 49.7 51.6 51.6h416.5z m309.3-249.9c26.9-0.1 49.3-20.8 51.6-47.6-2.2-26.8-24.6-47.5-51.6-47.6h-721.9c-27.7-2.8-52.5 17.4-55.3 45.1-0.1 0.8-0.1 1.7-0.2 2.5 0.9 27.2 23.6 48.5 50.7 47.6H875.707z m-103.1-245.9c26.9-0.1 49.3-20.8 51.6-47.6-0.4-28.3-23.2-51.1-51.5-51.6h-618.9c-29.5-1.1-54.3 21.9-55.5 51.4v0.2c1.4 27.8 25.2 49.2 53 47.8 0.8 0 1.7-0.1 2.5-0.2h618.8z" p-id="15303"></path></svg>
+  </button>
+</div>
+
+    </div>
+  </div>
+  <div class='scripts'>
+    <script type="text/javascript">
+  stellar = {
+    // 懒加载 css https://github.com/filamentgroup/loadCSS
+    loadCSS: (href, before, media, attributes) => {
+      var doc = window.document;
+      var ss = doc.createElement("link");
+      var ref;
+      if (before) {
+        ref = before;
+      } else {
+        var refs = (doc.body || doc.getElementsByTagName("head")[0]).childNodes;
+        ref = refs[refs.length - 1];
+      }
+      var sheets = doc.styleSheets;
+      if (attributes) {
+        for (var attributeName in attributes) {
+          if (attributes.hasOwnProperty(attributeName)) {
+            ss.setAttribute(attributeName, attributes[attributeName]);
+          }
+        }
+      }
+      ss.rel = "stylesheet";
+      ss.href = href;
+      ss.media = "only x";
+      function ready(cb) {
+        if (doc.body) {
+          return cb();
+        }
+        setTimeout(function () {
+          ready(cb);
+        });
+      }
+      ready(function () {
+        ref.parentNode.insertBefore(ss, before ? ref : ref.nextSibling);
+      });
+      var onloadcssdefined = function (cb) {
+        var resolvedHref = ss.href;
+        var i = sheets.length;
+        while (i--) {
+          if (sheets[i].href === resolvedHref) {
+            return cb();
+          }
+        }
+        setTimeout(function () {
+          onloadcssdefined(cb);
+        });
+      };
+      function loadCB() {
+        if (ss.addEventListener) {
+          ss.removeEventListener("load", loadCB);
+        }
+        ss.media = media || "all";
+      }
+      if (ss.addEventListener) {
+        ss.addEventListener("load", loadCB);
+      }
+      ss.onloadcssdefined = onloadcssdefined;
+      onloadcssdefined(loadCB);
+      return ss;
+    },
+
+    // 从 butterfly 和 volantis 获得灵感
+    loadScript: (src, opt) => new Promise((resolve, reject) => {
+      var script = document.createElement('script');
+      script.src = src;
+      if (opt) {
+        for (let key of Object.keys(opt)) {
+          script[key] = opt[key]
+        }
+      } else {
+        // 默认异步，如果需要同步，第二个参数传入 {} 即可
+        script.async = true
+      }
+      script.onerror = reject
+      script.onload = script.onreadystatechange = function() {
+        const loadState = this.readyState
+        if (loadState && loadState !== 'loaded' && loadState !== 'complete') return
+        script.onload = script.onreadystatechange = null
+        resolve()
+      }
+      document.head.appendChild(script)
+    }),
+
+    // https://github.com/jerryc127/hexo-theme-butterfly
+    jQuery: (fn) => {
+      if (typeof jQuery === 'undefined') {
+        stellar.loadScript(stellar.plugins.jQuery).then(fn)
+      } else {
+        fn()
+      }
+    }
+  };
+  stellar.github = 'https://github.com/xaoxuu/hexo-theme-stellar/tree/1.6.1';
+  stellar.config = {
+    date_suffix: {
+      just: '刚刚',
+      min: '分钟前',
+      hour: '小时前',
+      day: '天前',
+      month: '个月前',
+    },
+  };
+
+  // required plugins (only load if needs)
+  stellar.plugins = {
+    jQuery: 'https://cdn.jsdelivr.net/npm/jquery@3.5.1/dist/jquery.min.js',
+    sitesjs: '/js/plugins/sites.js',
+    friendsjs: '/js/plugins/friends.js',
+  };
+
+  // optional plugins
+  if ('true' == 'true') {
+    stellar.plugins.lazyload = Object.assign({"enable":true,"js":"https://cdn.jsdelivr.net/npm/vanilla-lazyload@17.3.1/dist/lazyload.min.js","transition":"blur"});
+  }
+  if ('true' == 'true') {
+    stellar.plugins.swiper = Object.assign({"enable":true,"css":"https://unpkg.com/swiper@6/swiper-bundle.min.css","js":"https://unpkg.com/swiper@6/swiper-bundle.min.js"});
+  }
+  if ('' == 'true') {
+    stellar.plugins.scrollreveal = Object.assign({"enable":null,"js":"https://cdn.jsdelivr.net/npm/scrollreveal@4.0.9/dist/scrollreveal.min.js","distance":"8px","duration":500,"interval":100,"scale":1});
+  }
+  if ('true' == 'true') {
+    stellar.plugins.preload = Object.assign({"enable":true,"service":"flying_pages","instant_page":"https://cdn.jsdelivr.net/gh/volantis-x/cdn-volantis@4.1.2/js/instant_page.js","flying_pages":"https://cdn.jsdelivr.net/gh/gijo-varghese/flying-pages@2.1.2/flying-pages.min.js"});
+  }
+</script>
+
+<!-- required -->
+
+  
+<script src="/js/main.js" async></script>
+
+
+
+<!-- optional -->
+
+  <script>
+  function getEmojiMaps() {
+    function emoji(path, idx, ext) {
+      return path + "/" + path + "-" + idx + "." + ext;
+    }
+    var emojiMaps = {};
+    for (var i = 1; i <= 54; i++) {
+      emojiMaps['tieba-' + i] = emoji('tieba', i, 'png');
+    }
+    for (var i = 1; i <= 101; i++) {
+      emojiMaps['qq-' + i] = emoji('qq', i, 'gif');
+    }
+    for (var i = 1; i <= 116; i++) {
+      emojiMaps['aru-' + i] = emoji('aru', i, 'gif');
+    }
+    for (var i = 1; i <= 125; i++) {
+      emojiMaps['twemoji-' + i] = emoji('twemoji', i, 'png');
+    }
+    for (var i = 1; i <= 4; i++) {
+      emojiMaps['weibo-' + i] = emoji('weibo', i, 'png');
+    }
+    return emojiMaps;
+  }
+  function load_comment(){
+    if(!document.getElementById("valine_container"))return;
+    stellar.loadScript('https://cdn.jsdelivr.net/gh/XuxuGood/simple-blog-cdn@main/js/Valine.min.js', {defer:true}).then(function () {
+      const el = document.getElementById("valine_container");
+      var path = el.getAttribute('comment_id');
+      const placeholder = "欢迎您留言~";
+      if (!path) {
+        path = decodeURI(window.location.pathname);
+      }
+      var valine = new Valine();
+      valine.init(Object.assign({"js":"https://cdn.jsdelivr.net/gh/XuxuGood/simple-blog-cdn@main/js/Valine.min.js","appId":"FY2C9UCttYNaE1j8umenqdCE-gzGzoHsz","appKey":"4i7xMwkfSEGmEDhi6SceKFxz","placeholder":"欢迎您留言~","requiredFields":["nick","mail"],"enableQQ":true,"recordIP":false,"avatar":"robohash","pageSize":10,"lang":"zh-cn","highlight":true,"mathJax":false,"tagMeta":["博主","小伙伴","访客"],"metaPlaceholder":{"nick":"昵称/QQ号(必填)","mail":"邮箱（必填，完全保密）"},"master":["6783037F2DF30EAB99F9FC256157D875"],"friends":["6783037F2DF30EAB99F9FC256157D875"],"comment_count":true}, {
+        el: '#valine_container',
+        path: path,
+        placeholder: placeholder,
+        emojiCDN: 'https://cdn.jsdelivr.net/gh/volantis-x/cdn-emoji/valine/',
+        emojiMaps: getEmojiMaps(),
+      }));
+    });
+  }
+  window.addEventListener('DOMContentLoaded', (event) => {
+    console.log('DOM fully loaded and parsed');
+    load_comment();
+  });
+
+</script>
+
+
+
+
+<!-- inject -->
+
+
+  </div>
+</body>
+</html>

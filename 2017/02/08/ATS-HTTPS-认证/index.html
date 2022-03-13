@@ -1,0 +1,407 @@
+<!DOCTYPE html>
+<html lang='zh-CN'>
+
+<head>
+  <meta name="generator" content="Hexo 6.0.0">
+  <meta charset="utf-8">
+  
+
+  <meta http-equiv='x-dns-prefetch-control' content='on' />
+  <link rel='dns-prefetch' href='https://cdn.jsdelivr.net'>
+  <link rel="preconnect" href="https://cdn.jsdelivr.net" crossorigin>
+
+  <meta name="renderer" content="webkit">
+  <meta name="force-rendering" content="webkit">
+  <meta http-equiv="X-UA-Compatible" content="IE=Edge,chrome=1">
+  <meta name="HandheldFriendly" content="True" >
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1">
+  <meta name="theme-color" content="#f8f8f8">
+  <title>ATS: HTTPS 认证 - Veryitman</title>
+
+  
+    <meta name="description" content="简介在 ATS: HTTP&#x2F;HTTPS 协议介绍 中介绍了一些关于 HTTP&#x2F;HTTPS 的概念以及相关的基本知识。 今天来聊聊关于 HTTPS 的认证方式和过程。 说 HTTPS 认证前，我们先了解一下几个相关概念。 关于加密的几个概念1. SSL 协议加密方式 SSL 既用了对称加密，也用了非对称加密。  在建立传输链路时, SSL 首先对对称加密的密钥使用公钥进行非对称加">
+<meta property="og:type" content="article">
+<meta property="og:title" content="ATS: HTTPS 认证">
+<meta property="og:url" content="http://example.com/2017/02/08/ATS-HTTPS-%E8%AE%A4%E8%AF%81/index.html">
+<meta property="og:site_name" content="Veryitman">
+<meta property="og:description" content="简介在 ATS: HTTP&#x2F;HTTPS 协议介绍 中介绍了一些关于 HTTP&#x2F;HTTPS 的概念以及相关的基本知识。 今天来聊聊关于 HTTPS 的认证方式和过程。 说 HTTPS 认证前，我们先了解一下几个相关概念。 关于加密的几个概念1. SSL 协议加密方式 SSL 既用了对称加密，也用了非对称加密。  在建立传输链路时, SSL 首先对对称加密的密钥使用公钥进行非对称加">
+<meta property="og:locale" content="zh_CN">
+<meta property="og:image" content="http://example.com/upload/images/2017/02/08/HTTPS_Single.png">
+<meta property="og:image" content="http://example.com/upload/images/2017/02/08/HTTPS_Double.png">
+<meta property="og:image" content="http://example.com/upload/images/2017/02/08/HTTPS_Random.png">
+<meta property="article:published_time" content="2017-02-08T13:25:12.000Z">
+<meta property="article:modified_time" content="2022-03-09T14:53:24.298Z">
+<meta property="article:author" content="veryitman">
+<meta property="article:tag" content="HTTP HTTPS TLS SSL">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:image" content="http://example.com/upload/images/2017/02/08/HTTPS_Single.png">
+  
+  
+
+  <!-- feed -->
+  
+
+  
+    
+<link rel="stylesheet" href="/css/main.css">
+
+  
+
+  
+
+  
+</head>
+
+<body>
+  
+
+
+  <div class='l_body' id='start'>
+    <aside class='l_left' layout='post'>
+    
+
+
+<header class="header">
+
+<div class="logo-wrap"><a class="title" href="/"><div class="main">Veryitman</div></a></div>
+<nav class="menu dis-select"></nav></header>
+
+<div class="widgets">
+
+<div class="widget-wrap single" id="toc"><div class="widget-header cap dis-select"><span class="name">本文目录</span></div><div class="widget-body fs14"><div class="doc-tree active"><ol class="toc"><li class="toc-item toc-level-2"><a class="toc-link" href="#%E7%AE%80%E4%BB%8B"><span class="toc-text">简介</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#%E5%85%B3%E4%BA%8E%E5%8A%A0%E5%AF%86%E7%9A%84%E5%87%A0%E4%B8%AA%E6%A6%82%E5%BF%B5"><span class="toc-text">关于加密的几个概念</span></a><ol class="toc-child"><li class="toc-item toc-level-4"><a class="toc-link" href="#1-SSL-%E5%8D%8F%E8%AE%AE%E5%8A%A0%E5%AF%86%E6%96%B9%E5%BC%8F"><span class="toc-text">1. SSL 协议加密方式</span></a></li><li class="toc-item toc-level-4"><a class="toc-link" href="#2-%E6%95%B0%E5%AD%97%E8%AF%81%E4%B9%A6"><span class="toc-text">2. 数字证书</span></a></li><li class="toc-item toc-level-4"><a class="toc-link" href="#3-%E5%8A%A0%E5%AF%86%E5%92%8C%E8%AE%A4%E8%AF%81"><span class="toc-text">3. 加密和认证</span></a></li><li class="toc-item toc-level-4"><a class="toc-link" href="#4-%E6%B6%88%E6%81%AF%E6%91%98%E8%A6%81"><span class="toc-text">4. 消息摘要</span></a></li></ol></li></ol></li><li class="toc-item toc-level-2"><a class="toc-link" href="#HTTPS-%E8%AE%A4%E8%AF%81%E6%96%B9%E5%BC%8F"><span class="toc-text">HTTPS 认证方式</span></a><ol class="toc-child"><li class="toc-item toc-level-3"><a class="toc-link" href="#%E5%8D%95%E5%90%91%E8%AE%A4%E8%AF%81"><span class="toc-text">单向认证</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#%E5%8F%8C%E5%90%91%E8%AE%A4%E8%AF%81"><span class="toc-text">双向认证</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#%E9%9A%8F%E6%9C%BA%E6%95%B0%E7%9A%84%E4%BA%A7%E7%94%9F"><span class="toc-text">随机数的产生</span></a></li></ol></li><li class="toc-item toc-level-2"><a class="toc-link" href="#%E6%8E%A8%E8%8D%90"><span class="toc-text">推荐</span></a></li></ol></div></div></div>
+
+
+</div>
+
+
+    </aside>
+    <div class='l_main'>
+      
+
+      
+
+
+<div class="bread-nav fs12"><div id="breadcrumb"><a class="cap breadcrumb" href="/">主页</a><span class="sep"></span><a class="cap breadcrumb" href="/">文章</a><span class="sep"></span><a class="cap breadcrumb-link" href="/categories/iOS/">iOS</a> <span class="sep"></span> <a class="cap breadcrumb-link" href="/categories/%E7%BD%91%E7%BB%9C%E5%8D%8F%E8%AE%AE/">网络协议</a></div><div id="post-meta">发布于&nbsp;<time datetime="2017-02-08T13:25:12.000Z">2017-02-08</time></div></div>
+
+<article class='content md post'>
+<h1 class="article-title"><span>ATS: HTTPS 认证</span></h1>
+<h2 id="简介"><a href="#简介" class="headerlink" title="简介"></a>简介</h2><p>在 <a target="_blank" rel="noopener" href="http://www.veryitman.com/2017/02/06/ATS-HTTP-HTTPS-%E5%8D%8F%E8%AE%AE%E4%BB%8B%E7%BB%8D/">ATS: HTTP&#x2F;HTTPS 协议介绍</a> 中介绍了一些关于 HTTP&#x2F;HTTPS 的概念以及相关的基本知识。</p>
+<p>今天来聊聊关于 HTTPS 的认证方式和过程。</p>
+<p>说 HTTPS 认证前，我们先了解一下几个相关概念。</p>
+<h2 id="关于加密的几个概念"><a href="#关于加密的几个概念" class="headerlink" title="关于加密的几个概念"></a>关于加密的几个概念</h2><h4 id="1-SSL-协议加密方式"><a href="#1-SSL-协议加密方式" class="headerlink" title="1. SSL 协议加密方式"></a>1. SSL 协议加密方式</h4><blockquote>
+<p>SSL 既用了对称加密，也用了非对称加密。</p>
+</blockquote>
+<p>在建立传输链路时, SSL 首先对对称加密的密钥使用公钥进行非对称加密，链路建立好之后，SSL 对传输内容使用对称加密。</p>
+<p>下面是两种加密方式的对比：</p>
+<p>1.1、对称加密</p>
+<blockquote>
+<p>对称加密采用了对称密码编码技术，它的特点是文件加密和解密使用相同的密钥，即加密密钥也可以用作解密密钥，这种方法在密码学中叫做 <code>对称加密算法</code>，对称加密算法使用起来简单快捷，密钥较短，且破译困难，除了数据加密标准（DES），另一个对称密钥加密系统是国际数据加密算法（IDEA），它比 DES 的加密性好，而且对计算机功能要求也没有那么高。<br>IDEA 加密标准由 PGP（Pretty Good Privacy）系统使用。</p>
+</blockquote>
+<p>该加密方式，速度快，可加密内容较大，用来加密会话过程中的消息。</p>
+<p>1.2、非对称加密</p>
+<blockquote>
+<p>1976年，美国学者 Dime 和 Henman 为解决信息公开传送和密钥管理问题，提出一种新的密钥交换协议，允许在不安全的媒体上的通讯双方交换信息，安全地达成一致的密钥，这就是“公开密钥系统”。<br>相对于 <code>对称加密算法</code> 这种方法也叫做 <code>非对称加密算法</code>。<br>与对称加密算法不同，非对称加密算法需要两个密钥：公开密钥（publickey）和私有密钥（privatekey）. 公开密钥与私有密钥是一对，如果用公开密钥对数据进行加密，只有用对应的私有密钥才能解密；如果用私有密钥对数据进行加密，那么只有用对应的公开密钥才能解密。<br>因为加密和解密使用的是两个不同的密钥，所以这种算法叫作非对称加密算法。</p>
+</blockquote>
+<p>该加密方式，速度较慢，能提供更好的身份认证技术，用来加密对称加密的密钥。</p>
+<h4 id="2-数字证书"><a href="#2-数字证书" class="headerlink" title="2. 数字证书"></a>2. 数字证书</h4><p>一种文件的名称，好比一个机构或人的签名就好比一个公司的公章一样，能够证明这个机构或人的真实性，其中包含的信息，用于实现上述功能。</p>
+<p>CA 证书（即数字证书）是由 CA（Certification Authority，证书颁发机构）机构发布的数字证书。其内容包含电子签证机关的信息、公钥用户信息、公钥、签名和有效期。这里的公钥是服务端的公钥、签名是指用 <code>hash</code> 散列函数计算公开的明文信息的信息摘要，然后采用 CA 的私钥对信息摘要进行加密，加密完的密文就是签名。 即 <code>证书 =  公钥 + 签名 +申请者和颁发者的信息</code>。 客户端中因为在操作系统中就预置了 CA 的公钥，所以支持解密签名（因为签名使用 CA 的私钥加密的）。</p>
+<p><strong>我们为什么需要 CA 认证机构颁发证书？</strong></p>
+<p>HTTP 协议被认为不安全是因为传输过程容易被监听者勾线监听、伪造通信方以及窃取网络通信内容，而 HTTPS 协议主要解决的便是网络传输的安全性问题。</p>
+<p>我们假设不存在认证机构，任何人都可以制作证书，这带来的安全风险便是经典的 <a target="_blank" rel="noopener" href="https://baike.baidu.com/item/%E4%B8%AD%E9%97%B4%E4%BA%BA%E6%94%BB%E5%87%BB">中间人攻击</a>（Man-in-the-MiddleAttack，简称 “MITM<em>攻击</em>”）问题。</p>
+<p>推荐大家看看 <a target="_blank" rel="noopener" href="https://zhuanlan.zhihu.com/p/103456919">网络世界背后的“功臣”——CA 认证</a> 这篇文章。</p>
+<h4 id="3-加密和认证"><a href="#3-加密和认证" class="headerlink" title="3. 加密和认证"></a>3. 加密和认证</h4><p>加密是指通信双方为了防止敏感信息在信道上被第三方窃听而泄漏，将明文通过加密变成密文，如果第三方无法解密的话，就算获得密文也无能为力。</p>
+<p>认证是指通信双方为了确认对方是值得信任的消息发送或接受方，而不是使用假身份的非法者，采取的确认身份的方式。</p>
+<p>只有同时进行了加密和认证才能保证通信的安全，因此在 SSL 通信协议中这两者(加密和认证)都被使用。</p>
+<p>加密一般使用 <code>对称加密算法</code> 和 <code>不对称加密算法</code>，最常见的算法非对称加密就是 RSA 加密算法。</p>
+<h4 id="4-消息摘要"><a href="#4-消息摘要" class="headerlink" title="4. 消息摘要"></a>4. 消息摘要</h4><p>这个技术主要是为了避免消息被篡改，消息摘要也称之为数字摘要。</p>
+<p>消息摘要是把一段信息通过某种不可逆的算法，得出一串字符串。这个字符串就是消息的摘要，如果消息被篡改(发生了变化)，那么摘要也一定会发生变化，当然了如果两个不同的消息生成的摘要是一样的，那么这就叫发生了 <code>碰撞</code>。好的摘要算法是没有人能从中找到 <code>碰撞</code> 或者说极度难找到。</p>
+<p>消息摘要的算法主要有 MD2、MD4、MD5、SHA-1、SHA-256、RIPEMD128、RIPEMD160 等，在证书领域，一般都是用 SHA(安全哈希算法)。消息摘要算法的主要特征是加密过程不需要密钥，并且经过加密的数据无法被解密，只有输入相同的明文数据经过相同的消息摘要算法才能得到相同的密文。</p>
+<p>数字证书、加密和认证、消息摘要三个技术结合起来，就是在 HTTPS 中广泛应用的证书（certificate），证书本身携带了加密&#x2F;解密的信息，并且可以标识自己的身份，也自带消息摘要。</p>
+<h2 id="HTTPS-认证方式"><a href="#HTTPS-认证方式" class="headerlink" title="HTTPS 认证方式"></a>HTTPS 认证方式</h2><p>分为单向和双向认证。</p>
+<h3 id="单向认证"><a href="#单向认证" class="headerlink" title="单向认证"></a>单向认证</h3><blockquote>
+<p>单向认证较简单，只需要客户端校验服务端的证书的合法性即可。换句话说，只需要客户端验证 SSL 服务器身份，不需要服务端验证 SSL 客户端身份。 也就是说单向认证不需要客户端保存 CA 证书即单向认证 SSL 协议不需要客户拥有 CA 证书。</p>
+</blockquote>
+<p>该认证过程使用下面的流程图来表示:<br><img class="lazy" src="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAABGdBTUEAALGPC/xhBQAAADhlWElmTU0AKgAAAAgAAYdpAAQAAAABAAAAGgAAAAAAAqACAAQAAAABAAAAAaADAAQAAAABAAAAAQAAAADa6r/EAAAAC0lEQVQIHWNgAAIAAAUAAY27m/MAAAAASUVORK5CYII=" data-src="/upload/images/2017/02/08/HTTPS_Single.png" alt="1"></p>
+<h3 id="双向认证"><a href="#双向认证" class="headerlink" title="双向认证"></a>双向认证</h3><blockquote>
+<p> 双向认证和单向认证原理基本一致，但是需要双方都校验对方的证书的合法性。换句话说， 要求服务器和客户端双方都有证书，客户端需要校验服务端，服务端也需要校验客户端。 也就是说双向认证需要客户端、服务端都要保存证书。</p>
+</blockquote>
+<p>该认证过程使用下面的流程图来表示：<br><img class="lazy" src="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAABGdBTUEAALGPC/xhBQAAADhlWElmTU0AKgAAAAgAAYdpAAQAAAABAAAAGgAAAAAAAqACAAQAAAABAAAAAaADAAQAAAABAAAAAQAAAADa6r/EAAAAC0lEQVQIHWNgAAIAAAUAAY27m/MAAAAASUVORK5CYII=" data-src="/upload/images/2017/02/08/HTTPS_Double.png" alt="1"></p>
+<p>这里总结一下双向通信的流程🤦‍。</p>
+<p><strong>第1步：客户端向服务端发起请求</strong></p>
+<blockquote>
+<p>这个过程主要做了下面两件事情：</p>
+</blockquote>
+<p>①、客户端生成随机数 R1 发送给服务端；</p>
+<p>②、告诉服务端自己支持哪些加密算法；</p>
+<p><strong>第2步：服务器向客户端发送数字证书</strong></p>
+<p>①、服务端生成随机数 R2；</p>
+<p>②、从客户端支持的加密算法中选择一种双方都支持的加密算法（此算法用于后面的会话密钥生成）;</p>
+<p>③、服务端把证书、随机数 R2 和会话密钥生成算法，一起发给客户端；</p>
+<p><strong>第3步：客户端验证数字证书</strong></p>
+<p>①、验证证书的可靠性，先用 CA 的公钥解密被加密过后的证书，能解密则说明证书没有问题，然后通过证书里提供的摘要算法对数据进行摘要计算，然后通过自己生成的摘要与服务端发送的摘要比对，比对如果一致表示通信内容没有被修改；</p>
+<p>②、验证证书合法性，包括证书是否吊销、是否到期、域名是否匹配，通过后则进行后面的流程；</p>
+<p>③、获得证书的公钥、会话密钥生成算法、随机数 R2（服务端生成的）；</p>
+<p>④、客户端生成第三个随机数 R3；</p>
+<p>⑤、根据会话秘钥算法使用 R1、R2、R3 生成会话秘钥；</p>
+<p>⑥、用服务端证书的公钥加密随机数 R3 并发送给服务端；</p>
+<p><strong>第4步：服务器得到会话密钥</strong></p>
+<p>①、服务器用私钥解密客户端发过来的随机数 R3；</p>
+<p>②、根据会话秘钥算法使用 R1、R2、R3 生成会话秘钥；</p>
+<p><strong>第5步：客户端与服务端进行加密会话</strong></p>
+<p>①、客户端发送加密数据给服务端，客户端加密数据后发送给服务端。</p>
+<p>②、服务端响应客户端，服务端用会话密钥解密客户端发送的数据，然后用会话密钥把响应的数据加密发送给客户端；</p>
+<p>③、客户端用会话密钥解密服务端响应的数据；</p>
+<p>从上面可以看出，前4步属于双方的通信握手过程，第5步才进行真正的通信。在握手的过程中使用了 <strong>非对称加密</strong> 主要用于生成后续通信的密钥，在后续的数据通信中使用了 <strong>对称加密</strong>。</p>
+<h3 id="随机数的产生"><a href="#随机数的产生" class="headerlink" title="随机数的产生"></a>随机数的产生</h3><p>不管是单向认证，还是双向认证，都有随机数的产生和发送，其中 R1、R2 都是明文传输，只有 R3 是加密传输的。</p>
+<p>R1：Client Random，是由客户端产生的随机数；</p>
+<p>R2：Server Random，是由服务端产生的随机数；</p>
+<p>R3：是客户端产生的且使用密钥加密的随机数，也称之为 Premaster secret；</p>
+<p>主密钥（Master Secret）是由预备主密钥 Premaster secret 即 R3、R1 和 R2 通过 PRF（PredoRandomFunction，伪随机数函数） 函数生成的（不过在 TLS 1.3 中，不再使用 PRF 这种算法了，而是采用更标准的 HKDF 算法来进行密钥的推导），后续客户端、服务端使用的 <strong>会话密钥</strong> 则是由主密钥根据一定的算法生成的。另外要注意的是，会话密钥也会变的，只是在当前某个会话中它是不变的另外建立会话后它又改变了。</p>
+<p>随机数的产生流程图:<br><img class="lazy" src="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAABGdBTUEAALGPC/xhBQAAADhlWElmTU0AKgAAAAgAAYdpAAQAAAABAAAAGgAAAAAAAqACAAQAAAABAAAAAaADAAQAAAABAAAAAQAAAADa6r/EAAAAC0lEQVQIHWNgAAIAAAUAAY27m/MAAAAASUVORK5CYII=" data-src="/upload/images/2017/02/08/HTTPS_Random.png" alt="1"></p>
+<p>无论是单向认证还是双向认证都会生成三个随机数即上述流程中的 R1、R2、R3，根据三个随机数创建一个对称加密的秘钥。前两个随机数可以被抓包拿到，但第三个随机数已经使用非对称加密算法加密过，所以最终生成的秘钥是保密的。对称秘钥的安全靠第三个随机数的不可破解来保证。理论上来说，只要服务器的公钥足够长，那么 R3（也被称之为 <code>Premaster secret</code>） 可以保证不被破解。但是为了足够安全，可以考虑把握手阶段的算法从默认的 RSA 算法改为 <code>Diffie-Hellman</code> 算法（简称 <code>DH</code> 算法）。</p>
+<p><strong>我们思考一个问题：为何需要生成3个随机数，1个不行吗？</strong></p>
+<p>1、并不是每个主机都能产生完全的随机数，有很多产生的随机数只是弱随机数而已如范围小可能被猜测，这样就不安全了；</p>
+<p>2、用 3 个随机数一起生成密钥能使得伪随机数更接近随机；</p>
+<p>大家可以看看 <a target="_blank" rel="noopener" href="https://halfrost.com/https-key-cipher/">TLS 中的密钥计算</a> 这篇文章，里面详细的讲解了随机数生成的原理以及不同 TLS 版本生成会话密钥的差异。</p>
+<h2 id="推荐"><a href="#推荐" class="headerlink" title="推荐"></a>推荐</h2><p><strong>推荐在线流程图工具</strong>:</p>
+<p><a target="_blank" rel="noopener" href="http://www.veryitman.com/2017/02/08/www.processon.com">ProcessOn</a>.</p>
+<p><strong>推荐博文</strong>:</p>
+<p>1、<a target="_blank" rel="noopener" href="http://www.ruanyifeng.com/blog/2014/09/illustration-ssl.html">图解SSL&#x2F;TLS协议</a></p>
+<p>2、<a target="_blank" rel="noopener" href="http://www.ruanyifeng.com/blog/2011/02/seven_myths_about_https.html">HTTPS的七个误解(译文)</a></p>
+<p>3、<a target="_blank" rel="noopener" href="http://blog.sina.com.cn/s/blog_56d8ea900100bzpr.html">对称加密和非对称加密介绍和区别</a></p>
+<p>4、<a target="_blank" rel="noopener" href="https://mp.weixin.qq.com/s/LKcdq4HATB05LZUJ7beojw">你连HTTPS 原理没搞懂，还给我讲“中间人攻击”</a></p>
+<p>本文中参考了上面文章的部分内容，感谢以上文章作者们。</p>
+
+
+
+
+</article>
+
+<div class="related-wrap reveal" id="read-next"><section class="header cap theme"><span>接下来阅读</span></section><section class="body fs14"><a id="next" href="/2017/02/06/ATS-HTTP-HTTPS-%E5%8D%8F%E8%AE%AE%E4%BB%8B%E7%BB%8D/">ATS: HTTP/HTTPS 协议介绍<span class="note">较早</span></a><div class="line"></div><a id="prev" href="/2017/02/13/Tomcat8-%E5%9F%9F%E5%90%8D%E9%85%8D%E7%BD%AE/">Tomcat8 域名配置<span class="note">较新</span></a></section></div>
+
+
+
+
+
+
+  <div class='related-wrap md reveal' id="comments">
+    <div class='cmt-title cap theme'>
+      快来参与讨论吧
+    </div>
+    <div class='cmt-body valine'>
+      
+
+<div id="valine_container" class="valine_thread"><svg class="loading" style="vertical-align: middle;fill: currentColor;overflow: hidden;" viewBox="0 0 1024 1024" version="1.1" xmlns="http://www.w3.org/2000/svg" p-id="2709"><path d="M832 512c0-176-144-320-320-320V128c211.2 0 384 172.8 384 384h-64zM192 512c0 176 144 320 320 320v64C300.8 896 128 723.2 128 512h64z" p-id="2710"></path></svg></div>
+
+    </div>
+  </div>
+
+
+
+      
+<footer class="page-footer reveal fs12"><hr><div class="text"><p>本博客所有文章除特别声明外，均采用 <a target="_blank" rel="noopener" href="https://creativecommons.org/licenses/by-nc-sa/4.0/">CC BY-NC-SA 4.0</a> 许可协议，转载请注明出处。</p>
+<p>veryitman</p>
+</div></footer>
+
+      <div class='float-panel mobile-only blur' style='display:none'>
+  <button type='button' class='sidebar-toggle mobile' onclick='sidebar.toggle()'>
+    <svg class="icon" style="width: 1em; height: 1em;vertical-align: middle;fill: currentColor;overflow: hidden;" viewBox="0 0 1024 1024" version="1.1" xmlns="http://www.w3.org/2000/svg" p-id="15301"><path d="M566.407 808.3c26.9-0.1 49.3-20.8 51.6-47.6-1.9-27.7-23.9-49.7-51.6-51.6h-412.6c-28.2-1.4-52.6 19.5-55.5 47.6 2.3 26.8 24.6 47.5 51.6 47.6h416.5v4z m309.3-249.9c26.9-0.1 49.3-20.8 51.6-47.6-2.2-26.8-24.6-47.5-51.6-47.6h-721.9c-27.7-2.8-52.5 17.4-55.3 45.1-0.1 0.8-0.1 1.7-0.2 2.5 0.9 27.2 23.6 48.5 50.7 47.6H875.707z m-103.1-245.9c26.9-0.1 49.3-20.8 51.6-47.6-0.4-28.3-23.2-51.1-51.5-51.6h-618.9c-29.5-1.1-54.3 21.9-55.5 51.4v0.2c1.4 27.8 25.2 49.2 53 47.8 0.8 0 1.7-0.1 2.5-0.2h618.8z" p-id="15302"></path><path d="M566.407 808.3c26.9-0.1 49.3-20.8 51.6-47.6-1.9-27.7-23.9-49.7-51.6-51.6h-412.6c-28.2-1.4-52.6 19.5-55.5 47.6 1.9 27.7 23.9 49.7 51.6 51.6h416.5z m309.3-249.9c26.9-0.1 49.3-20.8 51.6-47.6-2.2-26.8-24.6-47.5-51.6-47.6h-721.9c-27.7-2.8-52.5 17.4-55.3 45.1-0.1 0.8-0.1 1.7-0.2 2.5 0.9 27.2 23.6 48.5 50.7 47.6H875.707z m-103.1-245.9c26.9-0.1 49.3-20.8 51.6-47.6-0.4-28.3-23.2-51.1-51.5-51.6h-618.9c-29.5-1.1-54.3 21.9-55.5 51.4v0.2c1.4 27.8 25.2 49.2 53 47.8 0.8 0 1.7-0.1 2.5-0.2h618.8z" p-id="15303"></path></svg>
+  </button>
+</div>
+
+    </div>
+  </div>
+  <div class='scripts'>
+    <script type="text/javascript">
+  stellar = {
+    // 懒加载 css https://github.com/filamentgroup/loadCSS
+    loadCSS: (href, before, media, attributes) => {
+      var doc = window.document;
+      var ss = doc.createElement("link");
+      var ref;
+      if (before) {
+        ref = before;
+      } else {
+        var refs = (doc.body || doc.getElementsByTagName("head")[0]).childNodes;
+        ref = refs[refs.length - 1];
+      }
+      var sheets = doc.styleSheets;
+      if (attributes) {
+        for (var attributeName in attributes) {
+          if (attributes.hasOwnProperty(attributeName)) {
+            ss.setAttribute(attributeName, attributes[attributeName]);
+          }
+        }
+      }
+      ss.rel = "stylesheet";
+      ss.href = href;
+      ss.media = "only x";
+      function ready(cb) {
+        if (doc.body) {
+          return cb();
+        }
+        setTimeout(function () {
+          ready(cb);
+        });
+      }
+      ready(function () {
+        ref.parentNode.insertBefore(ss, before ? ref : ref.nextSibling);
+      });
+      var onloadcssdefined = function (cb) {
+        var resolvedHref = ss.href;
+        var i = sheets.length;
+        while (i--) {
+          if (sheets[i].href === resolvedHref) {
+            return cb();
+          }
+        }
+        setTimeout(function () {
+          onloadcssdefined(cb);
+        });
+      };
+      function loadCB() {
+        if (ss.addEventListener) {
+          ss.removeEventListener("load", loadCB);
+        }
+        ss.media = media || "all";
+      }
+      if (ss.addEventListener) {
+        ss.addEventListener("load", loadCB);
+      }
+      ss.onloadcssdefined = onloadcssdefined;
+      onloadcssdefined(loadCB);
+      return ss;
+    },
+
+    // 从 butterfly 和 volantis 获得灵感
+    loadScript: (src, opt) => new Promise((resolve, reject) => {
+      var script = document.createElement('script');
+      script.src = src;
+      if (opt) {
+        for (let key of Object.keys(opt)) {
+          script[key] = opt[key]
+        }
+      } else {
+        // 默认异步，如果需要同步，第二个参数传入 {} 即可
+        script.async = true
+      }
+      script.onerror = reject
+      script.onload = script.onreadystatechange = function() {
+        const loadState = this.readyState
+        if (loadState && loadState !== 'loaded' && loadState !== 'complete') return
+        script.onload = script.onreadystatechange = null
+        resolve()
+      }
+      document.head.appendChild(script)
+    }),
+
+    // https://github.com/jerryc127/hexo-theme-butterfly
+    jQuery: (fn) => {
+      if (typeof jQuery === 'undefined') {
+        stellar.loadScript(stellar.plugins.jQuery).then(fn)
+      } else {
+        fn()
+      }
+    }
+  };
+  stellar.github = 'https://github.com/xaoxuu/hexo-theme-stellar/tree/1.6.1';
+  stellar.config = {
+    date_suffix: {
+      just: '刚刚',
+      min: '分钟前',
+      hour: '小时前',
+      day: '天前',
+      month: '个月前',
+    },
+  };
+
+  // required plugins (only load if needs)
+  stellar.plugins = {
+    jQuery: 'https://cdn.jsdelivr.net/npm/jquery@3.5.1/dist/jquery.min.js',
+    sitesjs: '/js/plugins/sites.js',
+    friendsjs: '/js/plugins/friends.js',
+  };
+
+  // optional plugins
+  if ('true' == 'true') {
+    stellar.plugins.lazyload = Object.assign({"enable":true,"js":"https://cdn.jsdelivr.net/npm/vanilla-lazyload@17.3.1/dist/lazyload.min.js","transition":"blur"});
+  }
+  if ('true' == 'true') {
+    stellar.plugins.swiper = Object.assign({"enable":true,"css":"https://unpkg.com/swiper@6/swiper-bundle.min.css","js":"https://unpkg.com/swiper@6/swiper-bundle.min.js"});
+  }
+  if ('' == 'true') {
+    stellar.plugins.scrollreveal = Object.assign({"enable":null,"js":"https://cdn.jsdelivr.net/npm/scrollreveal@4.0.9/dist/scrollreveal.min.js","distance":"8px","duration":500,"interval":100,"scale":1});
+  }
+  if ('true' == 'true') {
+    stellar.plugins.preload = Object.assign({"enable":true,"service":"flying_pages","instant_page":"https://cdn.jsdelivr.net/gh/volantis-x/cdn-volantis@4.1.2/js/instant_page.js","flying_pages":"https://cdn.jsdelivr.net/gh/gijo-varghese/flying-pages@2.1.2/flying-pages.min.js"});
+  }
+</script>
+
+<!-- required -->
+
+  
+<script src="/js/main.js" async></script>
+
+
+
+<!-- optional -->
+
+  <script>
+  function getEmojiMaps() {
+    function emoji(path, idx, ext) {
+      return path + "/" + path + "-" + idx + "." + ext;
+    }
+    var emojiMaps = {};
+    for (var i = 1; i <= 54; i++) {
+      emojiMaps['tieba-' + i] = emoji('tieba', i, 'png');
+    }
+    for (var i = 1; i <= 101; i++) {
+      emojiMaps['qq-' + i] = emoji('qq', i, 'gif');
+    }
+    for (var i = 1; i <= 116; i++) {
+      emojiMaps['aru-' + i] = emoji('aru', i, 'gif');
+    }
+    for (var i = 1; i <= 125; i++) {
+      emojiMaps['twemoji-' + i] = emoji('twemoji', i, 'png');
+    }
+    for (var i = 1; i <= 4; i++) {
+      emojiMaps['weibo-' + i] = emoji('weibo', i, 'png');
+    }
+    return emojiMaps;
+  }
+  function load_comment(){
+    if(!document.getElementById("valine_container"))return;
+    stellar.loadScript('https://cdn.jsdelivr.net/gh/XuxuGood/simple-blog-cdn@main/js/Valine.min.js', {defer:true}).then(function () {
+      const el = document.getElementById("valine_container");
+      var path = el.getAttribute('comment_id');
+      const placeholder = "欢迎您留言~";
+      if (!path) {
+        path = decodeURI(window.location.pathname);
+      }
+      var valine = new Valine();
+      valine.init(Object.assign({"js":"https://cdn.jsdelivr.net/gh/XuxuGood/simple-blog-cdn@main/js/Valine.min.js","appId":"FY2C9UCttYNaE1j8umenqdCE-gzGzoHsz","appKey":"4i7xMwkfSEGmEDhi6SceKFxz","placeholder":"欢迎您留言~","requiredFields":["nick","mail"],"enableQQ":true,"recordIP":false,"avatar":"robohash","pageSize":10,"lang":"zh-cn","highlight":true,"mathJax":false,"tagMeta":["博主","小伙伴","访客"],"metaPlaceholder":{"nick":"昵称/QQ号(必填)","mail":"邮箱（必填，完全保密）"},"master":["6783037F2DF30EAB99F9FC256157D875"],"friends":["6783037F2DF30EAB99F9FC256157D875"],"comment_count":true}, {
+        el: '#valine_container',
+        path: path,
+        placeholder: placeholder,
+        emojiCDN: 'https://cdn.jsdelivr.net/gh/volantis-x/cdn-emoji/valine/',
+        emojiMaps: getEmojiMaps(),
+      }));
+    });
+  }
+  window.addEventListener('DOMContentLoaded', (event) => {
+    console.log('DOM fully loaded and parsed');
+    load_comment();
+  });
+
+</script>
+
+
+
+
+<!-- inject -->
+
+
+  </div>
+</body>
+</html>

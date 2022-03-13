@@ -1,0 +1,377 @@
+<!DOCTYPE html>
+<html lang='zh-CN'>
+
+<head>
+  <meta name="generator" content="Hexo 6.0.0">
+  <meta charset="utf-8">
+  
+
+  <meta http-equiv='x-dns-prefetch-control' content='on' />
+  <link rel='dns-prefetch' href='https://cdn.jsdelivr.net'>
+  <link rel="preconnect" href="https://cdn.jsdelivr.net" crossorigin>
+
+  <meta name="renderer" content="webkit">
+  <meta name="force-rendering" content="webkit">
+  <meta http-equiv="X-UA-Compatible" content="IE=Edge,chrome=1">
+  <meta name="HandheldFriendly" content="True" >
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1">
+  <meta name="theme-color" content="#f8f8f8">
+  <title>RN: 使用 Mobx - Veryitman</title>
+
+  
+    <meta name="description" content="来由在 JSFiddler 上面看到 React 结合 Mobx 的一个小例子. 爱不释手, 遂拿来改造一下, 让其能在 RN 上面一展雄风. 之前听过 Mobx, 说是要替代 Redux, 反正我是不知道这些东东, 第一次听说没有什么感觉!如今又再次偶遇 Mobx, 决定认真学习一下它. Mobx 简介Mobx 的 github 地址.目前关于他和 React Native 的(中文)资料不多,">
+<meta property="og:type" content="article">
+<meta property="og:title" content="RN: 使用 Mobx">
+<meta property="og:url" content="http://example.com/2016/10/06/RN-%E4%BD%BF%E7%94%A8-Mobx/index.html">
+<meta property="og:site_name" content="Veryitman">
+<meta property="og:description" content="来由在 JSFiddler 上面看到 React 结合 Mobx 的一个小例子. 爱不释手, 遂拿来改造一下, 让其能在 RN 上面一展雄风. 之前听过 Mobx, 说是要替代 Redux, 反正我是不知道这些东东, 第一次听说没有什么感觉!如今又再次偶遇 Mobx, 决定认真学习一下它. Mobx 简介Mobx 的 github 地址.目前关于他和 React Native 的(中文)资料不多,">
+<meta property="og:locale" content="zh_CN">
+<meta property="og:image" content="http://example.com/upload/images/2016/10/08/rn_mobx_ef4.png">
+<meta property="og:image" content="http://example.com/upload/images/2016/10/08/rn_mobx_ef1.png">
+<meta property="og:image" content="http://example.com/upload/images/2016/10/08/rn_mobx_ef3.png">
+<meta property="og:image" content="http://example.com/upload/images/2016/10/08/rn_mobx_ef2.png">
+<meta property="article:published_time" content="2016-10-06T14:16:34.000Z">
+<meta property="article:modified_time" content="2022-03-09T14:53:24.352Z">
+<meta property="article:author" content="veryitman">
+<meta property="article:tag" content="iOS Android ReactNative">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:image" content="http://example.com/upload/images/2016/10/08/rn_mobx_ef4.png">
+  
+  
+
+  <!-- feed -->
+  
+
+  
+    
+<link rel="stylesheet" href="/css/main.css">
+
+  
+
+  
+
+  
+</head>
+
+<body>
+  
+
+
+  <div class='l_body' id='start'>
+    <aside class='l_left' layout='post'>
+    
+
+
+<header class="header">
+
+<div class="logo-wrap"><a class="title" href="/"><div class="main">Veryitman</div></a></div>
+<nav class="menu dis-select"></nav></header>
+
+<div class="widgets">
+
+<div class="widget-wrap single" id="toc"><div class="widget-header cap dis-select"><span class="name">本文目录</span></div><div class="widget-body fs14"><div class="doc-tree active"><ol class="toc"><li class="toc-item toc-level-2"><a class="toc-link" href="#%E6%9D%A5%E7%94%B1"><span class="toc-text">来由</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#Mobx-%E7%AE%80%E4%BB%8B"><span class="toc-text">Mobx 简介</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#%E6%95%88%E6%9E%9C%E5%9B%BE"><span class="toc-text">效果图</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#%E5%87%86%E5%A4%87%E3%80%8C%E6%9D%90%E6%96%99%E3%80%8D"><span class="toc-text">准备「材料」</span></a><ol class="toc-child"><li class="toc-item toc-level-3"><a class="toc-link" href="#1-%E5%88%9B%E5%BB%BA-React-Native-%E9%A1%B9%E7%9B%AE"><span class="toc-text">1.创建 React Native 项目</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#2-%E5%AE%89%E8%A3%85-mobx-%E5%92%8C-mobx-react"><span class="toc-text">2.安装 mobx 和 mobx-react</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#3-Counter-js"><span class="toc-text">3.Counter.js</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#4-index-ios-js"><span class="toc-text">4.index.ios.js</span></a></li></ol></li></ol></div></div></div>
+
+
+</div>
+
+
+    </aside>
+    <div class='l_main'>
+      
+
+      
+
+
+<div class="bread-nav fs12"><div id="breadcrumb"><a class="cap breadcrumb" href="/">主页</a><span class="sep"></span><a class="cap breadcrumb" href="/">文章</a><span class="sep"></span><a class="cap breadcrumb-link" href="/categories/ReactNative/">ReactNative</a></div><div id="post-meta">发布于&nbsp;<time datetime="2016-10-06T14:16:34.000Z">2016-10-06</time></div></div>
+
+<article class='content md post'>
+<h1 class="article-title"><span>RN: 使用 Mobx</span></h1>
+<h2 id="来由"><a href="#来由" class="headerlink" title="来由"></a>来由</h2><p>在 <a target="_blank" rel="noopener" href="https://jsfiddle.net/24u7juu0/">JSFiddler</a> 上面看到 React 结合 Mobx 的一个小例子.</p>
+<p>爱不释手, 遂拿来改造一下, 让其能在 RN 上面一展雄风.</p>
+<p>之前听过 Mobx, 说是要替代 Redux, 反正我是不知道这些东东, 第一次听说没有什么感觉!<br>如今又再次偶遇 Mobx, 决定认真学习一下它.</p>
+<h2 id="Mobx-简介"><a href="#Mobx-简介" class="headerlink" title="Mobx 简介"></a>Mobx 简介</h2><p>Mobx 的 <a target="_blank" rel="noopener" href="https://github.com/mobxjs/mobx">github</a> 地址.<br>目前关于他和 React Native 的(中文)资料不多, 大多数是关于 React 的.</p>
+<p>看来想学好 React Native, 还是要做好 React 的功课呀!</p>
+<p>官网给了一个 Mobx 的图:<br><img class="lazy" src="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAABGdBTUEAALGPC/xhBQAAADhlWElmTU0AKgAAAAgAAYdpAAQAAAABAAAAGgAAAAAAAqACAAQAAAABAAAAAaADAAQAAAABAAAAAQAAAADa6r/EAAAAC0lEQVQIHWNgAAIAAAUAAY27m/MAAAAASUVORK5CYII=" data-src="/upload/images/2016/10/08/rn_mobx_ef4.png" alt="1"></p>
+<p>我也是刚接触这个「牛逼闪闪」的 Mobx, 共勉!</p>
+<h2 id="效果图"><a href="#效果图" class="headerlink" title="效果图"></a>效果图</h2><p>今天的例子很简单, 效果图如下<br><img class="lazy" src="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAABGdBTUEAALGPC/xhBQAAADhlWElmTU0AKgAAAAgAAYdpAAQAAAABAAAAGgAAAAAAAqACAAQAAAABAAAAAaADAAQAAAABAAAAAQAAAADa6r/EAAAAC0lEQVQIHWNgAAIAAAUAAY27m/MAAAAASUVORK5CYII=" data-src="/upload/images/2016/10/08/rn_mobx_ef1.png" alt="1"></p>
+<p>点击 Add<br><img class="lazy" src="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAABGdBTUEAALGPC/xhBQAAADhlWElmTU0AKgAAAAgAAYdpAAQAAAABAAAAGgAAAAAAAqACAAQAAAABAAAAAaADAAQAAAABAAAAAQAAAADa6r/EAAAAC0lEQVQIHWNgAAIAAAUAAY27m/MAAAAASUVORK5CYII=" data-src="/upload/images/2016/10/08/rn_mobx_ef3.png" alt="1"></p>
+<p>点击 Minus<br><img class="lazy" src="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAABGdBTUEAALGPC/xhBQAAADhlWElmTU0AKgAAAAgAAYdpAAQAAAABAAAAGgAAAAAAAqACAAQAAAABAAAAAaADAAQAAAABAAAAAQAAAADa6r/EAAAAC0lEQVQIHWNgAAIAAAUAAY27m/MAAAAASUVORK5CYII=" data-src="/upload/images/2016/10/08/rn_mobx_ef2.png" alt="1"></p>
+<p>下面具体说说如何搞定这个 Demo.</p>
+<h2 id="准备「材料」"><a href="#准备「材料」" class="headerlink" title="准备「材料」"></a>准备「材料」</h2><p>这里假设你已经具备 React Native 的基本开发环境, 至少成功运行过一次 React Native 的程序.</p>
+<h3 id="1-创建-React-Native-项目"><a href="#1-创建-React-Native-项目" class="headerlink" title="1.创建 React Native 项目"></a>1.创建 React Native 项目</h3><figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">react-native init RNMobxDemo</span><br></pre></td></tr></table></figure>
+
+<p>你也可以给你的工程取一个你喜欢的名字.<br>这里姑且称之为 RNMobxDemo</p>
+<h3 id="2-安装-mobx-和-mobx-react"><a href="#2-安装-mobx-和-mobx-react" class="headerlink" title="2.安装 mobx 和 mobx-react"></a>2.安装 mobx 和 mobx-react</h3><figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">npm i mobx mobx-react --save</span><br></pre></td></tr></table></figure>
+
+<h3 id="3-Counter-js"><a href="#3-Counter-js" class="headerlink" title="3.Counter.js"></a>3.Counter.js</h3><blockquote>
+<p>该文件使用了 mobx 和 mobx-react 的组件.</p>
+</blockquote>
+<p>具体代码:</p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br><span class="line">39</span><br><span class="line">40</span><br><span class="line">41</span><br><span class="line">42</span><br><span class="line">43</span><br><span class="line">44</span><br><span class="line">45</span><br><span class="line">46</span><br><span class="line">47</span><br><span class="line">48</span><br><span class="line">49</span><br><span class="line">50</span><br><span class="line">51</span><br><span class="line">52</span><br><span class="line">53</span><br><span class="line">54</span><br><span class="line">55</span><br><span class="line">56</span><br><span class="line">57</span><br><span class="line">58</span><br><span class="line">59</span><br><span class="line">60</span><br><span class="line">61</span><br><span class="line">62</span><br><span class="line">63</span><br><span class="line">64</span><br><span class="line">65</span><br><span class="line">66</span><br><span class="line">67</span><br><span class="line">68</span><br></pre></td><td class="code"><pre><span class="line">&#x27;use strict&#x27;;</span><br><span class="line">import React, &#123; Component &#125; from &#x27;react&#x27;;</span><br><span class="line">import &#123;</span><br><span class="line">  StyleSheet,</span><br><span class="line">  View,</span><br><span class="line">  Text,</span><br><span class="line">  TouchableHighlight</span><br><span class="line">&#125; from &#x27;react-native&#x27;;</span><br><span class="line">import &#123; observer &#125; from &#x27;mobx-react/native&#x27;;</span><br><span class="line">import &#123; observable &#125; from &#x27;mobx&#x27;;</span><br><span class="line">// 被观察者, 观察 counter 变量  </span><br><span class="line">const storer = observable(&#123;</span><br><span class="line">    counter: 0</span><br><span class="line">&#125;);</span><br><span class="line">//---------------------------------</span><br><span class="line">//  ES6 写法: Arrow Function</span><br><span class="line">//---------------------------------</span><br><span class="line">storer.plus =  () =&gt; &#123;</span><br><span class="line">    storer.counter ++;</span><br><span class="line">&#125;;</span><br><span class="line">storer.minus = () =&gt; &#123;</span><br><span class="line">    storer.counter --;</span><br><span class="line">&#125;;</span><br><span class="line">class Counter extends Component &#123;</span><br><span class="line">    render () &#123;</span><br><span class="line">        return (</span><br><span class="line">          &lt;View style = &#123;styles.container&#125;&gt;</span><br><span class="line">            &#123;/*加一*/&#125;</span><br><span class="line">            &lt;TouchableHighlight</span><br><span class="line">                onPress = &#123;() =&gt; &#123;this.props.store.plus()&#125;&#125;&gt;</span><br><span class="line">                &lt;Text&gt;Add&lt;/Text&gt;</span><br><span class="line">            &lt;/TouchableHighlight&gt;</span><br><span class="line">            &#123;/* 显示处理结果 */&#125;</span><br><span class="line">            &lt;Text style = &#123;styles.resultTxtStyle&#125;&gt;</span><br><span class="line">            &#123;this.props.store.counter&#125;</span><br><span class="line">            &lt;/Text&gt;</span><br><span class="line">            &#123;/*减一*/&#125;</span><br><span class="line">            &lt;TouchableHighlight </span><br><span class="line">                onPress = &#123;() =&gt; &#123;storer.minus()&#125;&#125;&gt;</span><br><span class="line">                &lt;Text&gt;Minus&lt;/Text&gt;</span><br><span class="line">            &lt;/TouchableHighlight&gt;</span><br><span class="line">          &lt;/View&gt;</span><br><span class="line">        );</span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br><span class="line">// 使用 observer 创建</span><br><span class="line">const CounterComponent = observer(Counter);</span><br><span class="line">export default class ReactionsComponent extends Component &#123;</span><br><span class="line">    render () &#123;</span><br><span class="line">        return (</span><br><span class="line">            &lt;View style = &#123;&#123;flex: 1, marginTop: 64&#125;&#125;&gt;</span><br><span class="line">            </span><br><span class="line">                &lt;CounterComponent store = &#123;storer&#125; /&gt; </span><br><span class="line">            &lt;/View&gt;</span><br><span class="line">        );</span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br><span class="line">/* 样式定义 */</span><br><span class="line">const styles = StyleSheet.create(&#123;</span><br><span class="line">    container: &#123;</span><br><span class="line">        flexDirection: &#x27;row&#x27;,</span><br><span class="line">        justifyContent: &#x27;space-around&#x27;</span><br><span class="line">    &#125;,</span><br><span class="line">    resultTxtStyle: &#123;</span><br><span class="line">        fontSize: 22, </span><br><span class="line">        color: &#x27;red&#x27;</span><br><span class="line">    &#125;</span><br><span class="line">&#125;);</span><br></pre></td></tr></table></figure>
+
+<h3 id="4-index-ios-js"><a href="#4-index-ios-js" class="headerlink" title="4.index.ios.js"></a>4.index.ios.js</h3><blockquote>
+<p>该文件使用自定义的组件 ReactionsComponent</p>
+</blockquote>
+<p>具体代码如下:</p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br></pre></td><td class="code"><pre><span class="line">import React, &#123; Component &#125; from &#x27;react&#x27;;</span><br><span class="line">//引入自定义模块</span><br><span class="line">import ReactionsComponent from &#x27;./js/Mobx/Counter&#x27;</span><br><span class="line">import &#123;</span><br><span class="line">  AppRegistry</span><br><span class="line">&#125; from &#x27;react-native&#x27;;</span><br><span class="line">class RNMobxDemo extends Component &#123;</span><br><span class="line">    render() &#123;</span><br><span class="line">        return(</span><br><span class="line">            &lt;ReactionsComponent/&gt;</span><br><span class="line">        );</span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br><span class="line">AppRegistry.registerComponent(&#x27;RNMobxDemo&#x27;, () =&gt; MZRNTutorial);</span><br></pre></td></tr></table></figure>
+
+<p>Mobx 支持「注解」.</p>
+<p>这里的注解就是 ES7 中的 decorators (装饰者模式).</p>
+<p>下面代码是使用注解的方式来声明, 但是你需要安装相关的插件(babel plugin)来支持.</p>
+<p>安装该插件很简单, 在项目根目录按照下面步骤即可:</p>
+<blockquote>
+<p>Step 1: 创建 .babelrc 文件</p>
+</blockquote>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">touch .babelrc</span><br></pre></td></tr></table></figure>
+
+<blockquote>
+<p>Step 2: 编辑 .babelrc 文件</p>
+</blockquote>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><span class="line">&#123;</span><br><span class="line"> &#x27;presets&#x27;: [&#x27;react-native&#x27;],</span><br><span class="line"> &#x27;plugins&#x27;: [&#x27;transform-decorators-legacy&#x27;]</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<blockquote>
+<p>Step 3: 安装插件</p>
+</blockquote>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">npm i babel-plugin-transform-decorators-legacy babel-preset-react-native-stage-0 --save-dev</span><br></pre></td></tr></table></figure>
+
+<p>修改「Counter.js」, 代码如下:</p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br><span class="line">39</span><br><span class="line">40</span><br><span class="line">41</span><br><span class="line">42</span><br><span class="line">43</span><br><span class="line">44</span><br><span class="line">45</span><br><span class="line">46</span><br><span class="line">47</span><br><span class="line">48</span><br><span class="line">49</span><br><span class="line">50</span><br><span class="line">51</span><br><span class="line">52</span><br><span class="line">53</span><br><span class="line">54</span><br><span class="line">55</span><br><span class="line">56</span><br><span class="line">57</span><br><span class="line">58</span><br><span class="line">59</span><br><span class="line">60</span><br><span class="line">61</span><br><span class="line">62</span><br><span class="line">63</span><br><span class="line">64</span><br><span class="line">65</span><br><span class="line">66</span><br><span class="line">67</span><br></pre></td><td class="code"><pre><span class="line">&#x27;use strict&#x27;;</span><br><span class="line">import React, &#123; Component &#125; from &#x27;react&#x27;;</span><br><span class="line">import &#123;</span><br><span class="line">  StyleSheet,</span><br><span class="line">  View,</span><br><span class="line">  Text,</span><br><span class="line">  TouchableHighlight</span><br><span class="line">&#125; from &#x27;react-native&#x27;;</span><br><span class="line">import &#123; observer &#125; from &#x27;mobx-react/native&#x27;;</span><br><span class="line">import &#123; observable &#125; from &#x27;mobx&#x27;;</span><br><span class="line">// 被观察者, 观察 counter 变量  </span><br><span class="line">const storer = observable(&#123;</span><br><span class="line">    counter: 0</span><br><span class="line">&#125;);</span><br><span class="line">//---------------------------------</span><br><span class="line">//  ES6 写法: Arrow Function</span><br><span class="line">//---------------------------------</span><br><span class="line">storer.plus =  () =&gt; &#123;</span><br><span class="line">    storer.counter ++;</span><br><span class="line">&#125;;</span><br><span class="line">storer.minus = () =&gt; &#123;</span><br><span class="line">    storer.counter --;</span><br><span class="line">&#125;;</span><br><span class="line">@observer //使用@方式来前置声明</span><br><span class="line">class Counter extends Component &#123;</span><br><span class="line">    render () &#123;</span><br><span class="line">        return (</span><br><span class="line">          &lt;View style = &#123;styles.container&#125;&gt;</span><br><span class="line">            &#123;/*加一*/&#125;</span><br><span class="line">            &lt;TouchableHighlight</span><br><span class="line">                onPress = &#123;() =&gt; &#123;this.props.store.plus()&#125;&#125;&gt;</span><br><span class="line">                &lt;Text&gt;Add&lt;/Text&gt;</span><br><span class="line">            &lt;/TouchableHighlight&gt;</span><br><span class="line">            &#123;/* 显示处理结果 */&#125;</span><br><span class="line">            &lt;Text style = &#123;styles.resultTxtStyle&#125;&gt;</span><br><span class="line">            &#123;this.props.store.counter&#125;</span><br><span class="line">            &lt;/Text&gt;</span><br><span class="line">            &#123;/*减一*/&#125;</span><br><span class="line">            &lt;TouchableHighlight </span><br><span class="line">                onPress = &#123;() =&gt; &#123;storer.minus()&#125;&#125;&gt;</span><br><span class="line">                &lt;Text&gt;Minus&lt;/Text&gt;</span><br><span class="line">            &lt;/TouchableHighlight&gt;</span><br><span class="line">          &lt;/View&gt;</span><br><span class="line">        );</span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br><span class="line">export default class ReactionsComponent extends Component &#123;</span><br><span class="line">    render () &#123;</span><br><span class="line">        return (</span><br><span class="line">            &lt;View style = &#123;&#123;flex: 1, marginTop: 64&#125;&#125;&gt;</span><br><span class="line">            </span><br><span class="line">                &lt;Counter store = &#123;storer&#125; /&gt;</span><br><span class="line">            &lt;/View&gt;</span><br><span class="line">        );</span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br><span class="line">/* 样式定义 */</span><br><span class="line">const styles = StyleSheet.create(&#123;</span><br><span class="line">    container: &#123;</span><br><span class="line">        flexDirection: &#x27;row&#x27;,</span><br><span class="line">        justifyContent: &#x27;space-around&#x27;</span><br><span class="line">    &#125;,</span><br><span class="line">    resultTxtStyle: &#123;</span><br><span class="line">        fontSize: 22, </span><br><span class="line">        color: &#x27;red&#x27;</span><br><span class="line">    &#125;</span><br><span class="line">&#125;);</span><br></pre></td></tr></table></figure>
+
+<p>从例子可以看出, storer 相当于 state, 当 state 发生改变了, 视图 View 也跟着变化.<br>也就是状态驱动.</p>
+<p>Android 开发的同学应该知道 Adapter 和 notifyDatasetChanged 的机制, 当数据源发生变化的时候, 可以通知视图进行刷新操作.</p>
+<p>这里的 Mobx 也可以这么简单的理解.</p>
+<p>Mobx 的强大之处还有很多, 需要慢慢学习和挖掘.</p>
+
+
+
+
+</article>
+
+<div class="related-wrap reveal" id="read-next"><section class="header cap theme"><span>接下来阅读</span></section><section class="body fs14"><a id="next" href="/2016/09/26/RN-0-34-%E8%BF%90%E8%A1%8C%E5%9C%A8-Android-%E7%9A%84%E9%97%AE%E9%A2%98/">RN: 0.34 运行在 Android 的问题<span class="note">较早</span></a><div class="line"></div><a id="prev" href="/2016/10/11/RN-%E6%A8%A1%E6%8B%9F-Mobx/">RN: 模拟 Mobx<span class="note">较新</span></a></section></div>
+
+
+
+
+
+
+  <div class='related-wrap md reveal' id="comments">
+    <div class='cmt-title cap theme'>
+      快来参与讨论吧
+    </div>
+    <div class='cmt-body valine'>
+      
+
+<div id="valine_container" class="valine_thread"><svg class="loading" style="vertical-align: middle;fill: currentColor;overflow: hidden;" viewBox="0 0 1024 1024" version="1.1" xmlns="http://www.w3.org/2000/svg" p-id="2709"><path d="M832 512c0-176-144-320-320-320V128c211.2 0 384 172.8 384 384h-64zM192 512c0 176 144 320 320 320v64C300.8 896 128 723.2 128 512h64z" p-id="2710"></path></svg></div>
+
+    </div>
+  </div>
+
+
+
+      
+<footer class="page-footer reveal fs12"><hr><div class="text"><p>本博客所有文章除特别声明外，均采用 <a target="_blank" rel="noopener" href="https://creativecommons.org/licenses/by-nc-sa/4.0/">CC BY-NC-SA 4.0</a> 许可协议，转载请注明出处。</p>
+<p>veryitman</p>
+</div></footer>
+
+      <div class='float-panel mobile-only blur' style='display:none'>
+  <button type='button' class='sidebar-toggle mobile' onclick='sidebar.toggle()'>
+    <svg class="icon" style="width: 1em; height: 1em;vertical-align: middle;fill: currentColor;overflow: hidden;" viewBox="0 0 1024 1024" version="1.1" xmlns="http://www.w3.org/2000/svg" p-id="15301"><path d="M566.407 808.3c26.9-0.1 49.3-20.8 51.6-47.6-1.9-27.7-23.9-49.7-51.6-51.6h-412.6c-28.2-1.4-52.6 19.5-55.5 47.6 2.3 26.8 24.6 47.5 51.6 47.6h416.5v4z m309.3-249.9c26.9-0.1 49.3-20.8 51.6-47.6-2.2-26.8-24.6-47.5-51.6-47.6h-721.9c-27.7-2.8-52.5 17.4-55.3 45.1-0.1 0.8-0.1 1.7-0.2 2.5 0.9 27.2 23.6 48.5 50.7 47.6H875.707z m-103.1-245.9c26.9-0.1 49.3-20.8 51.6-47.6-0.4-28.3-23.2-51.1-51.5-51.6h-618.9c-29.5-1.1-54.3 21.9-55.5 51.4v0.2c1.4 27.8 25.2 49.2 53 47.8 0.8 0 1.7-0.1 2.5-0.2h618.8z" p-id="15302"></path><path d="M566.407 808.3c26.9-0.1 49.3-20.8 51.6-47.6-1.9-27.7-23.9-49.7-51.6-51.6h-412.6c-28.2-1.4-52.6 19.5-55.5 47.6 1.9 27.7 23.9 49.7 51.6 51.6h416.5z m309.3-249.9c26.9-0.1 49.3-20.8 51.6-47.6-2.2-26.8-24.6-47.5-51.6-47.6h-721.9c-27.7-2.8-52.5 17.4-55.3 45.1-0.1 0.8-0.1 1.7-0.2 2.5 0.9 27.2 23.6 48.5 50.7 47.6H875.707z m-103.1-245.9c26.9-0.1 49.3-20.8 51.6-47.6-0.4-28.3-23.2-51.1-51.5-51.6h-618.9c-29.5-1.1-54.3 21.9-55.5 51.4v0.2c1.4 27.8 25.2 49.2 53 47.8 0.8 0 1.7-0.1 2.5-0.2h618.8z" p-id="15303"></path></svg>
+  </button>
+</div>
+
+    </div>
+  </div>
+  <div class='scripts'>
+    <script type="text/javascript">
+  stellar = {
+    // 懒加载 css https://github.com/filamentgroup/loadCSS
+    loadCSS: (href, before, media, attributes) => {
+      var doc = window.document;
+      var ss = doc.createElement("link");
+      var ref;
+      if (before) {
+        ref = before;
+      } else {
+        var refs = (doc.body || doc.getElementsByTagName("head")[0]).childNodes;
+        ref = refs[refs.length - 1];
+      }
+      var sheets = doc.styleSheets;
+      if (attributes) {
+        for (var attributeName in attributes) {
+          if (attributes.hasOwnProperty(attributeName)) {
+            ss.setAttribute(attributeName, attributes[attributeName]);
+          }
+        }
+      }
+      ss.rel = "stylesheet";
+      ss.href = href;
+      ss.media = "only x";
+      function ready(cb) {
+        if (doc.body) {
+          return cb();
+        }
+        setTimeout(function () {
+          ready(cb);
+        });
+      }
+      ready(function () {
+        ref.parentNode.insertBefore(ss, before ? ref : ref.nextSibling);
+      });
+      var onloadcssdefined = function (cb) {
+        var resolvedHref = ss.href;
+        var i = sheets.length;
+        while (i--) {
+          if (sheets[i].href === resolvedHref) {
+            return cb();
+          }
+        }
+        setTimeout(function () {
+          onloadcssdefined(cb);
+        });
+      };
+      function loadCB() {
+        if (ss.addEventListener) {
+          ss.removeEventListener("load", loadCB);
+        }
+        ss.media = media || "all";
+      }
+      if (ss.addEventListener) {
+        ss.addEventListener("load", loadCB);
+      }
+      ss.onloadcssdefined = onloadcssdefined;
+      onloadcssdefined(loadCB);
+      return ss;
+    },
+
+    // 从 butterfly 和 volantis 获得灵感
+    loadScript: (src, opt) => new Promise((resolve, reject) => {
+      var script = document.createElement('script');
+      script.src = src;
+      if (opt) {
+        for (let key of Object.keys(opt)) {
+          script[key] = opt[key]
+        }
+      } else {
+        // 默认异步，如果需要同步，第二个参数传入 {} 即可
+        script.async = true
+      }
+      script.onerror = reject
+      script.onload = script.onreadystatechange = function() {
+        const loadState = this.readyState
+        if (loadState && loadState !== 'loaded' && loadState !== 'complete') return
+        script.onload = script.onreadystatechange = null
+        resolve()
+      }
+      document.head.appendChild(script)
+    }),
+
+    // https://github.com/jerryc127/hexo-theme-butterfly
+    jQuery: (fn) => {
+      if (typeof jQuery === 'undefined') {
+        stellar.loadScript(stellar.plugins.jQuery).then(fn)
+      } else {
+        fn()
+      }
+    }
+  };
+  stellar.github = 'https://github.com/xaoxuu/hexo-theme-stellar/tree/1.6.1';
+  stellar.config = {
+    date_suffix: {
+      just: '刚刚',
+      min: '分钟前',
+      hour: '小时前',
+      day: '天前',
+      month: '个月前',
+    },
+  };
+
+  // required plugins (only load if needs)
+  stellar.plugins = {
+    jQuery: 'https://cdn.jsdelivr.net/npm/jquery@3.5.1/dist/jquery.min.js',
+    sitesjs: '/js/plugins/sites.js',
+    friendsjs: '/js/plugins/friends.js',
+  };
+
+  // optional plugins
+  if ('true' == 'true') {
+    stellar.plugins.lazyload = Object.assign({"enable":true,"js":"https://cdn.jsdelivr.net/npm/vanilla-lazyload@17.3.1/dist/lazyload.min.js","transition":"blur"});
+  }
+  if ('true' == 'true') {
+    stellar.plugins.swiper = Object.assign({"enable":true,"css":"https://unpkg.com/swiper@6/swiper-bundle.min.css","js":"https://unpkg.com/swiper@6/swiper-bundle.min.js"});
+  }
+  if ('' == 'true') {
+    stellar.plugins.scrollreveal = Object.assign({"enable":null,"js":"https://cdn.jsdelivr.net/npm/scrollreveal@4.0.9/dist/scrollreveal.min.js","distance":"8px","duration":500,"interval":100,"scale":1});
+  }
+  if ('true' == 'true') {
+    stellar.plugins.preload = Object.assign({"enable":true,"service":"flying_pages","instant_page":"https://cdn.jsdelivr.net/gh/volantis-x/cdn-volantis@4.1.2/js/instant_page.js","flying_pages":"https://cdn.jsdelivr.net/gh/gijo-varghese/flying-pages@2.1.2/flying-pages.min.js"});
+  }
+</script>
+
+<!-- required -->
+
+  
+<script src="/js/main.js" async></script>
+
+
+
+<!-- optional -->
+
+  <script>
+  function getEmojiMaps() {
+    function emoji(path, idx, ext) {
+      return path + "/" + path + "-" + idx + "." + ext;
+    }
+    var emojiMaps = {};
+    for (var i = 1; i <= 54; i++) {
+      emojiMaps['tieba-' + i] = emoji('tieba', i, 'png');
+    }
+    for (var i = 1; i <= 101; i++) {
+      emojiMaps['qq-' + i] = emoji('qq', i, 'gif');
+    }
+    for (var i = 1; i <= 116; i++) {
+      emojiMaps['aru-' + i] = emoji('aru', i, 'gif');
+    }
+    for (var i = 1; i <= 125; i++) {
+      emojiMaps['twemoji-' + i] = emoji('twemoji', i, 'png');
+    }
+    for (var i = 1; i <= 4; i++) {
+      emojiMaps['weibo-' + i] = emoji('weibo', i, 'png');
+    }
+    return emojiMaps;
+  }
+  function load_comment(){
+    if(!document.getElementById("valine_container"))return;
+    stellar.loadScript('https://cdn.jsdelivr.net/gh/XuxuGood/simple-blog-cdn@main/js/Valine.min.js', {defer:true}).then(function () {
+      const el = document.getElementById("valine_container");
+      var path = el.getAttribute('comment_id');
+      const placeholder = "欢迎您留言~";
+      if (!path) {
+        path = decodeURI(window.location.pathname);
+      }
+      var valine = new Valine();
+      valine.init(Object.assign({"js":"https://cdn.jsdelivr.net/gh/XuxuGood/simple-blog-cdn@main/js/Valine.min.js","appId":"FY2C9UCttYNaE1j8umenqdCE-gzGzoHsz","appKey":"4i7xMwkfSEGmEDhi6SceKFxz","placeholder":"欢迎您留言~","requiredFields":["nick","mail"],"enableQQ":true,"recordIP":false,"avatar":"robohash","pageSize":10,"lang":"zh-cn","highlight":true,"mathJax":false,"tagMeta":["博主","小伙伴","访客"],"metaPlaceholder":{"nick":"昵称/QQ号(必填)","mail":"邮箱（必填，完全保密）"},"master":["6783037F2DF30EAB99F9FC256157D875"],"friends":["6783037F2DF30EAB99F9FC256157D875"],"comment_count":true}, {
+        el: '#valine_container',
+        path: path,
+        placeholder: placeholder,
+        emojiCDN: 'https://cdn.jsdelivr.net/gh/volantis-x/cdn-emoji/valine/',
+        emojiMaps: getEmojiMaps(),
+      }));
+    });
+  }
+  window.addEventListener('DOMContentLoaded', (event) => {
+    console.log('DOM fully loaded and parsed');
+    load_comment();
+  });
+
+</script>
+
+
+
+
+<!-- inject -->
+
+
+  </div>
+</body>
+</html>

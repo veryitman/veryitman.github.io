@@ -1,0 +1,390 @@
+<!DOCTYPE html>
+<html lang='zh-CN'>
+
+<head>
+  <meta name="generator" content="Hexo 6.0.0">
+  <meta charset="utf-8">
+  
+
+  <meta http-equiv='x-dns-prefetch-control' content='on' />
+  <link rel='dns-prefetch' href='https://cdn.jsdelivr.net'>
+  <link rel="preconnect" href="https://cdn.jsdelivr.net" crossorigin>
+
+  <meta name="renderer" content="webkit">
+  <meta name="force-rendering" content="webkit">
+  <meta http-equiv="X-UA-Compatible" content="IE=Edge,chrome=1">
+  <meta name="HandheldFriendly" content="True" >
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1">
+  <meta name="theme-color" content="#f8f8f8">
+  <title>iOS 逆向: 砸壳 - Veryitman</title>
+
+  
+    <meta name="description" content="最近在看人工智能相关的知识，无意中发现了一个巨牛的 人工智能教程，分享一下给大家。 教程不仅是零基础，通俗易懂，而且非常风趣幽默，像看小说一样！觉得太牛了，所以分享给大家。点 这里 可以直接看教程。 简介所谓的砸壳, 指的是将从 App Store 上面下载的 App 进行破解的过程. 从 App Store 上下载的 ipa 中的二进制文件是经过加密(加壳)的，需要通过破解才能让我们对其 为所欲">
+<meta property="og:type" content="article">
+<meta property="og:title" content="iOS 逆向: 砸壳">
+<meta property="og:url" content="http://example.com/2018/05/13/iOS-%E9%80%86%E5%90%91-%E7%A0%B8%E5%A3%B3/index.html">
+<meta property="og:site_name" content="Veryitman">
+<meta property="og:description" content="最近在看人工智能相关的知识，无意中发现了一个巨牛的 人工智能教程，分享一下给大家。 教程不仅是零基础，通俗易懂，而且非常风趣幽默，像看小说一样！觉得太牛了，所以分享给大家。点 这里 可以直接看教程。 简介所谓的砸壳, 指的是将从 App Store 上面下载的 App 进行破解的过程. 从 App Store 上下载的 ipa 中的二进制文件是经过加密(加壳)的，需要通过破解才能让我们对其 为所欲">
+<meta property="og:locale" content="zh_CN">
+<meta property="og:image" content="http://example.com/upload/images/2018/05/13/6.jpg">
+<meta property="og:image" content="http://example.com/upload/images/2018/05/13/7.jpg">
+<meta property="og:image" content="http://example.com/upload/images/2018/05/13/8.jpg">
+<meta property="og:image" content="http://example.com/upload/me/qrcode_wx.jpg">
+<meta property="article:published_time" content="2018-05-13T14:01:25.000Z">
+<meta property="article:modified_time" content="2022-03-09T14:53:24.339Z">
+<meta property="article:author" content="veryitman">
+<meta property="article:tag" content="iOS安全 越狱 jailbreak">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:image" content="http://example.com/upload/images/2018/05/13/6.jpg">
+  
+  
+
+  <!-- feed -->
+  
+
+  
+    
+<link rel="stylesheet" href="/css/main.css">
+
+  
+
+  
+
+  
+</head>
+
+<body>
+  
+
+
+  <div class='l_body' id='start'>
+    <aside class='l_left' layout='post'>
+    
+
+
+<header class="header">
+
+<div class="logo-wrap"><a class="title" href="/"><div class="main">Veryitman</div></a></div>
+<nav class="menu dis-select"></nav></header>
+
+<div class="widgets">
+
+<div class="widget-wrap single" id="toc"><div class="widget-header cap dis-select"><span class="name">本文目录</span></div><div class="widget-body fs14"><div class="doc-tree active"><ol class="toc"><li class="toc-item toc-level-2"><a class="toc-link" href="#%E7%AE%80%E4%BB%8B"><span class="toc-text">简介</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#%E5%87%86%E5%A4%87%E5%B7%A5%E5%85%B7"><span class="toc-text">准备工具</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#%E5%AE%89%E8%A3%85-Clutch"><span class="toc-text">安装 Clutch</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#Clutch-%E7%9A%84%E5%9F%BA%E6%9C%AC%E4%BD%BF%E7%94%A8"><span class="toc-text">Clutch 的基本使用</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#%E7%A0%B8%E5%90%A7-%E9%AA%9A%E5%B9%B4"><span class="toc-text">砸吧, 骚年</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#Clutch-%E5%B9%B6%E4%B8%8D%E6%98%AF%E4%B8%87%E8%83%BD%E7%9A%84"><span class="toc-text">Clutch 并不是万能的</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#%E8%B6%8A%E7%8B%B1%E7%B3%BB%E5%88%97%E6%96%87%E7%AB%A0"><span class="toc-text">越狱系列文章</span></a></li></ol></div></div></div>
+
+
+</div>
+
+
+    </aside>
+    <div class='l_main'>
+      
+
+      
+
+
+<div class="bread-nav fs12"><div id="breadcrumb"><a class="cap breadcrumb" href="/">主页</a><span class="sep"></span><a class="cap breadcrumb" href="/">文章</a><span class="sep"></span><a class="cap breadcrumb-link" href="/categories/iOS/">iOS</a></div><div id="post-meta">发布于&nbsp;<time datetime="2018-05-13T14:01:25.000Z">2018-05-13</time></div></div>
+
+<article class='content md post'>
+<h1 class="article-title"><span>iOS 逆向: 砸壳</span></h1>
+<p>最近在看人工智能相关的知识，无意中发现了一个巨牛的 <a target="_blank" rel="noopener" href="https://www.cbedai.net/androidbluetooth">人工智能教程</a>，分享一下给大家。</p>
+<p>教程不仅是零基础，通俗易懂，而且非常风趣幽默，像看小说一样！觉得太牛了，所以分享给大家。点 <a target="_blank" rel="noopener" href="https://www.cbedai.net/androidbluetooth">这里</a> 可以直接看教程。</p>
+<h2 id="简介"><a href="#简介" class="headerlink" title="简介"></a>简介</h2><p>所谓的砸壳, 指的是将从 App Store 上面下载的 App 进行破解的过程. 从 App Store 上下载的 ipa 中的二进制文件是经过加密(加壳)的，需要通过破解才能让我们对其 <code>为所欲为</code>, 这里的破解就是通常所说的砸壳.</p>
+<p>类似的, Android 应用(apk 文件)也有加壳操作, 如果想破解别人的 apk, 首先要进行砸壳操作.</p>
+<h2 id="准备工具"><a href="#准备工具" class="headerlink" title="准备工具"></a>准备工具</h2><p>[1]. Clutch<br>[2]. iFunBox 或者 <code>pp 助手</code><br>[3]. 越狱手机一台(本人iPhone6sPlus iOS10.3.x 系统).<br>[4]. 可以正常使用 SSH 功能.</p>
+<p>如果你还没有安装上面提到的除 <code>Clutch</code> 之外的工具, 请先阅读 <a target="_blank" rel="noopener" href="http://www.veryitman.com/2018/05/13/iOS-%E9%80%86%E5%90%91-%E6%9F%A5%E7%9C%8B%E7%B3%BB%E7%BB%9F%E6%96%87%E4%BB%B6%E7%9B%AE%E5%BD%95%E5%92%8C%E7%BB%93%E6%9E%84/">iOS 逆向: 查看系统文件目录和结构</a> 这篇文章, 并安装对应的工具.</p>
+<h2 id="安装-Clutch"><a href="#安装-Clutch" class="headerlink" title="安装 Clutch"></a>安装 Clutch</h2><p>可以在 Github 获取 <a target="_blank" rel="noopener" href="https://github.com/KJCracks/Clutch">Clutch 源码</a>, 然后自己在 MacOS 上面编译得到二进制文件.</p>
+<p>也可以去直接下载已经编译好的 <a target="_blank" rel="noopener" href="https://github.com/KJCracks/Clutch/releases">二进制包</a>, 直接使用, 我是直接下载了已经编译好的二进制包的, 截止到写这篇文章为止, <code>Clutch</code> 版本为 <code>2.0.4</code>.</p>
+<p>下载完成后, 我将其放到 <code>~/Downloads</code> 目录下面了.</p>
+<p>准备好越狱设备, 保证可以正常连接 wifi, 使用 scp 命令将 <code>Clutch</code> 二进制文件复制到设备的系统目录中, 命令如下:</p>
+<figure class="highlight sh"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">scp ~/Downloads/Clutch root@192.168.91.126:/usr/bin</span><br></pre></td></tr></table></figure>
+
+<p>其中, <code>192.168.91.126</code> 是我设备连接 wifi 后的 IP 地址.</p>
+<p>复制成功后, 使用 iFunBox 可以看到 <code>Clutch</code> 静静地躺在那里.</p>
+<p><img class="lazy" src="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAABGdBTUEAALGPC/xhBQAAADhlWElmTU0AKgAAAAgAAYdpAAQAAAABAAAAGgAAAAAAAqACAAQAAAABAAAAAaADAAQAAAABAAAAAQAAAADa6r/EAAAAC0lEQVQIHWNgAAIAAAUAAY27m/MAAAAASUVORK5CYII=" data-src="/upload/images/2018/05/13/6.jpg"></p>
+<p>你可以使用 iFunBox 或者 <code>pp 助手</code>, 直接将 <code>~/Downloads/Clutch</code> 拖拽到 <code>/usr/bin</code> 目录.</p>
+<h2 id="Clutch-的基本使用"><a href="#Clutch-的基本使用" class="headerlink" title="Clutch 的基本使用"></a>Clutch 的基本使用</h2><p>SSH 连接越狱设备, 开始使用 <code>Clutch</code>. 关于使用 SSH, 可以阅读一下 <a target="_blank" rel="noopener" href="http://www.veryitman.com/2018/05/12/iOS-%E9%80%86%E5%90%91-%E8%B6%8A%E7%8B%B1%E4%BD%BF%E7%94%A8-SSH/">iOS 逆向: 越狱使用 SSH</a> 这篇文章.</p>
+<p>如果你发现直接执行 <code>Clutch</code> 说没有权限之类的提示, 可以先将其授予可执行的权限.</p>
+<figure class="highlight sh"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line"><span class="built_in">chmod</span> +x /usr/bin/Clutch</span><br></pre></td></tr></table></figure>
+
+<p>Clutch 命令选项如下:</p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br></pre></td><td class="code"><pre><span class="line">-b --binary-dump     Only dump binary files from specified bundleID</span><br><span class="line">-d --dump            Dump specified bundleID into .ipa file</span><br><span class="line">-i --print-installed Print installed application</span><br><span class="line">--clean              Clean /var/tmp/clutch directory</span><br><span class="line">--version            Display version and exit</span><br><span class="line">-? --help            Display this help and exit</span><br></pre></td></tr></table></figure>
+
+<p><code>-b</code> 选项表示产出一个二进制文件, <code>-d</code> 选项表示产出一个 ipa 文件, <code>-i</code> 表示列出手机上面已经安装的 APP.</p>
+<p>我们先看一下手机上已经安装的 App, 命令如下:</p>
+<figure class="highlight sh"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">Clutch -i</span><br></pre></td></tr></table></figure>
+
+<p><img class="lazy" src="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAABGdBTUEAALGPC/xhBQAAADhlWElmTU0AKgAAAAgAAYdpAAQAAAABAAAAGgAAAAAAAqACAAQAAAABAAAAAaADAAQAAAABAAAAAQAAAADa6r/EAAAAC0lEQVQIHWNgAAIAAAUAAY27m/MAAAAASUVORK5CYII=" data-src="/upload/images/2018/05/13/7.jpg"></p>
+<p>这些 APP 前面的数字表示指定的 id. <code>-d</code> 和 <code>-b</code> 选项都需要指定这些 id.</p>
+<h2 id="砸吧-骚年"><a href="#砸吧-骚年" class="headerlink" title="砸吧, 骚年"></a>砸吧, 骚年</h2><p>我们现在开始使用 <code>Clutch</code> 来对 APP 进行砸壳操作, 这里以已经安装的 App 序号为 8 的为例子.</p>
+<p>使用下面的命令开始砸壳:</p>
+<figure class="highlight sh"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">Clutch -d 8</span><br></pre></td></tr></table></figure>
+
+<p>效果如下图所示:</p>
+<p><img class="lazy" src="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAABGdBTUEAALGPC/xhBQAAADhlWElmTU0AKgAAAAgAAYdpAAQAAAABAAAAGgAAAAAAAqACAAQAAAABAAAAAaADAAQAAAABAAAAAQAAAADa6r/EAAAAC0lEQVQIHWNgAAIAAAUAAY27m/MAAAAASUVORK5CYII=" data-src="/upload/images/2018/05/13/8.jpg"></p>
+<p>砸壳成功后会在 <code>/private/var/mobile/Documents/Dumped</code>  这个目录生成对应的 <code>*.ipa</code> 文件.</p>
+<p>砸壳后的 ipa 文件, 可以从 iFunBox 中复制到 MacOS 的目录中, 然后你就可以对该 ipa 进行下一步操作了, 比如获取图片&#x2F;音频&#x2F;视频等资源和对应的头文件. 关于这些后续的越狱工作, 我会在下几篇博客中分享给大家.</p>
+<p>也许有人会说了, 我自己从 <code>pp 助手</code> 中备份指定的 App 就可以获取资源了, 不需要使用 <code>Clutch</code> 这么麻烦了. 高系统版本, <code>pp 助手</code> 是无法直接获取 ipa 文件的, 况且我们也不仅仅是想获取别人 APP 的资源文件.</p>
+<p>当然了, 你可以从越狱 APP 市场直接下载已经被砸壳的 App 进行玩耍, 不需要自己千辛万苦的去砸壳了.</p>
+<h2 id="Clutch-并不是万能的"><a href="#Clutch-并不是万能的" class="headerlink" title="Clutch 并不是万能的"></a>Clutch 并不是万能的</h2><p>上面大家可以看出, <code>Clutch</code> 是可以进行砸壳的并且也挺方便, 但 <code>Clutch</code> 并不是万能的, 也就是说, <code>Clutch</code> 不能将任意一个 App Store 下载 APP 进行砸壳.</p>
+<p>拿上面序号为4 的微信来说, 执行下面命令报错:</p>
+<figure class="highlight sh"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">Clutch -d 4</span><br></pre></td></tr></table></figure>
+
+<p>砸壳执行过程如下:</p>
+<figure class="highlight sh"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><span class="line">Writing new checksum</span><br><span class="line">...</span><br><span class="line">FAILED: &lt;WeChat bundleID: com.tencent.xin&gt;</span><br><span class="line">Finished dumping com.tencent.xin <span class="keyword">in</span> 28.7 seconds</span><br></pre></td></tr></table></figure>
+
+<p>还有一些 APP, 再被砸壳的时候会报如下的错误:</p>
+<figure class="highlight sh"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">could not obtain mach port either the process is dead</span><br></pre></td></tr></table></figure>
+
+<p>虽然最新版本(2.0.4)说解决了该问题, 但是实际操作过程中, 还是会出现这个问题, 无法进行砸壳.</p>
+<h2 id="越狱系列文章"><a href="#越狱系列文章" class="headerlink" title="越狱系列文章"></a>越狱系列文章</h2><blockquote>
+<p>基于 iOS10.3.1 进行的实践。</p>
+</blockquote>
+<ul>
+<li><p><a target="_blank" rel="noopener" href="http://www.veryitman.com/2018/06/07/iOS-%E9%80%86%E5%90%91-dumpdecrypted-%E7%A0%B8%E5%A3%B3%E8%AE%B0/">iOS 逆向: dumpdecrypted 砸壳记</a></p>
+</li>
+<li><p><a target="_blank" rel="noopener" href="http://www.veryitman.com/2018/05/13/iOS-%E9%80%86%E5%90%91-%E7%A0%B8%E5%A3%B3/">iOS 逆向: 砸壳</a></p>
+</li>
+<li><p><a target="_blank" rel="noopener" href="http://www.veryitman.com/2018/05/13/iOS-%E9%80%86%E5%90%91-%E6%9F%A5%E7%9C%8B%E7%B3%BB%E7%BB%9F%E6%96%87%E4%BB%B6%E7%9B%AE%E5%BD%95%E5%92%8C%E7%BB%93%E6%9E%84/">iOS 逆向: 查看系统文件目录和结构</a></p>
+</li>
+<li><p><a target="_blank" rel="noopener" href="http://www.veryitman.com/2018/05/12/iOS-%E9%80%86%E5%90%91-%E8%B6%8A%E7%8B%B1%E4%BD%BF%E7%94%A8-SSH/">iOS 逆向: 越狱使用 SSH</a></p>
+</li>
+<li><p><a target="_blank" rel="noopener" href="http://www.veryitman.com/2019/04/07/dumpdecrypted-%E7%A0%B8%E5%A3%B3%EF%BC%9A%E5%AF%BC%E5%87%BA%E5%A4%B4%E6%96%87%E4%BB%B6/">dumpdecrypted 砸壳：导出头文件</a></p>
+</li>
+</ul>
+<hr>
+<p><strong>特别喜欢上善如水这句话，你呢？</strong></p>
+<p><img class="lazy" src="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAABGdBTUEAALGPC/xhBQAAADhlWElmTU0AKgAAAAgAAYdpAAQAAAABAAAAGgAAAAAAAqACAAQAAAABAAAAAaADAAQAAAABAAAAAQAAAADa6r/EAAAAC0lEQVQIHWNgAAIAAAUAAY27m/MAAAAASUVORK5CYII=" data-src="/upload/me/qrcode_wx.jpg"></p>
+
+
+
+
+</article>
+
+<div class="related-wrap reveal" id="read-next"><section class="header cap theme"><span>接下来阅读</span></section><section class="body fs14"><a id="next" href="/2018/05/13/iOS-%E9%80%86%E5%90%91-%E6%9F%A5%E7%9C%8B%E7%B3%BB%E7%BB%9F%E6%96%87%E4%BB%B6%E7%9B%AE%E5%BD%95%E5%92%8C%E7%BB%93%E6%9E%84/">iOS 逆向: 查看系统文件目录和结构<span class="note">较早</span></a><div class="line"></div><a id="prev" href="/2018/06/07/iOS-%E9%80%86%E5%90%91-dumpdecrypted-%E7%A0%B8%E5%A3%B3%E8%AE%B0/">iOS 逆向: dumpdecrypted 砸壳记<span class="note">较新</span></a></section></div>
+
+
+
+
+
+
+  <div class='related-wrap md reveal' id="comments">
+    <div class='cmt-title cap theme'>
+      快来参与讨论吧
+    </div>
+    <div class='cmt-body valine'>
+      
+
+<div id="valine_container" class="valine_thread"><svg class="loading" style="vertical-align: middle;fill: currentColor;overflow: hidden;" viewBox="0 0 1024 1024" version="1.1" xmlns="http://www.w3.org/2000/svg" p-id="2709"><path d="M832 512c0-176-144-320-320-320V128c211.2 0 384 172.8 384 384h-64zM192 512c0 176 144 320 320 320v64C300.8 896 128 723.2 128 512h64z" p-id="2710"></path></svg></div>
+
+    </div>
+  </div>
+
+
+
+      
+<footer class="page-footer reveal fs12"><hr><div class="text"><p>本博客所有文章除特别声明外，均采用 <a target="_blank" rel="noopener" href="https://creativecommons.org/licenses/by-nc-sa/4.0/">CC BY-NC-SA 4.0</a> 许可协议，转载请注明出处。</p>
+<p>veryitman</p>
+</div></footer>
+
+      <div class='float-panel mobile-only blur' style='display:none'>
+  <button type='button' class='sidebar-toggle mobile' onclick='sidebar.toggle()'>
+    <svg class="icon" style="width: 1em; height: 1em;vertical-align: middle;fill: currentColor;overflow: hidden;" viewBox="0 0 1024 1024" version="1.1" xmlns="http://www.w3.org/2000/svg" p-id="15301"><path d="M566.407 808.3c26.9-0.1 49.3-20.8 51.6-47.6-1.9-27.7-23.9-49.7-51.6-51.6h-412.6c-28.2-1.4-52.6 19.5-55.5 47.6 2.3 26.8 24.6 47.5 51.6 47.6h416.5v4z m309.3-249.9c26.9-0.1 49.3-20.8 51.6-47.6-2.2-26.8-24.6-47.5-51.6-47.6h-721.9c-27.7-2.8-52.5 17.4-55.3 45.1-0.1 0.8-0.1 1.7-0.2 2.5 0.9 27.2 23.6 48.5 50.7 47.6H875.707z m-103.1-245.9c26.9-0.1 49.3-20.8 51.6-47.6-0.4-28.3-23.2-51.1-51.5-51.6h-618.9c-29.5-1.1-54.3 21.9-55.5 51.4v0.2c1.4 27.8 25.2 49.2 53 47.8 0.8 0 1.7-0.1 2.5-0.2h618.8z" p-id="15302"></path><path d="M566.407 808.3c26.9-0.1 49.3-20.8 51.6-47.6-1.9-27.7-23.9-49.7-51.6-51.6h-412.6c-28.2-1.4-52.6 19.5-55.5 47.6 1.9 27.7 23.9 49.7 51.6 51.6h416.5z m309.3-249.9c26.9-0.1 49.3-20.8 51.6-47.6-2.2-26.8-24.6-47.5-51.6-47.6h-721.9c-27.7-2.8-52.5 17.4-55.3 45.1-0.1 0.8-0.1 1.7-0.2 2.5 0.9 27.2 23.6 48.5 50.7 47.6H875.707z m-103.1-245.9c26.9-0.1 49.3-20.8 51.6-47.6-0.4-28.3-23.2-51.1-51.5-51.6h-618.9c-29.5-1.1-54.3 21.9-55.5 51.4v0.2c1.4 27.8 25.2 49.2 53 47.8 0.8 0 1.7-0.1 2.5-0.2h618.8z" p-id="15303"></path></svg>
+  </button>
+</div>
+
+    </div>
+  </div>
+  <div class='scripts'>
+    <script type="text/javascript">
+  stellar = {
+    // 懒加载 css https://github.com/filamentgroup/loadCSS
+    loadCSS: (href, before, media, attributes) => {
+      var doc = window.document;
+      var ss = doc.createElement("link");
+      var ref;
+      if (before) {
+        ref = before;
+      } else {
+        var refs = (doc.body || doc.getElementsByTagName("head")[0]).childNodes;
+        ref = refs[refs.length - 1];
+      }
+      var sheets = doc.styleSheets;
+      if (attributes) {
+        for (var attributeName in attributes) {
+          if (attributes.hasOwnProperty(attributeName)) {
+            ss.setAttribute(attributeName, attributes[attributeName]);
+          }
+        }
+      }
+      ss.rel = "stylesheet";
+      ss.href = href;
+      ss.media = "only x";
+      function ready(cb) {
+        if (doc.body) {
+          return cb();
+        }
+        setTimeout(function () {
+          ready(cb);
+        });
+      }
+      ready(function () {
+        ref.parentNode.insertBefore(ss, before ? ref : ref.nextSibling);
+      });
+      var onloadcssdefined = function (cb) {
+        var resolvedHref = ss.href;
+        var i = sheets.length;
+        while (i--) {
+          if (sheets[i].href === resolvedHref) {
+            return cb();
+          }
+        }
+        setTimeout(function () {
+          onloadcssdefined(cb);
+        });
+      };
+      function loadCB() {
+        if (ss.addEventListener) {
+          ss.removeEventListener("load", loadCB);
+        }
+        ss.media = media || "all";
+      }
+      if (ss.addEventListener) {
+        ss.addEventListener("load", loadCB);
+      }
+      ss.onloadcssdefined = onloadcssdefined;
+      onloadcssdefined(loadCB);
+      return ss;
+    },
+
+    // 从 butterfly 和 volantis 获得灵感
+    loadScript: (src, opt) => new Promise((resolve, reject) => {
+      var script = document.createElement('script');
+      script.src = src;
+      if (opt) {
+        for (let key of Object.keys(opt)) {
+          script[key] = opt[key]
+        }
+      } else {
+        // 默认异步，如果需要同步，第二个参数传入 {} 即可
+        script.async = true
+      }
+      script.onerror = reject
+      script.onload = script.onreadystatechange = function() {
+        const loadState = this.readyState
+        if (loadState && loadState !== 'loaded' && loadState !== 'complete') return
+        script.onload = script.onreadystatechange = null
+        resolve()
+      }
+      document.head.appendChild(script)
+    }),
+
+    // https://github.com/jerryc127/hexo-theme-butterfly
+    jQuery: (fn) => {
+      if (typeof jQuery === 'undefined') {
+        stellar.loadScript(stellar.plugins.jQuery).then(fn)
+      } else {
+        fn()
+      }
+    }
+  };
+  stellar.github = 'https://github.com/xaoxuu/hexo-theme-stellar/tree/1.6.1';
+  stellar.config = {
+    date_suffix: {
+      just: '刚刚',
+      min: '分钟前',
+      hour: '小时前',
+      day: '天前',
+      month: '个月前',
+    },
+  };
+
+  // required plugins (only load if needs)
+  stellar.plugins = {
+    jQuery: 'https://cdn.jsdelivr.net/npm/jquery@3.5.1/dist/jquery.min.js',
+    sitesjs: '/js/plugins/sites.js',
+    friendsjs: '/js/plugins/friends.js',
+  };
+
+  // optional plugins
+  if ('true' == 'true') {
+    stellar.plugins.lazyload = Object.assign({"enable":true,"js":"https://cdn.jsdelivr.net/npm/vanilla-lazyload@17.3.1/dist/lazyload.min.js","transition":"blur"});
+  }
+  if ('true' == 'true') {
+    stellar.plugins.swiper = Object.assign({"enable":true,"css":"https://unpkg.com/swiper@6/swiper-bundle.min.css","js":"https://unpkg.com/swiper@6/swiper-bundle.min.js"});
+  }
+  if ('' == 'true') {
+    stellar.plugins.scrollreveal = Object.assign({"enable":null,"js":"https://cdn.jsdelivr.net/npm/scrollreveal@4.0.9/dist/scrollreveal.min.js","distance":"8px","duration":500,"interval":100,"scale":1});
+  }
+  if ('true' == 'true') {
+    stellar.plugins.preload = Object.assign({"enable":true,"service":"flying_pages","instant_page":"https://cdn.jsdelivr.net/gh/volantis-x/cdn-volantis@4.1.2/js/instant_page.js","flying_pages":"https://cdn.jsdelivr.net/gh/gijo-varghese/flying-pages@2.1.2/flying-pages.min.js"});
+  }
+</script>
+
+<!-- required -->
+
+  
+<script src="/js/main.js" async></script>
+
+
+
+<!-- optional -->
+
+  <script>
+  function getEmojiMaps() {
+    function emoji(path, idx, ext) {
+      return path + "/" + path + "-" + idx + "." + ext;
+    }
+    var emojiMaps = {};
+    for (var i = 1; i <= 54; i++) {
+      emojiMaps['tieba-' + i] = emoji('tieba', i, 'png');
+    }
+    for (var i = 1; i <= 101; i++) {
+      emojiMaps['qq-' + i] = emoji('qq', i, 'gif');
+    }
+    for (var i = 1; i <= 116; i++) {
+      emojiMaps['aru-' + i] = emoji('aru', i, 'gif');
+    }
+    for (var i = 1; i <= 125; i++) {
+      emojiMaps['twemoji-' + i] = emoji('twemoji', i, 'png');
+    }
+    for (var i = 1; i <= 4; i++) {
+      emojiMaps['weibo-' + i] = emoji('weibo', i, 'png');
+    }
+    return emojiMaps;
+  }
+  function load_comment(){
+    if(!document.getElementById("valine_container"))return;
+    stellar.loadScript('https://cdn.jsdelivr.net/gh/XuxuGood/simple-blog-cdn@main/js/Valine.min.js', {defer:true}).then(function () {
+      const el = document.getElementById("valine_container");
+      var path = el.getAttribute('comment_id');
+      const placeholder = "欢迎您留言~";
+      if (!path) {
+        path = decodeURI(window.location.pathname);
+      }
+      var valine = new Valine();
+      valine.init(Object.assign({"js":"https://cdn.jsdelivr.net/gh/XuxuGood/simple-blog-cdn@main/js/Valine.min.js","appId":"FY2C9UCttYNaE1j8umenqdCE-gzGzoHsz","appKey":"4i7xMwkfSEGmEDhi6SceKFxz","placeholder":"欢迎您留言~","requiredFields":["nick","mail"],"enableQQ":true,"recordIP":false,"avatar":"robohash","pageSize":10,"lang":"zh-cn","highlight":true,"mathJax":false,"tagMeta":["博主","小伙伴","访客"],"metaPlaceholder":{"nick":"昵称/QQ号(必填)","mail":"邮箱（必填，完全保密）"},"master":["6783037F2DF30EAB99F9FC256157D875"],"friends":["6783037F2DF30EAB99F9FC256157D875"],"comment_count":true}, {
+        el: '#valine_container',
+        path: path,
+        placeholder: placeholder,
+        emojiCDN: 'https://cdn.jsdelivr.net/gh/volantis-x/cdn-emoji/valine/',
+        emojiMaps: getEmojiMaps(),
+      }));
+    });
+  }
+  window.addEventListener('DOMContentLoaded', (event) => {
+    console.log('DOM fully loaded and parsed');
+    load_comment();
+  });
+
+</script>
+
+
+
+
+<!-- inject -->
+
+
+  </div>
+</body>
+</html>

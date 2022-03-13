@@ -1,0 +1,387 @@
+<!DOCTYPE html>
+<html lang='zh-CN'>
+
+<head>
+  <meta name="generator" content="Hexo 6.0.0">
+  <meta charset="utf-8">
+  
+
+  <meta http-equiv='x-dns-prefetch-control' content='on' />
+  <link rel='dns-prefetch' href='https://cdn.jsdelivr.net'>
+  <link rel="preconnect" href="https://cdn.jsdelivr.net" crossorigin>
+
+  <meta name="renderer" content="webkit">
+  <meta name="force-rendering" content="webkit">
+  <meta http-equiv="X-UA-Compatible" content="IE=Edge,chrome=1">
+  <meta name="HandheldFriendly" content="True" >
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1">
+  <meta name="theme-color" content="#f8f8f8">
+  <title>微服务: SpringBoot 集成 Redis - Veryitman</title>
+
+  
+    <meta name="description" content="简介忙碌了一周，感觉只有此刻写文字的时间才是最惬意的。最近工作比较忙，文章更新的较慢还望大家多多见谅🙇‍！ 在阅读下面的内容之前，希望你已经安装并且做好了学习 Spring Boot 集成 Redis 的准备了。 如果你还没有搭建 Redis 环境，Win10-安装-Redis 这篇文章或许可以帮到您。 在 Spring Boot 1.x 版本中默认的 Redis 客户端是 Jedis 实现的，">
+<meta property="og:type" content="article">
+<meta property="og:title" content="微服务: SpringBoot 集成 Redis">
+<meta property="og:url" content="http://example.com/2020/12/05/%E5%BE%AE%E6%9C%8D%E5%8A%A1-SpringBoot-%E9%9B%86%E6%88%90-Redis/index.html">
+<meta property="og:site_name" content="Veryitman">
+<meta property="og:description" content="简介忙碌了一周，感觉只有此刻写文字的时间才是最惬意的。最近工作比较忙，文章更新的较慢还望大家多多见谅🙇‍！ 在阅读下面的内容之前，希望你已经安装并且做好了学习 Spring Boot 集成 Redis 的准备了。 如果你还没有搭建 Redis 环境，Win10-安装-Redis 这篇文章或许可以帮到您。 在 Spring Boot 1.x 版本中默认的 Redis 客户端是 Jedis 实现的，">
+<meta property="og:locale" content="zh_CN">
+<meta property="og:image" content="http://example.com/upload/images/2020/12/05/1.png">
+<meta property="og:image" content="http://example.com/upload/me/qrcode_wx.jpg">
+<meta property="article:published_time" content="2020-12-05T13:55:13.000Z">
+<meta property="article:modified_time" content="2022-03-09T14:53:24.334Z">
+<meta property="article:author" content="veryitman">
+<meta property="article:tag" content="Redis SpringBoot">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:image" content="http://example.com/upload/images/2020/12/05/1.png">
+  
+  
+
+  <!-- feed -->
+  
+
+  
+    
+<link rel="stylesheet" href="/css/main.css">
+
+  
+
+  
+
+  
+</head>
+
+<body>
+  
+
+
+  <div class='l_body' id='start'>
+    <aside class='l_left' layout='post'>
+    
+
+
+<header class="header">
+
+<div class="logo-wrap"><a class="title" href="/"><div class="main">Veryitman</div></a></div>
+<nav class="menu dis-select"></nav></header>
+
+<div class="widgets">
+
+<div class="widget-wrap single" id="toc"><div class="widget-header cap dis-select"><span class="name">本文目录</span></div><div class="widget-body fs14"><div class="doc-tree active"><ol class="toc"><li class="toc-item toc-level-2"><a class="toc-link" href="#%E7%AE%80%E4%BB%8B"><span class="toc-text">简介</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#%E5%8A%A0%E5%85%A5%E4%BE%9D%E8%B5%96%E5%8C%85"><span class="toc-text">加入依赖包</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#%E9%85%8D%E7%BD%AE-properties"><span class="toc-text">配置 properties</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#%E7%9C%9F%E7%9A%84%E6%98%AF-Lettuce-%E5%98%9B%EF%BC%9F"><span class="toc-text">真的是 Lettuce 嘛？</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#%E9%85%8D%E7%BD%AE-RedisTemplate"><span class="toc-text">配置 RedisTemplate</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#%E5%AE%9E%E4%BE%8B"><span class="toc-text">实例</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#%E5%8F%82%E8%80%83%E8%B5%84%E6%96%99"><span class="toc-text">参考资料</span></a></li></ol></div></div></div>
+
+
+</div>
+
+
+    </aside>
+    <div class='l_main'>
+      
+
+      
+
+
+<div class="bread-nav fs12"><div id="breadcrumb"><a class="cap breadcrumb" href="/">主页</a><span class="sep"></span><a class="cap breadcrumb" href="/">文章</a><span class="sep"></span><a class="cap breadcrumb-link" href="/categories/Server/">Server</a></div><div id="post-meta">发布于&nbsp;<time datetime="2020-12-05T13:55:13.000Z">2020-12-05</time></div></div>
+
+<article class='content md post'>
+<h1 class="article-title"><span>微服务: SpringBoot 集成 Redis</span></h1>
+<h2 id="简介"><a href="#简介" class="headerlink" title="简介"></a>简介</h2><p>忙碌了一周，感觉只有此刻写文字的时间才是最惬意的。最近工作比较忙，文章更新的较慢还望大家多多见谅🙇‍！</p>
+<p>在阅读下面的内容之前，希望你已经安装并且做好了学习 Spring Boot 集成 Redis 的准备了。</p>
+<p>如果你还没有搭建 Redis 环境，<a target="_blank" rel="noopener" href="http://www.veryitman.com/2020/11/15/Win10-%E5%AE%89%E8%A3%85-Redis/">Win10-安装-Redis</a> 这篇文章或许可以帮到您。</p>
+<p>在 <code>Spring Boot 1.x</code> 版本中默认的 Redis 客户端是 Jedis 实现的，<code>Spring Boot 2.x</code> 版本中默认客户端是用 Lettuce 实现的。可以从加入的依赖包中看出，<code>Spring Boot 2.2.x</code> 中的 <code>spring-data-redis</code> 仍旧包括了 Jedis 和 Lettuce，但是默认使用了 Lettuce（换句话说，如果你不想使用默认的 Lettuce 实现可以换成  Jedis 的实现），如下图：</p>
+<p><img class="lazy" src="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAABGdBTUEAALGPC/xhBQAAADhlWElmTU0AKgAAAAgAAYdpAAQAAAABAAAAGgAAAAAAAqACAAQAAAABAAAAAaADAAQAAAABAAAAAQAAAADa6r/EAAAAC0lEQVQIHWNgAAIAAAUAAY27m/MAAAAASUVORK5CYII=" data-src="/upload/images/2020/12/05/1.png"></p>
+<p>Lettuce 和 Jedis 的都是连接 Redis Server 的客户端，简单异同点如下：</p>
+<ul>
+<li><strong>Jedis</strong> 在实现上是直连 Redis Server，多线程环境下非线程安全，除非使用连接池，为每个 Redis 实例增加物理连接；</li>
+<li><strong>Lettuce</strong> 是 一种可伸缩，线程安全，完全非阻塞的 Redis 客户端，多个线程可以共享一个 <code>RedisConnection</code>，它利用 <code>Netty NIO</code> 框架来高效地管理多个连接，从而提供了异步和同步数据访问方式，用于构建非阻塞的反应性应用程序；</li>
+</ul>
+<p>本篇只分享在 Spring Boot 项目中如何集成 Jedis 实现的 Redis 客户端和简单使用，关于 Redis 的使用有很多应用场景，后续再做探讨和分享（Redis 确实很强大，值得我们深入学习和研究）。</p>
+<h2 id="加入依赖包"><a href="#加入依赖包" class="headerlink" title="加入依赖包"></a>加入依赖包</h2><p>在 <code>pom.xml</code> 文件中添加 redis 的依赖，如下：</p>
+<figure class="highlight xml"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><span class="line"><span class="tag">&lt;<span class="name">dependency</span>&gt;</span></span><br><span class="line">    <span class="tag">&lt;<span class="name">groupId</span>&gt;</span>org.springframework.boot<span class="tag">&lt;/<span class="name">groupId</span>&gt;</span></span><br><span class="line">    <span class="tag">&lt;<span class="name">artifactId</span>&gt;</span>spring-boot-starter-data-redis<span class="tag">&lt;/<span class="name">artifactId</span>&gt;</span></span><br><span class="line"><span class="tag">&lt;/<span class="name">dependency</span>&gt;</span></span><br></pre></td></tr></table></figure>
+
+<p>运行项目后，会报如下错误：</p>
+<figure class="highlight shell"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br></pre></td><td class="code"><pre><span class="line">org.springframework.beans.factory.BeanCreationException: </span><br><span class="line">Error creating bean with name &#x27;redisConnectionFactory&#x27; defined in class path resource </span><br><span class="line">[org/springframework/boot/autoconfigure/data/redis/LettuceConnectionConfiguration.class]: Bean instantiation via factory method failed; </span><br><span class="line">nested exception is org.springframework.beans.BeanInstantiationException: Failed to instantiate [org.springframework.data.redis.connection.lettuce.LettuceConnectionFactory]: </span><br><span class="line">Factory method &#x27;redisConnectionFactory&#x27; threw exception; </span><br><span class="line">nested exception is java.lang.NoClassDefFoundError: org/apache/commons/pool2/impl/GenericObjectPoolConfig</span><br></pre></td></tr></table></figure>
+
+<p>此时，需要在你的 pom 文件中添加连接池 <code>commons-pool2</code> 的依赖。</p>
+<figure class="highlight xml"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br></pre></td><td class="code"><pre><span class="line"><span class="tag">&lt;<span class="name">dependency</span>&gt;</span></span><br><span class="line">    <span class="tag">&lt;<span class="name">groupId</span>&gt;</span>org.springframework.boot<span class="tag">&lt;/<span class="name">groupId</span>&gt;</span></span><br><span class="line">    <span class="tag">&lt;<span class="name">artifactId</span>&gt;</span>spring-boot-starter-data-redis<span class="tag">&lt;/<span class="name">artifactId</span>&gt;</span></span><br><span class="line"><span class="tag">&lt;/<span class="name">dependency</span>&gt;</span></span><br><span class="line"></span><br><span class="line"><span class="tag">&lt;<span class="name">dependency</span>&gt;</span></span><br><span class="line">    <span class="tag">&lt;<span class="name">groupId</span>&gt;</span>org.apache.commons<span class="tag">&lt;/<span class="name">groupId</span>&gt;</span></span><br><span class="line">    <span class="tag">&lt;<span class="name">artifactId</span>&gt;</span>commons-pool2<span class="tag">&lt;/<span class="name">artifactId</span>&gt;</span></span><br><span class="line">    <span class="tag">&lt;<span class="name">version</span>&gt;</span>2.6.0<span class="tag">&lt;/<span class="name">version</span>&gt;</span></span><br><span class="line"><span class="tag">&lt;/<span class="name">dependency</span>&gt;</span></span><br></pre></td></tr></table></figure>
+
+<p>Lettuce 需要依赖 Apache的 <code>common-pool2</code>（至少是2.2版本）提供连接池，本篇使用的版本是 2.6.0，具体可以参考 <a target="_blank" rel="noopener" href="https://github.com/lettuce-io/lettuce-core/wiki/Connection-Pooling">Connection-Pooling</a> 的介绍。</p>
+<h2 id="配置-properties"><a href="#配置-properties" class="headerlink" title="配置 properties"></a>配置 properties</h2><p>配置 <code>application.properties</code> 文件，如下：</p>
+<figure class="highlight properties"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment"># ------------------------------------------</span></span><br><span class="line"><span class="comment"># 配置 redis for lettuce</span></span><br><span class="line"><span class="comment"># ------------------------------------------</span></span><br><span class="line"><span class="attr">spring.redis.host</span>=<span class="string">127.0.0.1</span></span><br><span class="line"><span class="attr">spring.redis.port</span>=<span class="string">6379</span></span><br><span class="line"><span class="attr">spring.redis.database</span>=<span class="string">0</span></span><br><span class="line"><span class="attr">spring.redis.password</span>=<span class="string"></span></span><br><span class="line"><span class="comment">#连接池最大连接数（使用负值表示没有限制）</span></span><br><span class="line"><span class="attr">spring.redis.lettuce.pool.max-active</span>=<span class="string">8</span></span><br><span class="line"><span class="comment"># 连接池中的最大空闲连接 默认 8</span></span><br><span class="line"><span class="attr">spring.redis.lettuce.pool.max-idle</span>=<span class="string">8</span></span><br><span class="line"><span class="comment"># 连接池中的最小空闲连接 默认 0</span></span><br><span class="line"><span class="attr">spring.redis.lettuce.pool.min-idle</span>=<span class="string">0</span></span><br><span class="line"><span class="comment"># 连接池最大阻塞等待时间（使用负值表示没有限制）</span></span><br><span class="line"><span class="attr">spring.redis.lettuce.pool.max-wait</span>=<span class="string">-1</span></span><br></pre></td></tr></table></figure>
+
+<p>注意：因为我的工程中使用了多个 properties 文件用于区分不同的环境，所以你根据自己的配置文件来配置 Redis 即可。</p>
+<h2 id="真的是-Lettuce-嘛？"><a href="#真的是-Lettuce-嘛？" class="headerlink" title="真的是 Lettuce 嘛？"></a>真的是 Lettuce 嘛？</h2><p>为了证明我们现在使用的是 Lettuce 实现的 Redis 客户端，我写了一段测试代码，放到登录的 <code>MSSigninController</code> 进行了测试（具体代码可以参考 <a target="_blank" rel="noopener" href="https://github.com/veryitman/MSTutorial/tree/veryitman-feature">GitHub</a>），如下：</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">private</span> RedisTemplate&lt;String, Object&gt; redisTemplate;</span><br><span class="line"></span><br><span class="line">    <span class="meta">@Autowired</span></span><br><span class="line">    <span class="keyword">public</span> <span class="keyword">void</span> <span class="title function_">setRedisTemplate</span><span class="params">(RedisTemplate redisTemplate)</span> &#123;</span><br><span class="line">        <span class="built_in">this</span>.redisTemplate = redisTemplate;</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    <span class="meta">@GetMapping(value = &quot;/redisconn&quot;)</span></span><br><span class="line">    <span class="keyword">public</span> String <span class="title function_">redis</span><span class="params">()</span> &#123;</span><br><span class="line">        log.info(redisTemplate.getValueSerializer().toString() + <span class="string">&quot;, &quot;</span> + redisTemplate.getHashValueSerializer().toString());</span><br><span class="line">        <span class="type">RedisConnectionFactory</span> <span class="variable">connectionFactory</span> <span class="operator">=</span> redisTemplate.getConnectionFactory();</span><br><span class="line">        log.info(connectionFactory.toString());</span><br><span class="line">        <span class="keyword">if</span> (connectionFactory <span class="keyword">instanceof</span> LettuceConnectionFactory) &#123;</span><br><span class="line">            <span class="type">LettuceConnectionFactory</span> <span class="variable">lettuceConnectionFactory</span> <span class="operator">=</span> (LettuceConnectionFactory) connectionFactory;</span><br><span class="line">            log.info(lettuceConnectionFactory.getHostName() + <span class="string">&quot;, &quot;</span> + lettuceConnectionFactory.getPort());</span><br><span class="line">        &#125;</span><br><span class="line">        <span class="keyword">return</span> connectionFactory.toString();</span><br><span class="line">    &#125;</span><br></pre></td></tr></table></figure>
+
+<p>运行项目，打开 <a target="_blank" rel="noopener" href="http://localhost:8080/signin/redisconn">http://localhost:8080/signin/redisconn</a> 即可看到浏览器上面显示类似如下的输出信息。</p>
+<figure class="highlight xml"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">org.springframework.data.redis.connection.lettuce.LettuceConnectionFactory@5e91612a</span><br></pre></td></tr></table></figure>
+
+<p>同时，控制台输出如下内容：</p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><span class="line">org.springframework.data.redis.serializer.JdkSerializationRedisSerializer@7fd8e94e, </span><br><span class="line">org.springframework.data.redis.serializer.JdkSerializationRedisSerializer@7fd8e94e</span><br><span class="line">org.springframework.data.redis.connection.lettuce.LettuceConnectionFactory@34212775</span><br><span class="line">127.0.0.1, 6379</span><br></pre></td></tr></table></figure>
+
+<p>从上面的信息可以看出：</p>
+<ul>
+<li>Redis 的客户端实现默认使用的是 Lettuce；</li>
+<li>默认的序列化类是 <code>JdkSerializationRedisSerializer</code>，下面我们可以配置 RedisTemplate 来改变默认的序列化类；</li>
+</ul>
+<h2 id="配置-RedisTemplate"><a href="#配置-RedisTemplate" class="headerlink" title="配置 RedisTemplate"></a>配置 RedisTemplate</h2><p>关于 RedisTemplate 的配置，配置的实例代码都在 <code>MSRedisConfig</code> 这个类中，这里不再粘贴代码，有需要的可以直接点击  <a target="_blank" rel="noopener" href="https://github.com/veryitman/MSTutorial/tree/veryitman-feature">GitHub</a> 查看。</p>
+<p>配置完成后重新运行工程，再次访问 <a target="_blank" rel="noopener" href="http://localhost:8080/signin/redisconn%EF%BC%8C%E6%8E%A7%E5%88%B6%E5%8F%B0%E8%BE%93%E5%87%BA%E5%A6%82%E4%B8%8B%E5%86%85%E5%AE%B9%EF%BC%9A">http://localhost:8080/signin/redisconn，控制台输出如下内容：</a></p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><span class="line">org.springframework.data.redis.serializer.Jackson2JsonRedisSerializer@3151bece, </span><br><span class="line">org.springframework.data.redis.serializer.Jackson2JsonRedisSerializer@7248212a</span><br><span class="line">org.springframework.data.redis.connection.lettuce.LettuceConnectionFactory@6bcda66f</span><br><span class="line">127.0.0.1, 6379</span><br></pre></td></tr></table></figure>
+
+<p>可见，我们已经成功改变了默认的序列化类。</p>
+<h2 id="实例"><a href="#实例" class="headerlink" title="实例"></a>实例</h2><p>这次的例子，仍是在原来的工程 <a target="_blank" rel="noopener" href="http://www.veryitman.com/2020/04/11/%E5%BE%AE%E6%9C%8D%E5%8A%A1-%E7%BB%93%E5%90%88MySQL%E5%AE%9E%E7%8E%B0%E7%99%BB%E5%BD%95%E6%B3%A8%E5%86%8C/">微服务-结合MySQL实现登录注册</a> 的基础上面改造的，后续分享的内容基本都是在这个工程上面拓展。</p>
+<p>用户使用用户名和密码登录，首先去 Redis 里面查找，查找到了直接返回不用去 MySQL 数据库中查找了，如果没有找到再去 MySQL 数据库中查找，查找成功后存储到 Redis 中，本次分享只是为了说明如何集成 Redis以及其简单使用，流程比较简单没有考虑其他因素和优化，仅供学习使用。</p>
+<p>修改的逻辑部分，代码贴在下面，可以结合注释看一下很简单。</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br><span class="line">39</span><br><span class="line">40</span><br><span class="line">41</span><br><span class="line">42</span><br><span class="line">43</span><br><span class="line">44</span><br><span class="line">45</span><br><span class="line">46</span><br><span class="line">47</span><br><span class="line">48</span><br><span class="line">49</span><br><span class="line">50</span><br><span class="line">51</span><br><span class="line">52</span><br><span class="line">53</span><br><span class="line">54</span><br><span class="line">55</span><br><span class="line">56</span><br><span class="line">57</span><br><span class="line">58</span><br><span class="line">59</span><br></pre></td><td class="code"><pre><span class="line"><span class="meta">@CrossOrigin(origins = &#123;&quot;*&quot;, &quot;http://localhost:63344&quot;&#125;)</span></span><br><span class="line"><span class="meta">@RequestMapping(value = &quot;/name&quot;, method = RequestMethod.GET)</span></span><br><span class="line"><span class="meta">@ApiOperation(value = &quot;用户名登录&quot;, httpMethod = &quot;GET&quot;, notes = &quot;用户名登录&quot;)</span></span><br><span class="line"><span class="meta">@ApiImplicitParams(&#123;</span></span><br><span class="line"><span class="meta">    @ApiImplicitParam(name = &quot;username&quot;, value = &quot;用户名&quot;, required = true),</span></span><br><span class="line"><span class="meta">    @ApiImplicitParam(name = &quot;userpwd&quot;, value = &quot;密码&quot;, required = true)</span></span><br><span class="line"><span class="meta">&#125;)</span></span><br><span class="line"><span class="keyword">public</span> MSResponse <span class="title function_">sigin</span><span class="params">(<span class="meta">@RequestParam(value = &quot;username&quot;)</span> String userName, <span class="meta">@RequestParam(value = &quot;userpwd&quot;)</span> String userPwd)</span> &#123;</span><br><span class="line">    <span class="type">MSResponse</span> <span class="variable">response</span> <span class="operator">=</span> <span class="keyword">new</span> <span class="title class_">MSResponse</span>();</span><br><span class="line">    <span class="type">MSUser</span> <span class="variable">user</span> <span class="operator">=</span> <span class="literal">null</span>;</span><br><span class="line">    <span class="keyword">if</span> (<span class="literal">null</span> == userName || <span class="literal">null</span> == userPwd || userName.length() &lt;= <span class="number">0</span> || userPwd.length() &lt;= <span class="number">0</span>) &#123;</span><br><span class="line">        <span class="type">MSUserResponseEnum</span> <span class="variable">responseEnum</span> <span class="operator">=</span> MSUserResponseEnum.Login4SiginInvalidInfo;</span><br><span class="line">        response.setCode(responseEnum.getCode());</span><br><span class="line">        response.setMsg(responseEnum.getMsg());</span><br><span class="line">    &#125; <span class="keyword">else</span> &#123;</span><br><span class="line">        <span class="comment">/** 从Redis里面查找该用户 */</span></span><br><span class="line">        <span class="type">MSUser</span> <span class="variable">redisUser</span> <span class="operator">=</span> (MSUser) redisTemplate.opsForValue().get(userName);</span><br><span class="line">        <span class="type">String</span> <span class="variable">query_user_pwd</span> <span class="operator">=</span> <span class="string">&quot;&quot;</span>;</span><br><span class="line">        <span class="keyword">if</span> (<span class="literal">null</span> != redisUser &amp;&amp; userPwd.equals(redisUser.getAccountName())) &#123; <span class="comment">// Redis 里面有该用户信息</span></span><br><span class="line">            log.info(<span class="string">&quot;Redis 中找到了 &quot;</span> + userName);</span><br><span class="line">            <span class="type">MSUserResponseEnum</span> <span class="variable">rspEnum</span> <span class="operator">=</span> MSUserResponseEnum.SUCCESS;</span><br><span class="line">            user = redisUser;</span><br><span class="line">            response.setCode(rspEnum.getCode());</span><br><span class="line">            response.setMsg(rspEnum.getMsg());</span><br><span class="line">        &#125; <span class="keyword">else</span> &#123; <span class="comment">// Redis 里面没有该用户信息</span></span><br><span class="line">            log.info(<span class="string">&quot;Redis 中没有找到 &quot;</span> + userName);</span><br><span class="line">            <span class="comment">/** 查数据库的‘user’表中是否有该用户？*/</span></span><br><span class="line">            List&lt;Map&gt; query_users = userService.queryUserByUserName(userName);</span><br><span class="line">            <span class="keyword">if</span> (query_users.isEmpty()) &#123;<span class="comment">// 没有该用户</span></span><br><span class="line">                <span class="type">MSUserResponseEnum</span> <span class="variable">responseEnum</span> <span class="operator">=</span> MSUserResponseEnum.LoginNoSuchUser;</span><br><span class="line">                response.setCode(responseEnum.getCode());</span><br><span class="line">                response.setMsg(responseEnum.getMsg());</span><br><span class="line">            &#125; <span class="keyword">else</span> &#123;<span class="comment">// 有这个用户</span></span><br><span class="line">                <span class="type">Map</span> <span class="variable">user_map</span> <span class="operator">=</span> query_users.get(<span class="number">0</span>);</span><br><span class="line">                query_user_pwd = (String) user_map.get(<span class="string">&quot;accountPwd&quot;</span>);</span><br><span class="line">                <span class="keyword">if</span> (!query_user_pwd.equals(userPwd)) &#123;</span><br><span class="line">                    <span class="type">MSUserResponseEnum</span> <span class="variable">responseEnum</span> <span class="operator">=</span> MSUserResponseEnum.LoginUserPwdError;</span><br><span class="line">                    response.setCode(responseEnum.getCode());</span><br><span class="line">                    response.setMsg(responseEnum.getMsg());</span><br><span class="line">                &#125; <span class="keyword">else</span> &#123;</span><br><span class="line">                    <span class="comment">// 将查询出来的map对象使用FastJson转换为MSUser对象</span></span><br><span class="line">                    user = JSON.parseObject(JSON.toJSONString(user_map), MSUser.class);</span><br><span class="line">                    <span class="comment">// 缓存到 Redis，使用userName作为key</span></span><br><span class="line">                    <span class="type">String</span> <span class="variable">userNameKey</span> <span class="operator">=</span> String.valueOf(user.getAccountName());</span><br><span class="line">                    redisTemplate.opsForValue().set(userNameKey, user);</span><br><span class="line">                    log.info(<span class="string">&quot;MySQL 中找到了 &quot;</span> + userName + <span class="string">&quot;, 并存到 Redis 中&quot;</span>);</span><br><span class="line"></span><br><span class="line">                    <span class="type">MSUserResponseEnum</span> <span class="variable">rspEnum</span> <span class="operator">=</span> MSUserResponseEnum.SUCCESS;</span><br><span class="line">                    response.setCode(rspEnum.getCode());</span><br><span class="line">                    response.setMsg(rspEnum.getMsg());</span><br><span class="line">                &#125;</span><br><span class="line">            &#125;</span><br><span class="line">        &#125;</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    response.setResults(user);</span><br><span class="line"></span><br><span class="line">    <span class="keyword">return</span> response;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<p>连续两次登录请求 <code>http://localhost:8080/signin/name?username=foobar&amp;userpwd=foobar</code> ，可以看到如下输出：</p>
+<figure class="highlight shell"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br></pre></td><td class="code"><pre><span class="line">Redis 中没有找到 foobar</span><br><span class="line">MySQL 中找到了 foobar, 并存到 Redis 中</span><br><span class="line"></span><br><span class="line">... 省略其他日志</span><br><span class="line"></span><br><span class="line">Redis 中找到了 foobar</span><br></pre></td></tr></table></figure>
+
+<p>打开 Redis 的 CLI，可以查询一下是否存储成功，</p>
+<figure class="highlight shell"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">127.0.0.1:6379&gt; get foobar</span><br></pre></td></tr></table></figure>
+
+<p>得到结果如下：</p>
+<figure class="highlight shell"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">&quot;&#123;\&quot;@class\&quot;:\&quot;com.veryitman.user.model.MSUser\&quot;,\&quot;userID\&quot;:1723068547,\&quot;accountName\&quot;:\&quot;foobar\&quot;,\&quot;accountPwd\&quot;:\&quot;foobar\&quot;,\&quot;nickName\&quot;:\&quot;foobar\&quot;,\&quot;age\&quot;:20,\&quot;gender\&quot;:1,\&quot;motto\&quot;:\&quot;\&quot;,\&quot;phone\&quot;:\&quot;\&quot;&#125;&quot;</span><br></pre></td></tr></table></figure>
+
+<h2 id="参考资料"><a href="#参考资料" class="headerlink" title="参考资料"></a>参考资料</h2><ul>
+<li><a target="_blank" rel="noopener" href="https://lettuce.io/core/release/reference/">Lettuce</a></li>
+<li><a target="_blank" rel="noopener" href="https://github.com/lettuce-io/lettuce-core">Lettuce-Core</a></li>
+<li><a target="_blank" rel="noopener" href="https://github.com/lettuce-io/lettuce-core/wiki/Connection-Pooling">Lettuce-Connection-Pooling</a> </li>
+<li><a target="_blank" rel="noopener" href="http://tool.oschina.net/uploads/apidocs/redis/clients/jedis/Jedis.html">Jedis</a></li>
+</ul>
+<hr>
+<p><strong>适当的赞美可以让对方做出好的改变~</strong></p>
+<p><img class="lazy" src="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAABGdBTUEAALGPC/xhBQAAADhlWElmTU0AKgAAAAgAAYdpAAQAAAABAAAAGgAAAAAAAqACAAQAAAABAAAAAaADAAQAAAABAAAAAQAAAADa6r/EAAAAC0lEQVQIHWNgAAIAAAUAAY27m/MAAAAASUVORK5CYII=" data-src="/upload/me/qrcode_wx.jpg"></p>
+
+
+
+
+</article>
+
+<div class="related-wrap reveal" id="read-next"><section class="header cap theme"><span>接下来阅读</span></section><section class="body fs14"><a id="next" href="/2020/11/15/Win10-%E5%AE%89%E8%A3%85-Redis/">Win10 安装 Redis<span class="note">较早</span></a><div class="line"></div><a id="prev" href="/2020/12/13/%E5%AF%BC%E5%85%A5MySQL%E6%95%B0%E6%8D%AE%E5%BA%93%E6%96%87%E4%BB%B6/">导入MySQL数据库文件<span class="note">较新</span></a></section></div>
+
+
+
+
+
+
+  <div class='related-wrap md reveal' id="comments">
+    <div class='cmt-title cap theme'>
+      快来参与讨论吧
+    </div>
+    <div class='cmt-body valine'>
+      
+
+<div id="valine_container" class="valine_thread"><svg class="loading" style="vertical-align: middle;fill: currentColor;overflow: hidden;" viewBox="0 0 1024 1024" version="1.1" xmlns="http://www.w3.org/2000/svg" p-id="2709"><path d="M832 512c0-176-144-320-320-320V128c211.2 0 384 172.8 384 384h-64zM192 512c0 176 144 320 320 320v64C300.8 896 128 723.2 128 512h64z" p-id="2710"></path></svg></div>
+
+    </div>
+  </div>
+
+
+
+      
+<footer class="page-footer reveal fs12"><hr><div class="text"><p>本博客所有文章除特别声明外，均采用 <a target="_blank" rel="noopener" href="https://creativecommons.org/licenses/by-nc-sa/4.0/">CC BY-NC-SA 4.0</a> 许可协议，转载请注明出处。</p>
+<p>veryitman</p>
+</div></footer>
+
+      <div class='float-panel mobile-only blur' style='display:none'>
+  <button type='button' class='sidebar-toggle mobile' onclick='sidebar.toggle()'>
+    <svg class="icon" style="width: 1em; height: 1em;vertical-align: middle;fill: currentColor;overflow: hidden;" viewBox="0 0 1024 1024" version="1.1" xmlns="http://www.w3.org/2000/svg" p-id="15301"><path d="M566.407 808.3c26.9-0.1 49.3-20.8 51.6-47.6-1.9-27.7-23.9-49.7-51.6-51.6h-412.6c-28.2-1.4-52.6 19.5-55.5 47.6 2.3 26.8 24.6 47.5 51.6 47.6h416.5v4z m309.3-249.9c26.9-0.1 49.3-20.8 51.6-47.6-2.2-26.8-24.6-47.5-51.6-47.6h-721.9c-27.7-2.8-52.5 17.4-55.3 45.1-0.1 0.8-0.1 1.7-0.2 2.5 0.9 27.2 23.6 48.5 50.7 47.6H875.707z m-103.1-245.9c26.9-0.1 49.3-20.8 51.6-47.6-0.4-28.3-23.2-51.1-51.5-51.6h-618.9c-29.5-1.1-54.3 21.9-55.5 51.4v0.2c1.4 27.8 25.2 49.2 53 47.8 0.8 0 1.7-0.1 2.5-0.2h618.8z" p-id="15302"></path><path d="M566.407 808.3c26.9-0.1 49.3-20.8 51.6-47.6-1.9-27.7-23.9-49.7-51.6-51.6h-412.6c-28.2-1.4-52.6 19.5-55.5 47.6 1.9 27.7 23.9 49.7 51.6 51.6h416.5z m309.3-249.9c26.9-0.1 49.3-20.8 51.6-47.6-2.2-26.8-24.6-47.5-51.6-47.6h-721.9c-27.7-2.8-52.5 17.4-55.3 45.1-0.1 0.8-0.1 1.7-0.2 2.5 0.9 27.2 23.6 48.5 50.7 47.6H875.707z m-103.1-245.9c26.9-0.1 49.3-20.8 51.6-47.6-0.4-28.3-23.2-51.1-51.5-51.6h-618.9c-29.5-1.1-54.3 21.9-55.5 51.4v0.2c1.4 27.8 25.2 49.2 53 47.8 0.8 0 1.7-0.1 2.5-0.2h618.8z" p-id="15303"></path></svg>
+  </button>
+</div>
+
+    </div>
+  </div>
+  <div class='scripts'>
+    <script type="text/javascript">
+  stellar = {
+    // 懒加载 css https://github.com/filamentgroup/loadCSS
+    loadCSS: (href, before, media, attributes) => {
+      var doc = window.document;
+      var ss = doc.createElement("link");
+      var ref;
+      if (before) {
+        ref = before;
+      } else {
+        var refs = (doc.body || doc.getElementsByTagName("head")[0]).childNodes;
+        ref = refs[refs.length - 1];
+      }
+      var sheets = doc.styleSheets;
+      if (attributes) {
+        for (var attributeName in attributes) {
+          if (attributes.hasOwnProperty(attributeName)) {
+            ss.setAttribute(attributeName, attributes[attributeName]);
+          }
+        }
+      }
+      ss.rel = "stylesheet";
+      ss.href = href;
+      ss.media = "only x";
+      function ready(cb) {
+        if (doc.body) {
+          return cb();
+        }
+        setTimeout(function () {
+          ready(cb);
+        });
+      }
+      ready(function () {
+        ref.parentNode.insertBefore(ss, before ? ref : ref.nextSibling);
+      });
+      var onloadcssdefined = function (cb) {
+        var resolvedHref = ss.href;
+        var i = sheets.length;
+        while (i--) {
+          if (sheets[i].href === resolvedHref) {
+            return cb();
+          }
+        }
+        setTimeout(function () {
+          onloadcssdefined(cb);
+        });
+      };
+      function loadCB() {
+        if (ss.addEventListener) {
+          ss.removeEventListener("load", loadCB);
+        }
+        ss.media = media || "all";
+      }
+      if (ss.addEventListener) {
+        ss.addEventListener("load", loadCB);
+      }
+      ss.onloadcssdefined = onloadcssdefined;
+      onloadcssdefined(loadCB);
+      return ss;
+    },
+
+    // 从 butterfly 和 volantis 获得灵感
+    loadScript: (src, opt) => new Promise((resolve, reject) => {
+      var script = document.createElement('script');
+      script.src = src;
+      if (opt) {
+        for (let key of Object.keys(opt)) {
+          script[key] = opt[key]
+        }
+      } else {
+        // 默认异步，如果需要同步，第二个参数传入 {} 即可
+        script.async = true
+      }
+      script.onerror = reject
+      script.onload = script.onreadystatechange = function() {
+        const loadState = this.readyState
+        if (loadState && loadState !== 'loaded' && loadState !== 'complete') return
+        script.onload = script.onreadystatechange = null
+        resolve()
+      }
+      document.head.appendChild(script)
+    }),
+
+    // https://github.com/jerryc127/hexo-theme-butterfly
+    jQuery: (fn) => {
+      if (typeof jQuery === 'undefined') {
+        stellar.loadScript(stellar.plugins.jQuery).then(fn)
+      } else {
+        fn()
+      }
+    }
+  };
+  stellar.github = 'https://github.com/xaoxuu/hexo-theme-stellar/tree/1.6.1';
+  stellar.config = {
+    date_suffix: {
+      just: '刚刚',
+      min: '分钟前',
+      hour: '小时前',
+      day: '天前',
+      month: '个月前',
+    },
+  };
+
+  // required plugins (only load if needs)
+  stellar.plugins = {
+    jQuery: 'https://cdn.jsdelivr.net/npm/jquery@3.5.1/dist/jquery.min.js',
+    sitesjs: '/js/plugins/sites.js',
+    friendsjs: '/js/plugins/friends.js',
+  };
+
+  // optional plugins
+  if ('true' == 'true') {
+    stellar.plugins.lazyload = Object.assign({"enable":true,"js":"https://cdn.jsdelivr.net/npm/vanilla-lazyload@17.3.1/dist/lazyload.min.js","transition":"blur"});
+  }
+  if ('true' == 'true') {
+    stellar.plugins.swiper = Object.assign({"enable":true,"css":"https://unpkg.com/swiper@6/swiper-bundle.min.css","js":"https://unpkg.com/swiper@6/swiper-bundle.min.js"});
+  }
+  if ('' == 'true') {
+    stellar.plugins.scrollreveal = Object.assign({"enable":null,"js":"https://cdn.jsdelivr.net/npm/scrollreveal@4.0.9/dist/scrollreveal.min.js","distance":"8px","duration":500,"interval":100,"scale":1});
+  }
+  if ('true' == 'true') {
+    stellar.plugins.preload = Object.assign({"enable":true,"service":"flying_pages","instant_page":"https://cdn.jsdelivr.net/gh/volantis-x/cdn-volantis@4.1.2/js/instant_page.js","flying_pages":"https://cdn.jsdelivr.net/gh/gijo-varghese/flying-pages@2.1.2/flying-pages.min.js"});
+  }
+</script>
+
+<!-- required -->
+
+  
+<script src="/js/main.js" async></script>
+
+
+
+<!-- optional -->
+
+  <script>
+  function getEmojiMaps() {
+    function emoji(path, idx, ext) {
+      return path + "/" + path + "-" + idx + "." + ext;
+    }
+    var emojiMaps = {};
+    for (var i = 1; i <= 54; i++) {
+      emojiMaps['tieba-' + i] = emoji('tieba', i, 'png');
+    }
+    for (var i = 1; i <= 101; i++) {
+      emojiMaps['qq-' + i] = emoji('qq', i, 'gif');
+    }
+    for (var i = 1; i <= 116; i++) {
+      emojiMaps['aru-' + i] = emoji('aru', i, 'gif');
+    }
+    for (var i = 1; i <= 125; i++) {
+      emojiMaps['twemoji-' + i] = emoji('twemoji', i, 'png');
+    }
+    for (var i = 1; i <= 4; i++) {
+      emojiMaps['weibo-' + i] = emoji('weibo', i, 'png');
+    }
+    return emojiMaps;
+  }
+  function load_comment(){
+    if(!document.getElementById("valine_container"))return;
+    stellar.loadScript('https://cdn.jsdelivr.net/gh/XuxuGood/simple-blog-cdn@main/js/Valine.min.js', {defer:true}).then(function () {
+      const el = document.getElementById("valine_container");
+      var path = el.getAttribute('comment_id');
+      const placeholder = "欢迎您留言~";
+      if (!path) {
+        path = decodeURI(window.location.pathname);
+      }
+      var valine = new Valine();
+      valine.init(Object.assign({"js":"https://cdn.jsdelivr.net/gh/XuxuGood/simple-blog-cdn@main/js/Valine.min.js","appId":"FY2C9UCttYNaE1j8umenqdCE-gzGzoHsz","appKey":"4i7xMwkfSEGmEDhi6SceKFxz","placeholder":"欢迎您留言~","requiredFields":["nick","mail"],"enableQQ":true,"recordIP":false,"avatar":"robohash","pageSize":10,"lang":"zh-cn","highlight":true,"mathJax":false,"tagMeta":["博主","小伙伴","访客"],"metaPlaceholder":{"nick":"昵称/QQ号(必填)","mail":"邮箱（必填，完全保密）"},"master":["6783037F2DF30EAB99F9FC256157D875"],"friends":["6783037F2DF30EAB99F9FC256157D875"],"comment_count":true}, {
+        el: '#valine_container',
+        path: path,
+        placeholder: placeholder,
+        emojiCDN: 'https://cdn.jsdelivr.net/gh/volantis-x/cdn-emoji/valine/',
+        emojiMaps: getEmojiMaps(),
+      }));
+    });
+  }
+  window.addEventListener('DOMContentLoaded', (event) => {
+    console.log('DOM fully loaded and parsed');
+    load_comment();
+  });
+
+</script>
+
+
+
+
+<!-- inject -->
+
+
+  </div>
+</body>
+</html>

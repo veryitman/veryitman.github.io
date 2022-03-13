@@ -1,0 +1,423 @@
+<!DOCTYPE html>
+<html lang='zh-CN'>
+
+<head>
+  <meta name="generator" content="Hexo 6.0.0">
+  <meta charset="utf-8">
+  
+
+  <meta http-equiv='x-dns-prefetch-control' content='on' />
+  <link rel='dns-prefetch' href='https://cdn.jsdelivr.net'>
+  <link rel="preconnect" href="https://cdn.jsdelivr.net" crossorigin>
+
+  <meta name="renderer" content="webkit">
+  <meta name="force-rendering" content="webkit">
+  <meta http-equiv="X-UA-Compatible" content="IE=Edge,chrome=1">
+  <meta name="HandheldFriendly" content="True" >
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1">
+  <meta name="theme-color" content="#f8f8f8">
+  <title>了解 Emscripten - Veryitman</title>
+
+  
+    <meta name="description" content="广告时间，见谅勿怪，看到了就点一下链接吧，感激不尽🙇‍！  最近在看人工智能相关的知识，无意中发现了一个巨牛的 人工智能教程，分享一下给大家。 教程不仅是零基础，通俗易懂，而且非常风趣幽默，像看小说一样！觉得太牛了，所以分享给大家。 点 这里 可以直接看教程。  Emscripten 是什么？Emscripten 是一个 开源的编译器，可以将 C&#x2F;C++ 的代码编译后高效运行在现代浏览">
+<meta property="og:type" content="article">
+<meta property="og:title" content="了解 Emscripten">
+<meta property="og:url" content="http://example.com/2019/02/15/%E4%BA%86%E8%A7%A3-Emscripten/index.html">
+<meta property="og:site_name" content="Veryitman">
+<meta property="og:description" content="广告时间，见谅勿怪，看到了就点一下链接吧，感激不尽🙇‍！  最近在看人工智能相关的知识，无意中发现了一个巨牛的 人工智能教程，分享一下给大家。 教程不仅是零基础，通俗易懂，而且非常风趣幽默，像看小说一样！觉得太牛了，所以分享给大家。 点 这里 可以直接看教程。  Emscripten 是什么？Emscripten 是一个 开源的编译器，可以将 C&#x2F;C++ 的代码编译后高效运行在现代浏览">
+<meta property="og:locale" content="zh_CN">
+<meta property="og:image" content="http://example.com/upload/images/2019/02/15/1.jpg">
+<meta property="og:image" content="http://example.com/upload/images/2019/02/15/2.jpg">
+<meta property="og:image" content="http://example.com/upload/me/qrcode_wx.jpg">
+<meta property="article:published_time" content="2019-02-15T13:17:59.000Z">
+<meta property="article:modified_time" content="2022-03-09T14:53:24.314Z">
+<meta property="article:author" content="veryitman">
+<meta property="article:tag" content="Emscripten wasm JavaScript">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:image" content="http://example.com/upload/images/2019/02/15/1.jpg">
+  
+  
+
+  <!-- feed -->
+  
+
+  
+    
+<link rel="stylesheet" href="/css/main.css">
+
+  
+
+  
+
+  
+</head>
+
+<body>
+  
+
+
+  <div class='l_body' id='start'>
+    <aside class='l_left' layout='post'>
+    
+
+
+<header class="header">
+
+<div class="logo-wrap"><a class="title" href="/"><div class="main">Veryitman</div></a></div>
+<nav class="menu dis-select"></nav></header>
+
+<div class="widgets">
+
+<div class="widget-wrap single" id="toc"><div class="widget-header cap dis-select"><span class="name">本文目录</span></div><div class="widget-body fs14"><div class="doc-tree active"><ol class="toc"><li class="toc-item toc-level-2"><a class="toc-link"><span class="toc-text"></span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#Emscripten-%E6%98%AF%E4%BB%80%E4%B9%88%EF%BC%9F"><span class="toc-text">Emscripten 是什么？</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#%E5%AE%89%E8%A3%85%E6%9D%A1%E4%BB%B6"><span class="toc-text">安装条件</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#%E9%80%9A%E8%BF%87-emsdk-%E5%AE%89%E8%A3%85"><span class="toc-text">通过 emsdk 安装</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#%E9%85%8D%E7%BD%AE-emsdk"><span class="toc-text">配置 emsdk</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#%E7%BC%96%E8%AF%91-C-x2F-C-%E4%BB%A3%E7%A0%81"><span class="toc-text">编译 C&#x2F;C++ 代码</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#Emscripten-%E5%BA%94%E7%94%A8%E5%9C%BA%E6%99%AF"><span class="toc-text">Emscripten 应用场景</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#%E5%8F%82%E8%80%83%E6%96%87%E6%A1%A3"><span class="toc-text">参考文档</span></a></li></ol></div></div></div>
+
+
+</div>
+
+
+    </aside>
+    <div class='l_main'>
+      
+
+      
+
+
+<div class="bread-nav fs12"><div id="breadcrumb"><a class="cap breadcrumb" href="/">主页</a><span class="sep"></span><a class="cap breadcrumb" href="/">文章</a><span class="sep"></span><a class="cap breadcrumb-link" href="/categories/C-C/">C/C++</a></div><div id="post-meta">发布于&nbsp;<time datetime="2019-02-15T13:17:59.000Z">2019-02-15</time></div></div>
+
+<article class='content md post'>
+<h1 class="article-title"><span>了解 Emscripten</span></h1>
+<p>广告时间，见谅勿怪，看到了就点一下链接吧，感激不尽🙇‍！</p>
+<hr>
+<p>最近在看人工智能相关的知识，无意中发现了一个巨牛的 <a target="_blank" rel="noopener" href="https://www.cbedai.net/androidbluetooth">人工智能教程</a>，分享一下给大家。</p>
+<p>教程不仅是零基础，通俗易懂，而且非常风趣幽默，像看小说一样！觉得太牛了，所以分享给大家。</p>
+<p>点 <a target="_blank" rel="noopener" href="https://www.cbedai.net/androidbluetooth">这里</a> 可以直接看教程。</p>
+<hr>
+<h2 id=""><a href="#" class="headerlink" title=""></a></h2><h2 id="Emscripten-是什么？"><a href="#Emscripten-是什么？" class="headerlink" title="Emscripten 是什么？"></a>Emscripten 是什么？</h2><p><code>Emscripten</code> 是一个 <a target="_blank" rel="noopener" href="https://github.com/emscripten-core/emscripten/tree/master">开源的编译器</a>，可以将 C&#x2F;C++ 的代码编译后高效运行在现代浏览器上面。<code>Emscripten</code> 的底层是基于 <code>LLVM</code> 编译器的，可以查看其开源的 <a target="_blank" rel="noopener" href="https://github.com/emscripten-core/emscripten-fastcomp">emscripten llvm</a> 和 <a target="_blank" rel="noopener" href="https://github.com/emscripten-core/emscripten-fastcomp-clang">emscripten clang</a>。</p>
+<p>下图是其编译 C&#x2F;C++ 的代码的流程图：<br><img class="lazy" src="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAABGdBTUEAALGPC/xhBQAAADhlWElmTU0AKgAAAAgAAYdpAAQAAAABAAAAGgAAAAAAAqACAAQAAAABAAAAAaADAAQAAAABAAAAAQAAAADa6r/EAAAAC0lEQVQIHWNgAAIAAAUAAY27m/MAAAAASUVORK5CYII=" data-src="/upload/images/2019/02/15/1.jpg"></p>
+<p><a target="_blank" rel="noopener" href="https://emscripten.org/">官网</a> 对 <code>Emscripten</code> 的定义：</p>
+<blockquote>
+<p>Emscripten is a toolchain for compiling to asm.js and WebAssembly, built using LLVM, that lets you run C and C++ on the web at near-native speed without plugins.</p>
+</blockquote>
+<p>截止本文发布，<code>Emscripten</code> 最新版本是 <code>1.38.27</code>.</p>
+<h2 id="安装条件"><a href="#安装条件" class="headerlink" title="安装条件"></a>安装条件</h2><p>以下是我安装和使用 Emscripten 的条件。</p>
+<ul>
+<li>macOS 版本 10.14</li>
+<li>Git，可通过 Homebrew 安装</li>
+<li>CMake，可通过 Homebrew 安装</li>
+<li>Xcode 10.1</li>
+<li>Python 2.7.x，Mac 系统自带</li>
+<li>稳定快速的网络环境，最重要和最关键的的是要有(neng)梯(fan)子(qiang)</li>
+<li>解决问题的态度和毅力</li>
+</ul>
+<h2 id="通过-emsdk-安装"><a href="#通过-emsdk-安装" class="headerlink" title="通过 emsdk 安装"></a>通过 emsdk 安装</h2><p>安装 <code>Emscripten</code> 可以通过安装 <a target="_blank" rel="noopener" href="https://github.com/emscripten-core/emsdk">emscripten SDK</a> 来完成，<code>emscripten SDK</code> 可以简单的理解为是 <code>Emscripten</code> 的一套工具链。</p>
+<p>在你自己的电脑上面任意新建一个目录，如我的 <code>~/dev/emscwork</code>，打开终端，进入此目录。</p>
+<p><strong>1、</strong>下载 <code>emsdk</code></p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">git clone https://github.com/juj/emsdk.git</span><br></pre></td></tr></table></figure>
+
+<p><strong>2、</strong>进入 <code>emsdk</code> 目录</p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">cd emsdk</span><br></pre></td></tr></table></figure>
+
+<p><strong>3、</strong>开始安装</p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br></pre></td><td class="code"><pre><span class="line"># Fetch the latest version of the emsdk (not needed the first time you clone)</span><br><span class="line">git pull</span><br><span class="line"></span><br><span class="line"># Download and install the latest SDK tools.</span><br><span class="line">./emsdk install latest</span><br><span class="line"></span><br><span class="line"># Make the &quot;latest&quot; SDK &quot;active&quot; for the current user. (writes ~/.emscripten file)</span><br><span class="line">./emsdk activate latest</span><br><span class="line"></span><br><span class="line"># Activate PATH and other environment variables in the current terminal</span><br><span class="line">source ./emsdk_env.sh</span><br></pre></td></tr></table></figure>
+
+<p><strong>注意: 每次更新完 <code>emsdk</code> 后，依旧需要执行上面命令重新安装和激活。</strong></p>
+<p>另外一个比较常用的是 <code>./emsdk update-tags</code> 这个命令，可以直接更新 <code>emsdk</code> 的最新 tags 版本，更新 tags 完成后，重新安装和激活最新版的 <code>emsdk</code> 套件。</p>
+<h2 id="配置-emsdk"><a href="#配置-emsdk" class="headerlink" title="配置 emsdk"></a>配置 emsdk</h2><p>如果你想在任意路径下都可以使用 <code>emsdk</code> 里面的各种工具(就是一些二进制可执行文件)，需要为其设置环境变量。</p>
+<p>编辑 <code>~/.bash_profile</code> 文件，新增如下代码:</p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><span class="line">export EMSDK=~/emscwork/emsdk</span><br><span class="line">export EMSCRIPTEN=$EMSDK/emscripten/1.38.27</span><br><span class="line">export BINARYEN_ROOT=$EMSDK/binaryen/master_64bit_binaryen</span><br><span class="line">export PATH=$EMSDK:$EMSCRIPTEN:$BINARYEN_ROOT:$PATH</span><br></pre></td></tr></table></figure>
+
+<p>执行下面命令, 使刚配置的文件生效。</p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">source ~/.bash_profile</span><br></pre></td></tr></table></figure>
+
+<p>至此，安装和设置环境变量完成。</p>
+<p>可以使用下面命令来查看 <code>emsdk</code> 的安装情况。</p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">emcc --version</span><br></pre></td></tr></table></figure>
+
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><span class="line">emcc (Emscripten gcc/clang-like replacement) 1.38.27 (commit ea5d631a5446632e195765d89a53ead71cd6de45)</span><br><span class="line">Copyright (C) 2014 the Emscripten authors (see AUTHORS.txt)</span><br><span class="line">This is free and open source software under the MIT license.</span><br><span class="line">There is NO warranty; not even for MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.</span><br></pre></td></tr></table></figure>
+
+<p><code>emcc</code> 是一个可执行脚本，该脚本在 <code>emsdk/emscripten/1.38.27</code> 目录下。</p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">emcc --help</span><br></pre></td></tr></table></figure>
+
+<p>上面命令可以查看更多关于 <code>emcc</code> 的使用方法.</p>
+<h2 id="编译-C-x2F-C-代码"><a href="#编译-C-x2F-C-代码" class="headerlink" title="编译 C&#x2F;C++ 代码"></a>编译 C&#x2F;C++ 代码</h2><p>这里举个实际的例子。</p>
+<p><strong>main.c</strong></p>
+<figure class="highlight c"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br></pre></td><td class="code"><pre><span class="line"><span class="meta">#<span class="keyword">include</span> <span class="string">&lt;stdio.h&gt;</span></span></span><br><span class="line"></span><br><span class="line"><span class="type">int</span> <span class="title function_">main</span><span class="params">(<span class="type">int</span> argc, <span class="type">char</span> ** argv)</span> </span><br><span class="line">&#123;</span><br><span class="line">    <span class="built_in">printf</span>(<span class="string">&quot;Emscripten show in browser...\n&quot;</span>);</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<p>使用 <code>emcc</code> 编译，如下：</p>
+<figure class="highlight c"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">emcc main.c -s WASM=<span class="number">1</span> -o mz.html</span><br></pre></td></tr></table></figure>
+
+<p>这里要注意 <code>WASM=1</code> 这个选项，现在新版 SDK 默认 <code>WASM=1</code> 了，如果不想生成 <code>.wasm</code> 这个文件，需要指定 <code>WASM=0</code> 选项。</p>
+<p>生成另外三个文件如下：</p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">mz.html  mz.js  mz.wasm</span><br></pre></td></tr></table></figure>
+
+<p>简单介绍一下这三个文件</p>
+<p><strong>1、mz.wasm</strong></p>
+<blockquote>
+<p>二进制的 <code>wasm</code> 模块代码</p>
+</blockquote>
+<p><strong>2、mz.js</strong></p>
+<blockquote>
+<p>胶水代码，包含了原生 C 函数和 JavaScript&#x2F;wasm 之间转换的 JS 文件</p>
+</blockquote>
+<p><strong>3、mz.html</strong></p>
+<blockquote>
+<p>用来加载、编译和实例化 <code>wasm</code> 代码并且将其输出在浏览器显示上的 <code>HTML</code> 文件</p>
+</blockquote>
+<p>最后执行下面的命令，可以在 Safari 浏览器中显示效果</p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">emrun mz.html</span><br></pre></td></tr></table></figure>
+
+<p><img class="lazy" src="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAABGdBTUEAALGPC/xhBQAAADhlWElmTU0AKgAAAAgAAYdpAAQAAAABAAAAGgAAAAAAAqACAAQAAAABAAAAAaADAAQAAAABAAAAAQAAAADa6r/EAAAAC0lEQVQIHWNgAAIAAAUAAY27m/MAAAAASUVORK5CYII=" data-src="/upload/images/2019/02/15/2.jpg"></p>
+<p><strong>main.cpp</strong></p>
+<figure class="highlight cpp"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br></pre></td><td class="code"><pre><span class="line"><span class="meta">#<span class="keyword">include</span> <span class="string">&lt;iostream&gt;</span></span></span><br><span class="line"></span><br><span class="line"><span class="keyword">using</span> <span class="keyword">namespace</span> std;</span><br><span class="line"></span><br><span class="line"><span class="function"><span class="type">int</span> <span class="title">main</span><span class="params">(<span class="type">int</span> argc, <span class="type">char</span> ** argv)</span></span></span><br><span class="line"><span class="function"></span>&#123;</span><br><span class="line">    cout &lt;&lt; <span class="string">&quot;Emscripten show in browser...&quot;</span> &lt;&lt; endl;</span><br><span class="line">    </span><br><span class="line">    <span class="keyword">return</span> <span class="number">0</span>;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<p>编译 C++ 文件(main.cpp)</p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">emcc main.cpp -s WASM=1 -o mzcpp.html</span><br></pre></td></tr></table></figure>
+
+<p>同样的方式编译和运行 <code>mzcpp.html</code> 即可看到同样的效果。</p>
+<h2 id="Emscripten-应用场景"><a href="#Emscripten-应用场景" class="headerlink" title="Emscripten 应用场景"></a>Emscripten 应用场景</h2><p><code>Emscripten</code> 只是一个编译器，能将我们的高级语言编译为浏览器可以识别并运行的程序，这个看起来确实很诱人。</p>
+<p>就目前来说，Emscripten 应用场景可以使用在安全和游戏上面。</p>
+<p><strong>1、安全</strong></p>
+<p>C&#x2F;C++ 代码经过编译之后，会生成 <a target="_blank" rel="noopener" href="https://developer.mozilla.org/zh-CN/docs/WebAssembly"><code>wasm</code> 格式</a> 的二进制文件，这个安全级别较高，即使在浏览器中运行，破解者也不会很轻松的破解代码，这样一些在 JS 中涉及到安全的问题，可以使用 C&#x2F;C++ 来写结合一些加密技术，然后用 <code>Emscripten</code> 编译。</p>
+<p><strong>2、游戏</strong></p>
+<p>如果能把用 C&#x2F;C++ 语言写的游戏，转为可在浏览器直接运行的H5游戏，那就很美好了，用户不需要下载游戏，直接玩。现代浏览器技术的更新和发展已经让这个想法变成了现实，至少在主流的浏览器上面。</p>
+<p>推荐大家看看这篇文章 <a target="_blank" rel="noopener" href="https://blog.fundebug.com/2018/12/24/how-does-webassembly-works/">JavaScript是如何工作的：与WebAssembly比较及其使用场景</a></p>
+<h2 id="参考文档"><a href="#参考文档" class="headerlink" title="参考文档"></a>参考文档</h2><p><a target="_blank" rel="noopener" href="https://emscripten.org/docs/introducing_emscripten/about_emscripten.html">About Emscripten</a></p>
+<p><a target="_blank" rel="noopener" href="https://emscripten.org/docs/getting_started/downloads.html">Download and install</a></p>
+<p><a target="_blank" rel="noopener" href="https://developer.mozilla.org/zh-CN/docs/WebAssembly/C_to_wasm">编译 C&#x2F;C++ 为 WebAssembly</a></p>
+<p><a target="_blank" rel="noopener" href="https://developer.mozilla.org/zh-CN/docs/WebAssembly/Concepts">WebAssembly 概念</a></p>
+<hr>
+<p><strong>扫码关注，你我就各多一个朋友~</strong></p>
+<p><img class="lazy" src="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAABGdBTUEAALGPC/xhBQAAADhlWElmTU0AKgAAAAgAAYdpAAQAAAABAAAAGgAAAAAAAqACAAQAAAABAAAAAaADAAQAAAABAAAAAQAAAADa6r/EAAAAC0lEQVQIHWNgAAIAAAUAAY27m/MAAAAASUVORK5CYII=" data-src="/upload/me/qrcode_wx.jpg"></p>
+
+
+
+
+</article>
+
+<div class="related-wrap reveal" id="read-next"><section class="header cap theme"><span>接下来阅读</span></section><section class="body fs14"><a id="next" href="/2019/02/08/C-%E7%BB%93%E6%9E%84%E4%BD%93%E6%8C%87%E9%92%88%E5%88%9D%E5%A7%8B%E5%8C%96/">C 结构体指针初始化<span class="note">较早</span></a><div class="line"></div><a id="prev" href="/2019/02/23/%E7%BB%99-Homebrew-%E8%AE%BE%E7%BD%AE%E4%BB%A3%E7%90%86/">给 Homebrew 设置代理<span class="note">较新</span></a></section></div>
+
+
+
+
+
+
+  <div class='related-wrap md reveal' id="comments">
+    <div class='cmt-title cap theme'>
+      快来参与讨论吧
+    </div>
+    <div class='cmt-body valine'>
+      
+
+<div id="valine_container" class="valine_thread"><svg class="loading" style="vertical-align: middle;fill: currentColor;overflow: hidden;" viewBox="0 0 1024 1024" version="1.1" xmlns="http://www.w3.org/2000/svg" p-id="2709"><path d="M832 512c0-176-144-320-320-320V128c211.2 0 384 172.8 384 384h-64zM192 512c0 176 144 320 320 320v64C300.8 896 128 723.2 128 512h64z" p-id="2710"></path></svg></div>
+
+    </div>
+  </div>
+
+
+
+      
+<footer class="page-footer reveal fs12"><hr><div class="text"><p>本博客所有文章除特别声明外，均采用 <a target="_blank" rel="noopener" href="https://creativecommons.org/licenses/by-nc-sa/4.0/">CC BY-NC-SA 4.0</a> 许可协议，转载请注明出处。</p>
+<p>veryitman</p>
+</div></footer>
+
+      <div class='float-panel mobile-only blur' style='display:none'>
+  <button type='button' class='sidebar-toggle mobile' onclick='sidebar.toggle()'>
+    <svg class="icon" style="width: 1em; height: 1em;vertical-align: middle;fill: currentColor;overflow: hidden;" viewBox="0 0 1024 1024" version="1.1" xmlns="http://www.w3.org/2000/svg" p-id="15301"><path d="M566.407 808.3c26.9-0.1 49.3-20.8 51.6-47.6-1.9-27.7-23.9-49.7-51.6-51.6h-412.6c-28.2-1.4-52.6 19.5-55.5 47.6 2.3 26.8 24.6 47.5 51.6 47.6h416.5v4z m309.3-249.9c26.9-0.1 49.3-20.8 51.6-47.6-2.2-26.8-24.6-47.5-51.6-47.6h-721.9c-27.7-2.8-52.5 17.4-55.3 45.1-0.1 0.8-0.1 1.7-0.2 2.5 0.9 27.2 23.6 48.5 50.7 47.6H875.707z m-103.1-245.9c26.9-0.1 49.3-20.8 51.6-47.6-0.4-28.3-23.2-51.1-51.5-51.6h-618.9c-29.5-1.1-54.3 21.9-55.5 51.4v0.2c1.4 27.8 25.2 49.2 53 47.8 0.8 0 1.7-0.1 2.5-0.2h618.8z" p-id="15302"></path><path d="M566.407 808.3c26.9-0.1 49.3-20.8 51.6-47.6-1.9-27.7-23.9-49.7-51.6-51.6h-412.6c-28.2-1.4-52.6 19.5-55.5 47.6 1.9 27.7 23.9 49.7 51.6 51.6h416.5z m309.3-249.9c26.9-0.1 49.3-20.8 51.6-47.6-2.2-26.8-24.6-47.5-51.6-47.6h-721.9c-27.7-2.8-52.5 17.4-55.3 45.1-0.1 0.8-0.1 1.7-0.2 2.5 0.9 27.2 23.6 48.5 50.7 47.6H875.707z m-103.1-245.9c26.9-0.1 49.3-20.8 51.6-47.6-0.4-28.3-23.2-51.1-51.5-51.6h-618.9c-29.5-1.1-54.3 21.9-55.5 51.4v0.2c1.4 27.8 25.2 49.2 53 47.8 0.8 0 1.7-0.1 2.5-0.2h618.8z" p-id="15303"></path></svg>
+  </button>
+</div>
+
+    </div>
+  </div>
+  <div class='scripts'>
+    <script type="text/javascript">
+  stellar = {
+    // 懒加载 css https://github.com/filamentgroup/loadCSS
+    loadCSS: (href, before, media, attributes) => {
+      var doc = window.document;
+      var ss = doc.createElement("link");
+      var ref;
+      if (before) {
+        ref = before;
+      } else {
+        var refs = (doc.body || doc.getElementsByTagName("head")[0]).childNodes;
+        ref = refs[refs.length - 1];
+      }
+      var sheets = doc.styleSheets;
+      if (attributes) {
+        for (var attributeName in attributes) {
+          if (attributes.hasOwnProperty(attributeName)) {
+            ss.setAttribute(attributeName, attributes[attributeName]);
+          }
+        }
+      }
+      ss.rel = "stylesheet";
+      ss.href = href;
+      ss.media = "only x";
+      function ready(cb) {
+        if (doc.body) {
+          return cb();
+        }
+        setTimeout(function () {
+          ready(cb);
+        });
+      }
+      ready(function () {
+        ref.parentNode.insertBefore(ss, before ? ref : ref.nextSibling);
+      });
+      var onloadcssdefined = function (cb) {
+        var resolvedHref = ss.href;
+        var i = sheets.length;
+        while (i--) {
+          if (sheets[i].href === resolvedHref) {
+            return cb();
+          }
+        }
+        setTimeout(function () {
+          onloadcssdefined(cb);
+        });
+      };
+      function loadCB() {
+        if (ss.addEventListener) {
+          ss.removeEventListener("load", loadCB);
+        }
+        ss.media = media || "all";
+      }
+      if (ss.addEventListener) {
+        ss.addEventListener("load", loadCB);
+      }
+      ss.onloadcssdefined = onloadcssdefined;
+      onloadcssdefined(loadCB);
+      return ss;
+    },
+
+    // 从 butterfly 和 volantis 获得灵感
+    loadScript: (src, opt) => new Promise((resolve, reject) => {
+      var script = document.createElement('script');
+      script.src = src;
+      if (opt) {
+        for (let key of Object.keys(opt)) {
+          script[key] = opt[key]
+        }
+      } else {
+        // 默认异步，如果需要同步，第二个参数传入 {} 即可
+        script.async = true
+      }
+      script.onerror = reject
+      script.onload = script.onreadystatechange = function() {
+        const loadState = this.readyState
+        if (loadState && loadState !== 'loaded' && loadState !== 'complete') return
+        script.onload = script.onreadystatechange = null
+        resolve()
+      }
+      document.head.appendChild(script)
+    }),
+
+    // https://github.com/jerryc127/hexo-theme-butterfly
+    jQuery: (fn) => {
+      if (typeof jQuery === 'undefined') {
+        stellar.loadScript(stellar.plugins.jQuery).then(fn)
+      } else {
+        fn()
+      }
+    }
+  };
+  stellar.github = 'https://github.com/xaoxuu/hexo-theme-stellar/tree/1.6.1';
+  stellar.config = {
+    date_suffix: {
+      just: '刚刚',
+      min: '分钟前',
+      hour: '小时前',
+      day: '天前',
+      month: '个月前',
+    },
+  };
+
+  // required plugins (only load if needs)
+  stellar.plugins = {
+    jQuery: 'https://cdn.jsdelivr.net/npm/jquery@3.5.1/dist/jquery.min.js',
+    sitesjs: '/js/plugins/sites.js',
+    friendsjs: '/js/plugins/friends.js',
+  };
+
+  // optional plugins
+  if ('true' == 'true') {
+    stellar.plugins.lazyload = Object.assign({"enable":true,"js":"https://cdn.jsdelivr.net/npm/vanilla-lazyload@17.3.1/dist/lazyload.min.js","transition":"blur"});
+  }
+  if ('true' == 'true') {
+    stellar.plugins.swiper = Object.assign({"enable":true,"css":"https://unpkg.com/swiper@6/swiper-bundle.min.css","js":"https://unpkg.com/swiper@6/swiper-bundle.min.js"});
+  }
+  if ('' == 'true') {
+    stellar.plugins.scrollreveal = Object.assign({"enable":null,"js":"https://cdn.jsdelivr.net/npm/scrollreveal@4.0.9/dist/scrollreveal.min.js","distance":"8px","duration":500,"interval":100,"scale":1});
+  }
+  if ('true' == 'true') {
+    stellar.plugins.preload = Object.assign({"enable":true,"service":"flying_pages","instant_page":"https://cdn.jsdelivr.net/gh/volantis-x/cdn-volantis@4.1.2/js/instant_page.js","flying_pages":"https://cdn.jsdelivr.net/gh/gijo-varghese/flying-pages@2.1.2/flying-pages.min.js"});
+  }
+</script>
+
+<!-- required -->
+
+  
+<script src="/js/main.js" async></script>
+
+
+
+<!-- optional -->
+
+  <script>
+  function getEmojiMaps() {
+    function emoji(path, idx, ext) {
+      return path + "/" + path + "-" + idx + "." + ext;
+    }
+    var emojiMaps = {};
+    for (var i = 1; i <= 54; i++) {
+      emojiMaps['tieba-' + i] = emoji('tieba', i, 'png');
+    }
+    for (var i = 1; i <= 101; i++) {
+      emojiMaps['qq-' + i] = emoji('qq', i, 'gif');
+    }
+    for (var i = 1; i <= 116; i++) {
+      emojiMaps['aru-' + i] = emoji('aru', i, 'gif');
+    }
+    for (var i = 1; i <= 125; i++) {
+      emojiMaps['twemoji-' + i] = emoji('twemoji', i, 'png');
+    }
+    for (var i = 1; i <= 4; i++) {
+      emojiMaps['weibo-' + i] = emoji('weibo', i, 'png');
+    }
+    return emojiMaps;
+  }
+  function load_comment(){
+    if(!document.getElementById("valine_container"))return;
+    stellar.loadScript('https://cdn.jsdelivr.net/gh/XuxuGood/simple-blog-cdn@main/js/Valine.min.js', {defer:true}).then(function () {
+      const el = document.getElementById("valine_container");
+      var path = el.getAttribute('comment_id');
+      const placeholder = "欢迎您留言~";
+      if (!path) {
+        path = decodeURI(window.location.pathname);
+      }
+      var valine = new Valine();
+      valine.init(Object.assign({"js":"https://cdn.jsdelivr.net/gh/XuxuGood/simple-blog-cdn@main/js/Valine.min.js","appId":"FY2C9UCttYNaE1j8umenqdCE-gzGzoHsz","appKey":"4i7xMwkfSEGmEDhi6SceKFxz","placeholder":"欢迎您留言~","requiredFields":["nick","mail"],"enableQQ":true,"recordIP":false,"avatar":"robohash","pageSize":10,"lang":"zh-cn","highlight":true,"mathJax":false,"tagMeta":["博主","小伙伴","访客"],"metaPlaceholder":{"nick":"昵称/QQ号(必填)","mail":"邮箱（必填，完全保密）"},"master":["6783037F2DF30EAB99F9FC256157D875"],"friends":["6783037F2DF30EAB99F9FC256157D875"],"comment_count":true}, {
+        el: '#valine_container',
+        path: path,
+        placeholder: placeholder,
+        emojiCDN: 'https://cdn.jsdelivr.net/gh/volantis-x/cdn-emoji/valine/',
+        emojiMaps: getEmojiMaps(),
+      }));
+    });
+  }
+  window.addEventListener('DOMContentLoaded', (event) => {
+    console.log('DOM fully loaded and parsed');
+    load_comment();
+  });
+
+</script>
+
+
+
+
+<!-- inject -->
+
+
+  </div>
+</body>
+</html>

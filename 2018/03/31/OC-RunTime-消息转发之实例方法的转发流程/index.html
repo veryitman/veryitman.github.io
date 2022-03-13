@@ -1,0 +1,422 @@
+<!DOCTYPE html>
+<html lang='zh-CN'>
+
+<head>
+  <meta name="generator" content="Hexo 6.0.0">
+  <meta charset="utf-8">
+  
+
+  <meta http-equiv='x-dns-prefetch-control' content='on' />
+  <link rel='dns-prefetch' href='https://cdn.jsdelivr.net'>
+  <link rel="preconnect" href="https://cdn.jsdelivr.net" crossorigin>
+
+  <meta name="renderer" content="webkit">
+  <meta name="force-rendering" content="webkit">
+  <meta http-equiv="X-UA-Compatible" content="IE=Edge,chrome=1">
+  <meta name="HandheldFriendly" content="True" >
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1">
+  <meta name="theme-color" content="#f8f8f8">
+  <title>OC-RunTime: 消息转发之实例方法的转发流程 - Veryitman</title>
+
+  
+    <meta name="description" content="最近在看人工智能相关的知识，无意中发现了一个巨牛的 人工智能教程，分享一下给大家。 教程不仅是零基础，通俗易懂，而且非常风趣幽默，像看小说一样！觉得太牛了，所以分享给大家。点 这里 可以直接看教程。  本篇只是从系统函数的实现上, 来分析消息转发的流程.  下一篇结合本篇的理论和实际的例子来分析一下消息转发. 需要明确的几个问题在往下看这篇博文之前, 有几个问题需要大家达成共识. 1.Object">
+<meta property="og:type" content="article">
+<meta property="og:title" content="OC-RunTime: 消息转发之实例方法的转发流程">
+<meta property="og:url" content="http://example.com/2018/03/31/OC-RunTime-%E6%B6%88%E6%81%AF%E8%BD%AC%E5%8F%91%E4%B9%8B%E5%AE%9E%E4%BE%8B%E6%96%B9%E6%B3%95%E7%9A%84%E8%BD%AC%E5%8F%91%E6%B5%81%E7%A8%8B/index.html">
+<meta property="og:site_name" content="Veryitman">
+<meta property="og:description" content="最近在看人工智能相关的知识，无意中发现了一个巨牛的 人工智能教程，分享一下给大家。 教程不仅是零基础，通俗易懂，而且非常风趣幽默，像看小说一样！觉得太牛了，所以分享给大家。点 这里 可以直接看教程。  本篇只是从系统函数的实现上, 来分析消息转发的流程.  下一篇结合本篇的理论和实际的例子来分析一下消息转发. 需要明确的几个问题在往下看这篇博文之前, 有几个问题需要大家达成共识. 1.Object">
+<meta property="og:locale" content="zh_CN">
+<meta property="og:image" content="http://example.com/upload/images/2018/03/31/1.jpg">
+<meta property="og:image" content="http://example.com/upload/me/qrcode_wx.jpg">
+<meta property="article:published_time" content="2018-03-31T08:27:44.000Z">
+<meta property="article:modified_time" content="2022-03-09T14:53:24.336Z">
+<meta property="article:author" content="veryitman">
+<meta property="article:tag" content="iOS RunTime MessageForward">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:image" content="http://example.com/upload/images/2018/03/31/1.jpg">
+  
+  
+
+  <!-- feed -->
+  
+
+  
+    
+<link rel="stylesheet" href="/css/main.css">
+
+  
+
+  
+
+  
+</head>
+
+<body>
+  
+
+
+  <div class='l_body' id='start'>
+    <aside class='l_left' layout='post'>
+    
+
+
+<header class="header">
+
+<div class="logo-wrap"><a class="title" href="/"><div class="main">Veryitman</div></a></div>
+<nav class="menu dis-select"></nav></header>
+
+<div class="widgets">
+
+<div class="widget-wrap single" id="toc"><div class="widget-header cap dis-select"><span class="name">本文目录</span></div><div class="widget-body fs14"><div class="doc-tree active"><ol class="toc"><li class="toc-item toc-level-2"><a class="toc-link" href="#%E9%9C%80%E8%A6%81%E6%98%8E%E7%A1%AE%E7%9A%84%E5%87%A0%E4%B8%AA%E9%97%AE%E9%A2%98"><span class="toc-text">需要明确的几个问题</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#%E5%85%B3%E4%BA%8E-Message-Forwarding"><span class="toc-text">关于 Message Forwarding</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#%E5%AE%9E%E4%BE%8B%E6%96%B9%E6%B3%95-%E6%B6%88%E6%81%AF-%E8%BD%AC%E5%8F%91%E7%9A%84%E6%B5%81%E7%A8%8B"><span class="toc-text">实例方法(消息)转发的流程</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#%E5%8F%82%E8%80%83%E6%96%87%E6%A1%A3"><span class="toc-text">参考文档</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#%E6%8E%A8%E8%8D%90"><span class="toc-text">推荐</span></a></li></ol></div></div></div>
+
+
+</div>
+
+
+    </aside>
+    <div class='l_main'>
+      
+
+      
+
+
+<div class="bread-nav fs12"><div id="breadcrumb"><a class="cap breadcrumb" href="/">主页</a><span class="sep"></span><a class="cap breadcrumb" href="/">文章</a><span class="sep"></span><a class="cap breadcrumb-link" href="/categories/iOS/">iOS</a></div><div id="post-meta">发布于&nbsp;<time datetime="2018-03-31T08:27:44.000Z">2018-03-31</time></div></div>
+
+<article class='content md post'>
+<h1 class="article-title"><span>OC-RunTime: 消息转发之实例方法的转发流程</span></h1>
+<p>最近在看人工智能相关的知识，无意中发现了一个巨牛的 <a target="_blank" rel="noopener" href="https://www.cbedai.net/androidbluetooth">人工智能教程</a>，分享一下给大家。</p>
+<p>教程不仅是零基础，通俗易懂，而且非常风趣幽默，像看小说一样！觉得太牛了，所以分享给大家。点 <a target="_blank" rel="noopener" href="https://www.cbedai.net/androidbluetooth">这里</a> 可以直接看教程。</p>
+<hr>
+<p>本篇只是从系统函数的实现上, 来分析消息转发的流程. </p>
+<p>下一篇结合本篇的理论和实际的例子来分析一下消息转发.</p>
+<h2 id="需要明确的几个问题"><a href="#需要明确的几个问题" class="headerlink" title="需要明确的几个问题"></a>需要明确的几个问题</h2><p>在往下看这篇博文之前, 有几个问题需要大家达成共识.</p>
+<p><strong>1.Objective-C 的特点</strong><br>按照是否需要编译的原理来说, 编程语言一般可以分为静态编译类型和动态解释类型.</p>
+<p>如 Java&#x2F;C&#x2F;C++ 是属于编译类型的语言, Php&#x2F;Python&#x2F;Ruby 属于解释类型的语言.</p>
+<p>Objective-C 是基于 C 并具有自身特点的编译型语言, 再加上其 RunTime 机制, Objective-C 既是编译型又是动态的一门编程语言. 所谓的动态指的是在程序编译后运行中可以改变其结构.</p>
+<p><strong>2.函数调用</strong><br>在 Objective-C 中调用函数, 被解释为向一个对象发送消息, 该对象可以是类对象也可以是实例对象.</p>
+<p>例如:</p>
+<figure class="highlight objc"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">[person play];</span><br></pre></td></tr></table></figure>
+
+<p>意思是向实例对象 person 发送一个 play 的消息. </p>
+<p>还有一个比较有意思的是, 向一个空对象(nil) 发送消息不会 crash, 如果在 Java 中这个是不行的.例如:</p>
+<figure class="highlight objc"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line">person = <span class="literal">nil</span>;</span><br><span class="line">[person play];</span><br></pre></td></tr></table></figure>
+
+<p>这个不会导致程序崩溃, 只是调用 <code>play</code> 函数没有任何反应罢了!</p>
+<p><strong>3.self</strong><br>在 C++&#x2F;Java 语言中, 有 this 指针的概念, 在 Objective-C 中, 也有类似的 this 指针即 self. self 既可以是实例对象也可以是类对象.</p>
+<p>这里举个例子, 下面两个同名函数, 一个是类方法(+)一个是实例方法(-).<br>跟 Java 中的类似, 实例方法可以直接使用类方法, 但是类方法不可以直接使用实例方法.</p>
+<figure class="highlight objc"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br></pre></td><td class="code"><pre><span class="line">+ (<span class="keyword">void</span>)testClassMethod</span><br><span class="line">&#123;</span><br><span class="line">    [<span class="keyword">self</span> sendMsg];</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line">- (<span class="keyword">void</span>)testInstanceMethod</span><br><span class="line">&#123;</span><br><span class="line">    [<span class="keyword">self</span> sendMsg];</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line"><span class="comment">// 类方法</span></span><br><span class="line">+ (<span class="keyword">void</span>)sendMsg</span><br><span class="line">&#123;</span><br><span class="line">    <span class="built_in">NSLog</span>(<span class="string">@&quot;+ sendMsg. self: %@&quot;</span>, <span class="keyword">self</span>);</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line"><span class="comment">// 实例方法</span></span><br><span class="line">- (<span class="keyword">void</span>)sendMsg</span><br><span class="line">&#123;</span><br><span class="line">    <span class="built_in">NSLog</span>(<span class="string">@&quot;- sendMsg. self: %@&quot;</span>, <span class="keyword">self</span>);</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<p>在 ViewController 中分别调用两个 test 方法, 输出内容, 如下:</p>
+<figure class="highlight objc"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line">+ sendMsg. <span class="keyword">self</span>: ViewController</span><br><span class="line"></span><br><span class="line">- sendMsg. <span class="keyword">self</span>: &lt;ViewController: <span class="number">0x7fc64740a5e0</span>&gt;</span><br></pre></td></tr></table></figure>
+
+<p>从结果可以看出类方法中的 <code>self</code> 代表的是该类, 实例方法中的 <code>self</code> 指的是类的一个实例即对象.</p>
+<p>更多 <code>self</code> 的知识点，可以参考 <a target="_blank" rel="noopener" href="http://www.veryitman.com/2018/12/23/OC-self/">OC: self</a> 这篇文章。</p>
+<h2 id="关于-Message-Forwarding"><a href="#关于-Message-Forwarding" class="headerlink" title="关于 Message Forwarding"></a>关于 Message Forwarding</h2><p>Message Forwarding 即消息转发. </p>
+<p>关于消息转发, 官方文档 <a target="_blank" rel="noopener" href="https://developer.apple.com/library/content/documentation/Cocoa/Conceptual/ObjCRuntimeGuide/Articles/ocrtForwarding.html#//apple_ref/doc/uid/TP40008048-CH105-SW1">Message Forwarding</a> 是这么解释的:</p>
+<figure class="highlight objc"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line">Sending a message to an object that does not handle that message is an error. However, </span><br><span class="line">before announcing the error, </span><br><span class="line">the runtime system gives the receiving object a second chance to handle the message.</span><br></pre></td></tr></table></figure>
+
+<p>大概意思是这样的:</p>
+<blockquote>
+<p>向一个对象发送消息, 该对象如果无法处理该消息, 系统就会报错, 但是在报错之前, 利用 Objective-C 提供的运行时机制可以防止报错的发生. 在 iOS 中类似这样的报错会导致程序直接 crash.<br>这里的对象, 可以是实例对象又可以是类对象.</p>
+</blockquote>
+<p>在开发过程中, 大家一般都会遇到类似的 crash:</p>
+<figure class="highlight objc"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br></pre></td><td class="code"><pre><span class="line"> *** Terminating app due to uncaught exception  </span><br><span class="line"><span class="string">&#x27;NSInvalidArgumentException&#x27;</span>, </span><br><span class="line">reason: <span class="string">&#x27;-[Controller play]: unrecognized selector sent to instance 0x7ff779f322a0&#x27;</span></span><br><span class="line">*** First throw call stack:</span><br><span class="line">(</span><br><span class="line">CoreFoundation  <span class="number">0x000000010d89712b</span> __exceptionPreprocess + <span class="number">171</span></span><br><span class="line">libobjc.A.dylib <span class="number">0x000000010cf2bf41</span> objc_exception_throw + <span class="number">48</span></span><br><span class="line">CoreFoundation  <span class="number">0x000000010d918024</span> -[<span class="built_in">NSObject</span>(<span class="built_in">NSObject</span>) doesNotRecognizeSelector:] + <span class="number">132</span></span><br><span class="line"><span class="built_in">UIKit</span> 			<span class="number">0x000000010df48f51</span> -[<span class="built_in">UIResponder</span> doesNotRecognizeSelector:] + <span class="number">295</span></span><br><span class="line">CoreFoundation  <span class="number">0x000000010d819f78</span> ___forwarding___ + <span class="number">1432</span></span><br><span class="line">CoreFoundation  <span class="number">0x000000010d819958</span> _CF_forwarding_prep_0 + <span class="number">120</span></span><br><span class="line">)</span><br></pre></td></tr></table></figure>
+
+<p>这个 crash 很明显, <code>Controller</code> 中调用了一个不存在的函数 <code>play</code>.</p>
+<p>这里可以看到一个被调用的系统函数 <code>doesNotRecognizeSelector</code>, 今天我们剖析一下消息转发的流程.</p>
+<h2 id="实例方法-消息-转发的流程"><a href="#实例方法-消息-转发的流程" class="headerlink" title="实例方法(消息)转发的流程"></a>实例方法(消息)转发的流程</h2><p>在上面已经说过, OC 可以通过运行时来避免因为找不到方法而导致错误.</p>
+<p>其实, 含义就是 OC 给了我们第二次机会来避免类似的错误.</p>
+<p>我们重写 NSObject 中的 5 个方法, 分别是:</p>
+<blockquote>
+<ol>
+<li>+resolveInstanceMethod</li>
+<li>-forwardingTargetForSelector</li>
+<li>-methodSignatureForSelector</li>
+<li>-forwardInvocation</li>
+<li>-doesNotRecognizeSelector:</li>
+</ol>
+</blockquote>
+<p>当无法找到对应的方法时, 调用的方法和顺序大致如下:</p>
+<figure class="highlight objc"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><span class="line">+resolveInstanceMethod</span><br><span class="line">-forwardingTargetForSelector</span><br><span class="line">-methodSignatureForSelector</span><br><span class="line">-doesNotRecognizeSelector:</span><br></pre></td></tr></table></figure>
+
+<p>当找到对应的方法时, 调用方法和顺序大致如下:</p>
+<figure class="highlight objc"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><span class="line">+resolveInstanceMethod</span><br><span class="line">-forwardingTargetForSelector</span><br><span class="line">-methodSignatureForSelector</span><br><span class="line">-forwardInvocation</span><br></pre></td></tr></table></figure>
+
+<p>根据实践结果, 画流程图如下:<br><img class="lazy" src="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAABGdBTUEAALGPC/xhBQAAADhlWElmTU0AKgAAAAgAAYdpAAQAAAABAAAAGgAAAAAAAqACAAQAAAABAAAAAaADAAQAAAABAAAAAQAAAADa6r/EAAAAC0lEQVQIHWNgAAIAAAUAAY27m/MAAAAASUVORK5CYII=" data-src="/upload/images/2018/03/31/1.jpg" alt="1"></p>
+<p>下面分别解释一下这几个方法的作用和意义.</p>
+<p><strong>+ (BOOL)resolveInstanceMethod:(SEL)sel</strong></p>
+<p>解析对应的实例方法. 在该方法中允许增加一个方法的实现, 从而实现动态添加方法.</p>
+<p>默认返回 NO.</p>
+<p>在 <code>NSObject.mm</code> 中可以看到方法的实现:</p>
+<figure class="highlight objc"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line">+ (<span class="built_in">BOOL</span>)resolveInstanceMethod:(SEL)sel &#123;</span><br><span class="line">    <span class="keyword">return</span> <span class="literal">NO</span>;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<p><strong>- (id)forwardingTargetForSelector:(SEL)aSelector</strong></p>
+<p>将对应的 selector 转发给指定的对象. 换句话说就是将之前没有实现的 selector 转交给另外一个可能实现了该 selector 的对象去处理.</p>
+<p>默认返回 nil.</p>
+<p>**- (NSMethodSignature <em>)methodSignatureForSelector:(SEL)aSelector</em>*</p>
+<p>该方法返回对 selector 实现的方法签名.</p>
+<p>默认实现如下:</p>
+<figure class="highlight objc"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><span class="line">- (<span class="built_in">NSMethodSignature</span> *)methodSignatureForSelector:(SEL)sel &#123;</span><br><span class="line">    _objc_fatal(<span class="string">&quot;-[NSObject methodSignatureForSelector:] &quot;</span></span><br><span class="line">                <span class="string">&quot;not available without CoreFoundation&quot;</span>);</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<p>**- (void)forwardInvocation:(NSInvocation <em>)anInvocation</em>*</p>
+<p>该方法是依赖第3个方法的, 如果第三个方法找到了对应的方法签名, 该方法就可以实现转向调用了.</p>
+<p><strong>- (void)doesNotRecognizeSelector:(SEL)sel</strong></p>
+<p>如果前面几个方法都没有处理好, 系统会调用该方法, 直接导致程序 crash, 也称之为终极死亡方法.</p>
+<p>源码实现如下:</p>
+<figure class="highlight objc"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><span class="line">- (<span class="keyword">void</span>)doesNotRecognizeSelector:(SEL)sel &#123;</span><br><span class="line">    _objc_fatal(<span class="string">&quot;-[%s %s]: unrecognized selector sent to instance %p&quot;</span>, </span><br><span class="line">                object_getClassName(<span class="keyword">self</span>), sel_getName(sel), <span class="keyword">self</span>);</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<p>总结, Objective-C 中给一个对象发送消息会经过如下几个步骤：</p>
+<p><strong>步骤1.</strong> 在类的调度表(dispatch table) 中找要执行的函数(消息), 如果找到了，到相应的函数 IMP 去执行.</p>
+<blockquote>
+<p>每个类的结构体包含着两个必备的元素:<br>[1]. 指向父类的指针<br>[2]. class dispatch table(调度表). 调度表中包含了 method selectors 和特定 class 相应方法实现的地址.</p>
+</blockquote>
+<p><strong>步骤2.</strong> 如果没找到，运行时会调用 +resolveInstanceMethod: 或者 +resolveClassMethod: 尝试解析这个消息. 在该方法中, 允许动态添加一个方法的实现.</p>
+<blockquote>
+<p>关于 <code>resolveClassMethod</code> 这个放在另一篇博客中讲解.</p>
+</blockquote>
+<p><strong>步骤3.</strong> 如果 resolveXX 返回 YES, 直接结束后面的流程, 执行解析得到的方法. 如果 resolveXX 返回 NO，运行时就发送 forwardingTargetForSelector 消息, 允许这个消息转发给另一个可能实现了对应 selector 的对象.</p>
+<p><strong>步骤4.</strong> 如果没有新的目标对象返回, 运行时就会发送methodSignatureForSelector 消息, 找到对应的方法签名.<br>如果找到了, 会接着调用 forwardInvocation, 如果没有找到即返回 nil, 那么直接调用 doesNotRecognizeSelector.</p>
+<p>下一篇结合实际例子分析一下整个实例方法的转发流程.</p>
+<h2 id="参考文档"><a href="#参考文档" class="headerlink" title="参考文档"></a>参考文档</h2><p>1.Apple 开发者文档 <a target="_blank" rel="noopener" href="https://developer.apple.com/library/content/documentation/Cocoa/Conceptual/ObjCRuntimeGuide/Articles/ocrtForwarding.html#//apple_ref/doc/uid/TP40008048-CH105-SW1">Message Forwarding</a></p>
+<p>2.Apple RunTime 源码 <a target="_blank" rel="noopener" href="https://opensource.apple.com/tarballs/objc4/">objc4-723.tar.gz</a></p>
+<h2 id="推荐"><a href="#推荐" class="headerlink" title="推荐"></a>推荐</h2><p><a target="_blank" rel="noopener" href="http://www.veryitman.com/2018/04/01/OC-RunTime-%E6%B6%88%E6%81%AF%E8%BD%AC%E5%8F%91%E4%B9%8B%E5%AE%9E%E4%BE%8B%E6%96%B9%E6%B3%95%E7%9A%84%E8%BD%AC%E5%8F%91%E6%B5%81%E7%A8%8B-%E5%AE%9E%E4%BE%8B%E8%AE%B2%E8%A7%A3/">OC-RunTime: 消息转发之实例方法的转发流程实例讲解</a></p>
+<p><a target="_blank" rel="noopener" href="http://www.veryitman.com/2018/04/03/OC-RunTime-%E6%B6%88%E6%81%AF%E8%BD%AC%E5%8F%91%E4%B9%8B%E7%B1%BB%E6%96%B9%E6%B3%95%E7%9A%84%E8%BD%AC%E5%8F%91%E6%B5%81%E7%A8%8B/">OC-RunTime: 消息转发之类方法的转发流程</a></p>
+<p><a target="_blank" rel="noopener" href="http://www.veryitman.com/2018/04/05/OC-RunTime-%E6%80%BB%E7%BB%93%E6%B6%88%E6%81%AF%E8%BD%AC%E5%8F%91%E4%B8%AD%E7%94%A8%E5%88%B0%E7%9A%84%E7%9F%A5%E8%AF%86%E7%82%B9/">OC-RunTime: 总结消息转发中用到的知识点</a></p>
+<p>点击下载文中完整的 <a target="_blank" rel="noopener" href="https://github.com/veryitman/iOSDemo/tree/master/MZRuntimeMsgForward">Demo</a>.</p>
+<hr>
+<p><strong>扫码关注，你我就各多一个朋友~</strong></p>
+<p><img class="lazy" src="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAABGdBTUEAALGPC/xhBQAAADhlWElmTU0AKgAAAAgAAYdpAAQAAAABAAAAGgAAAAAAAqACAAQAAAABAAAAAaADAAQAAAABAAAAAQAAAADa6r/EAAAAC0lEQVQIHWNgAAIAAAUAAY27m/MAAAAASUVORK5CYII=" data-src="/upload/me/qrcode_wx.jpg"></p>
+
+
+
+
+</article>
+
+<div class="related-wrap reveal" id="read-next"><section class="header cap theme"><span>接下来阅读</span></section><section class="body fs14"><a id="next" href="/2018/03/24/MacOS-%E6%96%87%E4%BB%B6%E5%A4%A7%E5%B0%8F%E7%9A%84%E5%8D%95%E4%BD%8D/">MacOS 文件大小的单位<span class="note">较早</span></a><div class="line"></div><a id="prev" href="/2018/04/01/OC-RunTime-%E6%B6%88%E6%81%AF%E8%BD%AC%E5%8F%91%E4%B9%8B%E5%AE%9E%E4%BE%8B%E6%96%B9%E6%B3%95%E7%9A%84%E8%BD%AC%E5%8F%91%E6%B5%81%E7%A8%8B-%E5%AE%9E%E4%BE%8B%E8%AE%B2%E8%A7%A3/">OC-RunTime: 消息转发之实例方法的转发流程[实例讲解]<span class="note">较新</span></a></section></div>
+
+
+
+
+
+
+  <div class='related-wrap md reveal' id="comments">
+    <div class='cmt-title cap theme'>
+      快来参与讨论吧
+    </div>
+    <div class='cmt-body valine'>
+      
+
+<div id="valine_container" class="valine_thread"><svg class="loading" style="vertical-align: middle;fill: currentColor;overflow: hidden;" viewBox="0 0 1024 1024" version="1.1" xmlns="http://www.w3.org/2000/svg" p-id="2709"><path d="M832 512c0-176-144-320-320-320V128c211.2 0 384 172.8 384 384h-64zM192 512c0 176 144 320 320 320v64C300.8 896 128 723.2 128 512h64z" p-id="2710"></path></svg></div>
+
+    </div>
+  </div>
+
+
+
+      
+<footer class="page-footer reveal fs12"><hr><div class="text"><p>本博客所有文章除特别声明外，均采用 <a target="_blank" rel="noopener" href="https://creativecommons.org/licenses/by-nc-sa/4.0/">CC BY-NC-SA 4.0</a> 许可协议，转载请注明出处。</p>
+<p>veryitman</p>
+</div></footer>
+
+      <div class='float-panel mobile-only blur' style='display:none'>
+  <button type='button' class='sidebar-toggle mobile' onclick='sidebar.toggle()'>
+    <svg class="icon" style="width: 1em; height: 1em;vertical-align: middle;fill: currentColor;overflow: hidden;" viewBox="0 0 1024 1024" version="1.1" xmlns="http://www.w3.org/2000/svg" p-id="15301"><path d="M566.407 808.3c26.9-0.1 49.3-20.8 51.6-47.6-1.9-27.7-23.9-49.7-51.6-51.6h-412.6c-28.2-1.4-52.6 19.5-55.5 47.6 2.3 26.8 24.6 47.5 51.6 47.6h416.5v4z m309.3-249.9c26.9-0.1 49.3-20.8 51.6-47.6-2.2-26.8-24.6-47.5-51.6-47.6h-721.9c-27.7-2.8-52.5 17.4-55.3 45.1-0.1 0.8-0.1 1.7-0.2 2.5 0.9 27.2 23.6 48.5 50.7 47.6H875.707z m-103.1-245.9c26.9-0.1 49.3-20.8 51.6-47.6-0.4-28.3-23.2-51.1-51.5-51.6h-618.9c-29.5-1.1-54.3 21.9-55.5 51.4v0.2c1.4 27.8 25.2 49.2 53 47.8 0.8 0 1.7-0.1 2.5-0.2h618.8z" p-id="15302"></path><path d="M566.407 808.3c26.9-0.1 49.3-20.8 51.6-47.6-1.9-27.7-23.9-49.7-51.6-51.6h-412.6c-28.2-1.4-52.6 19.5-55.5 47.6 1.9 27.7 23.9 49.7 51.6 51.6h416.5z m309.3-249.9c26.9-0.1 49.3-20.8 51.6-47.6-2.2-26.8-24.6-47.5-51.6-47.6h-721.9c-27.7-2.8-52.5 17.4-55.3 45.1-0.1 0.8-0.1 1.7-0.2 2.5 0.9 27.2 23.6 48.5 50.7 47.6H875.707z m-103.1-245.9c26.9-0.1 49.3-20.8 51.6-47.6-0.4-28.3-23.2-51.1-51.5-51.6h-618.9c-29.5-1.1-54.3 21.9-55.5 51.4v0.2c1.4 27.8 25.2 49.2 53 47.8 0.8 0 1.7-0.1 2.5-0.2h618.8z" p-id="15303"></path></svg>
+  </button>
+</div>
+
+    </div>
+  </div>
+  <div class='scripts'>
+    <script type="text/javascript">
+  stellar = {
+    // 懒加载 css https://github.com/filamentgroup/loadCSS
+    loadCSS: (href, before, media, attributes) => {
+      var doc = window.document;
+      var ss = doc.createElement("link");
+      var ref;
+      if (before) {
+        ref = before;
+      } else {
+        var refs = (doc.body || doc.getElementsByTagName("head")[0]).childNodes;
+        ref = refs[refs.length - 1];
+      }
+      var sheets = doc.styleSheets;
+      if (attributes) {
+        for (var attributeName in attributes) {
+          if (attributes.hasOwnProperty(attributeName)) {
+            ss.setAttribute(attributeName, attributes[attributeName]);
+          }
+        }
+      }
+      ss.rel = "stylesheet";
+      ss.href = href;
+      ss.media = "only x";
+      function ready(cb) {
+        if (doc.body) {
+          return cb();
+        }
+        setTimeout(function () {
+          ready(cb);
+        });
+      }
+      ready(function () {
+        ref.parentNode.insertBefore(ss, before ? ref : ref.nextSibling);
+      });
+      var onloadcssdefined = function (cb) {
+        var resolvedHref = ss.href;
+        var i = sheets.length;
+        while (i--) {
+          if (sheets[i].href === resolvedHref) {
+            return cb();
+          }
+        }
+        setTimeout(function () {
+          onloadcssdefined(cb);
+        });
+      };
+      function loadCB() {
+        if (ss.addEventListener) {
+          ss.removeEventListener("load", loadCB);
+        }
+        ss.media = media || "all";
+      }
+      if (ss.addEventListener) {
+        ss.addEventListener("load", loadCB);
+      }
+      ss.onloadcssdefined = onloadcssdefined;
+      onloadcssdefined(loadCB);
+      return ss;
+    },
+
+    // 从 butterfly 和 volantis 获得灵感
+    loadScript: (src, opt) => new Promise((resolve, reject) => {
+      var script = document.createElement('script');
+      script.src = src;
+      if (opt) {
+        for (let key of Object.keys(opt)) {
+          script[key] = opt[key]
+        }
+      } else {
+        // 默认异步，如果需要同步，第二个参数传入 {} 即可
+        script.async = true
+      }
+      script.onerror = reject
+      script.onload = script.onreadystatechange = function() {
+        const loadState = this.readyState
+        if (loadState && loadState !== 'loaded' && loadState !== 'complete') return
+        script.onload = script.onreadystatechange = null
+        resolve()
+      }
+      document.head.appendChild(script)
+    }),
+
+    // https://github.com/jerryc127/hexo-theme-butterfly
+    jQuery: (fn) => {
+      if (typeof jQuery === 'undefined') {
+        stellar.loadScript(stellar.plugins.jQuery).then(fn)
+      } else {
+        fn()
+      }
+    }
+  };
+  stellar.github = 'https://github.com/xaoxuu/hexo-theme-stellar/tree/1.6.1';
+  stellar.config = {
+    date_suffix: {
+      just: '刚刚',
+      min: '分钟前',
+      hour: '小时前',
+      day: '天前',
+      month: '个月前',
+    },
+  };
+
+  // required plugins (only load if needs)
+  stellar.plugins = {
+    jQuery: 'https://cdn.jsdelivr.net/npm/jquery@3.5.1/dist/jquery.min.js',
+    sitesjs: '/js/plugins/sites.js',
+    friendsjs: '/js/plugins/friends.js',
+  };
+
+  // optional plugins
+  if ('true' == 'true') {
+    stellar.plugins.lazyload = Object.assign({"enable":true,"js":"https://cdn.jsdelivr.net/npm/vanilla-lazyload@17.3.1/dist/lazyload.min.js","transition":"blur"});
+  }
+  if ('true' == 'true') {
+    stellar.plugins.swiper = Object.assign({"enable":true,"css":"https://unpkg.com/swiper@6/swiper-bundle.min.css","js":"https://unpkg.com/swiper@6/swiper-bundle.min.js"});
+  }
+  if ('' == 'true') {
+    stellar.plugins.scrollreveal = Object.assign({"enable":null,"js":"https://cdn.jsdelivr.net/npm/scrollreveal@4.0.9/dist/scrollreveal.min.js","distance":"8px","duration":500,"interval":100,"scale":1});
+  }
+  if ('true' == 'true') {
+    stellar.plugins.preload = Object.assign({"enable":true,"service":"flying_pages","instant_page":"https://cdn.jsdelivr.net/gh/volantis-x/cdn-volantis@4.1.2/js/instant_page.js","flying_pages":"https://cdn.jsdelivr.net/gh/gijo-varghese/flying-pages@2.1.2/flying-pages.min.js"});
+  }
+</script>
+
+<!-- required -->
+
+  
+<script src="/js/main.js" async></script>
+
+
+
+<!-- optional -->
+
+  <script>
+  function getEmojiMaps() {
+    function emoji(path, idx, ext) {
+      return path + "/" + path + "-" + idx + "." + ext;
+    }
+    var emojiMaps = {};
+    for (var i = 1; i <= 54; i++) {
+      emojiMaps['tieba-' + i] = emoji('tieba', i, 'png');
+    }
+    for (var i = 1; i <= 101; i++) {
+      emojiMaps['qq-' + i] = emoji('qq', i, 'gif');
+    }
+    for (var i = 1; i <= 116; i++) {
+      emojiMaps['aru-' + i] = emoji('aru', i, 'gif');
+    }
+    for (var i = 1; i <= 125; i++) {
+      emojiMaps['twemoji-' + i] = emoji('twemoji', i, 'png');
+    }
+    for (var i = 1; i <= 4; i++) {
+      emojiMaps['weibo-' + i] = emoji('weibo', i, 'png');
+    }
+    return emojiMaps;
+  }
+  function load_comment(){
+    if(!document.getElementById("valine_container"))return;
+    stellar.loadScript('https://cdn.jsdelivr.net/gh/XuxuGood/simple-blog-cdn@main/js/Valine.min.js', {defer:true}).then(function () {
+      const el = document.getElementById("valine_container");
+      var path = el.getAttribute('comment_id');
+      const placeholder = "欢迎您留言~";
+      if (!path) {
+        path = decodeURI(window.location.pathname);
+      }
+      var valine = new Valine();
+      valine.init(Object.assign({"js":"https://cdn.jsdelivr.net/gh/XuxuGood/simple-blog-cdn@main/js/Valine.min.js","appId":"FY2C9UCttYNaE1j8umenqdCE-gzGzoHsz","appKey":"4i7xMwkfSEGmEDhi6SceKFxz","placeholder":"欢迎您留言~","requiredFields":["nick","mail"],"enableQQ":true,"recordIP":false,"avatar":"robohash","pageSize":10,"lang":"zh-cn","highlight":true,"mathJax":false,"tagMeta":["博主","小伙伴","访客"],"metaPlaceholder":{"nick":"昵称/QQ号(必填)","mail":"邮箱（必填，完全保密）"},"master":["6783037F2DF30EAB99F9FC256157D875"],"friends":["6783037F2DF30EAB99F9FC256157D875"],"comment_count":true}, {
+        el: '#valine_container',
+        path: path,
+        placeholder: placeholder,
+        emojiCDN: 'https://cdn.jsdelivr.net/gh/volantis-x/cdn-emoji/valine/',
+        emojiMaps: getEmojiMaps(),
+      }));
+    });
+  }
+  window.addEventListener('DOMContentLoaded', (event) => {
+    console.log('DOM fully loaded and parsed');
+    load_comment();
+  });
+
+</script>
+
+
+
+
+<!-- inject -->
+
+
+  </div>
+</body>
+</html>

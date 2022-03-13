@@ -1,0 +1,397 @@
+<!DOCTYPE html>
+<html lang='zh-CN'>
+
+<head>
+  <meta name="generator" content="Hexo 6.0.0">
+  <meta charset="utf-8">
+  
+
+  <meta http-equiv='x-dns-prefetch-control' content='on' />
+  <link rel='dns-prefetch' href='https://cdn.jsdelivr.net'>
+  <link rel="preconnect" href="https://cdn.jsdelivr.net" crossorigin>
+
+  <meta name="renderer" content="webkit">
+  <meta name="force-rendering" content="webkit">
+  <meta http-equiv="X-UA-Compatible" content="IE=Edge,chrome=1">
+  <meta name="HandheldFriendly" content="True" >
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1">
+  <meta name="theme-color" content="#f8f8f8">
+  <title>C函数中返回字符数组 - Veryitman</title>
+
+  
+    <meta name="description" content="内容简介在阅读本篇文章之前，建议大家看一下下面2篇文章：  不见得你会计算C字符串长度 双宿双飞的 malloc 和 free  这篇文章主要分享三个点： 1、为什么作为局部变量的字符数组不能直接返回，而字符指针却可以? 2、当字符数组是局部变量的时候，函数如何返回它？ 3、字符数组(char [])和字符指针(char *)如何互转？ 局部变量的字符数组在C中如果我们直接返回字符数组，编译会直接">
+<meta property="og:type" content="article">
+<meta property="og:title" content="C函数中返回字符数组">
+<meta property="og:url" content="http://example.com/2019/05/10/C%E5%87%BD%E6%95%B0%E4%B8%AD%E8%BF%94%E5%9B%9E%E5%AD%97%E7%AC%A6%E6%95%B0%E7%BB%84/index.html">
+<meta property="og:site_name" content="Veryitman">
+<meta property="og:description" content="内容简介在阅读本篇文章之前，建议大家看一下下面2篇文章：  不见得你会计算C字符串长度 双宿双飞的 malloc 和 free  这篇文章主要分享三个点： 1、为什么作为局部变量的字符数组不能直接返回，而字符指针却可以? 2、当字符数组是局部变量的时候，函数如何返回它？ 3、字符数组(char [])和字符指针(char *)如何互转？ 局部变量的字符数组在C中如果我们直接返回字符数组，编译会直接">
+<meta property="og:locale" content="zh_CN">
+<meta property="og:image" content="http://example.com/upload/images/2019/05/10/1.png">
+<meta property="og:image" content="http://example.com/upload/me/qrcode_wx.jpg">
+<meta property="article:published_time" content="2019-05-10T14:58:40.000Z">
+<meta property="article:modified_time" content="2022-03-09T14:53:24.312Z">
+<meta property="article:author" content="veryitman">
+<meta property="article:tag" content="strcpy char[]">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:image" content="http://example.com/upload/images/2019/05/10/1.png">
+  
+  
+
+  <!-- feed -->
+  
+
+  
+    
+<link rel="stylesheet" href="/css/main.css">
+
+  
+
+  
+
+  
+</head>
+
+<body>
+  
+
+
+  <div class='l_body' id='start'>
+    <aside class='l_left' layout='post'>
+    
+
+
+<header class="header">
+
+<div class="logo-wrap"><a class="title" href="/"><div class="main">Veryitman</div></a></div>
+<nav class="menu dis-select"></nav></header>
+
+<div class="widgets">
+
+<div class="widget-wrap single" id="toc"><div class="widget-header cap dis-select"><span class="name">本文目录</span></div><div class="widget-body fs14"><div class="doc-tree active"><ol class="toc"><li class="toc-item toc-level-2"><a class="toc-link" href="#%E5%86%85%E5%AE%B9%E7%AE%80%E4%BB%8B"><span class="toc-text">内容简介</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#%E5%B1%80%E9%83%A8%E5%8F%98%E9%87%8F%E7%9A%84%E5%AD%97%E7%AC%A6%E6%95%B0%E7%BB%84"><span class="toc-text">局部变量的字符数组</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#%E4%B8%80%E5%88%87%E7%9A%86%E6%9C%89%E5%8F%AF%E8%83%BD"><span class="toc-text">一切皆有可能</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#%E5%AD%97%E7%AC%A6%E6%95%B0%E7%BB%84%E5%92%8C%E5%AD%97%E7%AC%A6%E6%8C%87%E9%92%88%E7%9A%84%E4%BA%92%E8%BD%AC"><span class="toc-text">字符数组和字符指针的互转</span></a><ol class="toc-child"><li class="toc-item toc-level-3"><a class="toc-link" href="#char-%E8%BD%AC-char"><span class="toc-text">char [] 转 char *</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#char-%E8%BD%AC-char-1"><span class="toc-text">char * 转 char []</span></a></li></ol></li></ol></div></div></div>
+
+
+</div>
+
+
+    </aside>
+    <div class='l_main'>
+      
+
+      
+
+
+<div class="bread-nav fs12"><div id="breadcrumb"><a class="cap breadcrumb" href="/">主页</a><span class="sep"></span><a class="cap breadcrumb" href="/">文章</a><span class="sep"></span><a class="cap breadcrumb-link" href="/categories/C-C/">C/C++</a></div><div id="post-meta">发布于&nbsp;<time datetime="2019-05-10T14:58:40.000Z">2019-05-10</time></div></div>
+
+<article class='content md post'>
+<h1 class="article-title"><span>C函数中返回字符数组</span></h1>
+<h2 id="内容简介"><a href="#内容简介" class="headerlink" title="内容简介"></a>内容简介</h2><p>在阅读本篇文章之前，建议大家看一下下面2篇文章：</p>
+<ul>
+<li><a target="_blank" rel="noopener" href="http://www.veryitman.com/2019/03/07/%E4%B8%8D%E8%A7%81%E5%BE%97%E4%BD%A0%E4%BC%9A%E8%AE%A1%E7%AE%97C%E5%AD%97%E7%AC%A6%E4%B8%B2%E9%95%BF%E5%BA%A6/">不见得你会计算C字符串长度</a></li>
+<li><a target="_blank" rel="noopener" href="http://www.veryitman.com/2019/05/02/%E5%8F%8C%E5%AE%BF%E5%8F%8C%E9%A3%9E%E7%9A%84-malloc-%E5%92%8C-free/">双宿双飞的 malloc 和 free</a></li>
+</ul>
+<p>这篇文章主要分享三个点：</p>
+<p>1、为什么作为局部变量的字符数组不能直接返回，而字符指针却可以?</p>
+<p>2、当字符数组是局部变量的时候，函数如何返回它？</p>
+<p>3、字符数组(char [])和字符指针(char *)如何互转？</p>
+<h2 id="局部变量的字符数组"><a href="#局部变量的字符数组" class="headerlink" title="局部变量的字符数组"></a>局部变量的字符数组</h2><p>在C中如果我们直接返回字符数组，编译会直接报警告。如下示例：</p>
+<figure class="highlight c"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br></pre></td><td class="code"><pre><span class="line"><span class="type">char</span> * <span class="title function_">fork_user_name</span><span class="params">()</span></span><br><span class="line">&#123;</span><br><span class="line">    <span class="type">char</span> name[] = <span class="string">&quot;veryitman&quot;</span>;</span><br><span class="line">    <span class="keyword">return</span> name;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<p>在Xcode中编译警告信息是这样的：</p>
+<figure class="highlight shell"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">Address of stack memory associated with local variable &#x27;name&#x27; returned</span><br></pre></td></tr></table></figure>
+
+<p>在Linux上面GCC编译显示警告是这样的：</p>
+<figure class="highlight shell"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">warning: function returns address of local variable [-Wreturn-local-addr]</span><br></pre></td></tr></table></figure>
+
+<p>无论哪种警告信息，基本意思都是告诉我们不应该返回一个局部变量 <code>name</code> 的地址（函数内部的变量在栈内存上）。</p>
+<p>如果我们修改一下代码，将 <code>char</code> 改为指针变量 <code>char *</code> ，示例如下：</p>
+<figure class="highlight c"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br></pre></td><td class="code"><pre><span class="line"><span class="type">char</span> * <span class="title function_">fork_user_name2</span><span class="params">()</span></span><br><span class="line">&#123;</span><br><span class="line">    <span class="type">char</span> *name = <span class="string">&quot;veryitman&quot;</span>;</span><br><span class="line">    <span class="keyword">return</span> name;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<p>无论是Linux的GCC还是Xcode的Clang编译器都不会报出警告。</p>
+<p>首先我们要知道，常量是放在数据段里面的。</p>
+<p>这里比较特殊，局部变量 <code>name</code> 保存在栈中，但是字符串 <code>veryitman</code> 的值是一个常量，保存在常量区。即便函数返回了，数据段里面的常量数据也还不会消亡，它会直到程序结束才会消失，其内存空间直到程序运行结束才会被释放。 所以，返回的地址是一个实际存在的有效地址。</p>
+<figure class="highlight c"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br></pre></td><td class="code"><pre><span class="line"><span class="type">char</span> * <span class="title function_">fork_user_name</span><span class="params">()</span></span><br><span class="line">&#123;</span><br><span class="line">    <span class="type">char</span> name[] = <span class="string">&quot;veryitman&quot;</span>;</span><br><span class="line">    <span class="keyword">return</span> name;</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line"><span class="type">char</span> * <span class="title function_">fork_user_name2</span><span class="params">()</span></span><br><span class="line">&#123;</span><br><span class="line">    <span class="type">char</span> *name = <span class="string">&quot;veryitman&quot;</span>;</span><br><span class="line">    <span class="keyword">return</span> name;</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line"><span class="type">int</span> <span class="title function_">main</span><span class="params">()</span></span><br><span class="line">&#123;</span><br><span class="line">    <span class="built_in">printf</span>(<span class="string">&quot;fork_user_name: %s\n&quot;</span>, fork_user_name());</span><br><span class="line">    <span class="built_in">printf</span>(<span class="string">&quot;fork_user_name2: %s\n&quot;</span>, fork_user_name2());</span><br><span class="line">    </span><br><span class="line">    <span class="keyword">return</span> <span class="number">0</span>;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<p>用GCC编译、运行后的打印结果，如下：</p>
+<figure class="highlight shell"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line">fork_user_name: (null)</span><br><span class="line">fork_user_name2: veryitman</span><br></pre></td></tr></table></figure>
+
+<p>总之，在函数中的局部变量只要是返回类似 <code>int[]</code>、<code>char[]</code>、<code>long[]</code> 地址的，都是不正确的做法。</p>
+<h2 id="一切皆有可能"><a href="#一切皆有可能" class="headerlink" title="一切皆有可能"></a>一切皆有可能</h2><p>下面例子是不正确的，如下：</p>
+<figure class="highlight c"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br></pre></td><td class="code"><pre><span class="line"><span class="type">char</span> * <span class="title function_">v_string</span><span class="params">()</span></span><br><span class="line">&#123;</span><br><span class="line">    <span class="type">char</span> rest[<span class="number">10</span>] = &#123;<span class="string">&#x27;\0&#x27;</span>&#125;;</span><br><span class="line">    <span class="keyword">return</span> rest;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<p><strong>1、使用 static</strong></p>
+<p>在C语言中，用 <code>static</code> 限定外部变量与函数，该外部变量或者函数除了对该所在的文件可见外，其他文件都无法访问。 而用 <code>static</code> 声明内部变量，则该变量是某个特定函数的局部变量，只能在该函数中使用。但它与自动变量不同的是，不管其所在函数是否被调用，它一直存在，而不像自动变量那样，随着所在函数的被调用和退出而存在和消失。换句话说，<code>static</code> 类型的内部变量是一种只能在某个特定函数中使用但一直占据存储空间的变量。</p>
+<p>所以使用static修饰一下，就没有问题了。示例如下：</p>
+<figure class="highlight c"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br></pre></td><td class="code"><pre><span class="line"><span class="type">char</span> * <span class="title function_">v_string</span><span class="params">()</span></span><br><span class="line">&#123;</span><br><span class="line">    <span class="type">static</span> <span class="type">char</span> rest[<span class="number">10</span>] = &#123;<span class="string">&#x27;\0&#x27;</span>&#125;;</span><br><span class="line">    <span class="keyword">return</span> rest;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<p><strong>2、使用 malloc</strong></p>
+<p>这种方式可以解决这个问题，是因为使用 <code>malloc</code> 分配的内存是在堆上而不是在栈内存上面。但是要记得将其在调用方使用 <code>free</code> 释放申请的内存空间，否则容易造成内存泄漏问题。</p>
+<p>具体可以看看 <a href="%5Bhttp://www.veryitman.com/2019/05/02/%E5%8F%8C%E5%AE%BF%E5%8F%8C%E9%A3%9E%E7%9A%84-malloc-%E5%92%8C-free/%5D(http://www.veryitman.com/2019/05/02/%E5%8F%8C%E5%AE%BF%E5%8F%8C%E9%A3%9E%E7%9A%84-malloc-%E5%92%8C-free/)">双宿双飞的 malloc 和 free</a> 这篇文章。</p>
+<figure class="highlight c"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br></pre></td><td class="code"><pre><span class="line"><span class="type">char</span> * <span class="title function_">v_string</span><span class="params">()</span></span><br><span class="line">&#123;</span><br><span class="line">    <span class="type">char</span> *p = (<span class="type">char</span> *)<span class="built_in">malloc</span>(<span class="number">10</span> * <span class="keyword">sizeof</span>(<span class="type">char</span>));</span><br><span class="line">    p = <span class="string">&quot;\0&quot;</span>;</span><br><span class="line">    <span class="keyword">return</span> p;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<p><strong>3、全局变量</strong></p>
+<p>这个很好理解。全局变量在程序真个生命周期中都是有效的，所以使用全局变量也可以解决类似问题。</p>
+<p>但是这种方案就会让这个封装的方法不够内聚，因为它依赖了全局变量。</p>
+<figure class="highlight c"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br></pre></td><td class="code"><pre><span class="line"><span class="type">char</span> g_rest[<span class="number">100</span>];</span><br><span class="line"><span class="type">char</span> * <span class="title function_">v_string</span><span class="params">()</span></span><br><span class="line">&#123;</span><br><span class="line">    <span class="built_in">strcpy</span>(g_rest, <span class="string">&quot;verytiamn&quot;</span>);</span><br><span class="line">    <span class="keyword">return</span> g_rest;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<p><strong>4、返回形参指针变量</strong></p>
+<p>在Linux Kernel(内核源码版本5.0.7)中，函数 <code>strcpy</code> 的实现如下：</p>
+<figure class="highlight c"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br></pre></td><td class="code"><pre><span class="line"><span class="meta">#<span class="keyword">ifndef</span> __HAVE_ARCH_STRCPY</span></span><br><span class="line"><span class="comment">/**</span></span><br><span class="line"><span class="comment"> * strcpy - Copy a %NUL terminated string</span></span><br><span class="line"><span class="comment"> * @dest: Where to copy the string to</span></span><br><span class="line"><span class="comment"> * @src: Where to copy the string from</span></span><br><span class="line"><span class="comment"> */</span></span><br><span class="line"><span class="meta">#<span class="keyword">undef</span> strcpy</span></span><br><span class="line"><span class="type">char</span> *<span class="title function_">strcpy</span><span class="params">(<span class="type">char</span> *dest, <span class="type">const</span> <span class="type">char</span> *src)</span></span><br><span class="line">&#123;</span><br><span class="line">	<span class="type">char</span> *tmp = dest;</span><br><span class="line"></span><br><span class="line">	<span class="keyword">while</span> ((*dest++ = *src++) != <span class="string">&#x27;\0&#x27;</span>)</span><br><span class="line">		<span class="comment">/* nothing */</span>;</span><br><span class="line">	<span class="keyword">return</span> tmp;</span><br><span class="line">&#125;</span><br><span class="line">EXPORT_SYMBOL(<span class="built_in">strcpy</span>);</span><br><span class="line"><span class="meta">#<span class="keyword">endif</span></span></span><br></pre></td></tr></table></figure>
+
+<p>参考内核实现，我们可以修改一下自己的代码，示例如下：</p>
+<figure class="highlight c"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br></pre></td><td class="code"><pre><span class="line"><span class="type">char</span> * <span class="title function_">v_string</span><span class="params">(<span class="type">char</span> *s1, <span class="type">char</span> *s2)</span></span><br><span class="line">&#123;</span><br><span class="line">    <span class="type">char</span> *tmp = s1;</span><br><span class="line">    <span class="comment">// 省略...</span></span><br><span class="line">    <span class="keyword">return</span> tmp;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<p>这里补充另外一个知识点，函数 <code>strcpy</code> 在glibc和Linux Kernel中实现不一样。</p>
+<p>在glibc的新版中(2.29版本)，本质是调用了函数 <code>memcpy</code>， 实现如下：</p>
+<figure class="highlight c"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br></pre></td><td class="code"><pre><span class="line"><span class="meta">#<span class="keyword">include</span> <span class="string">&lt;stddef.h&gt;</span></span></span><br><span class="line"><span class="meta">#<span class="keyword">include</span> <span class="string">&lt;string.h&gt;</span></span></span><br><span class="line"></span><br><span class="line"><span class="meta">#<span class="keyword">undef</span> strcpy</span></span><br><span class="line"></span><br><span class="line"><span class="meta">#<span class="keyword">ifndef</span> STRCPY</span></span><br><span class="line"><span class="meta"># <span class="keyword">define</span> STRCPY strcpy</span></span><br><span class="line"><span class="meta">#<span class="keyword">endif</span></span></span><br><span class="line"></span><br><span class="line"><span class="comment">/* Copy SRC to DEST.  */</span></span><br><span class="line"><span class="type">char</span> * <span class="title function_">STRCPY</span> <span class="params">(<span class="type">char</span> *dest, <span class="type">const</span> <span class="type">char</span> *src)</span></span><br><span class="line">&#123;</span><br><span class="line">  <span class="keyword">return</span> <span class="built_in">memcpy</span> (dest, src, <span class="built_in">strlen</span> (src) + <span class="number">1</span>);</span><br><span class="line">&#125;</span><br><span class="line">libc_hidden_builtin_def (<span class="built_in">strcpy</span>)</span><br></pre></td></tr></table></figure>
+
+<p>包括 <code>strncpy</code> 在glibc和Linux Kernel中实现也不一样，有兴趣的可以去看看源码。</p>
+<h2 id="字符数组和字符指针的互转"><a href="#字符数组和字符指针的互转" class="headerlink" title="字符数组和字符指针的互转"></a>字符数组和字符指针的互转</h2><h3 id="char-转-char"><a href="#char-转-char" class="headerlink" title="char [] 转 char *"></a>char [] 转 char *</h3><p>这种情况下，可以直接进行赋值，示例如下：</p>
+<figure class="highlight c"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br></pre></td><td class="code"><pre><span class="line"><span class="type">int</span> <span class="title function_">main</span><span class="params">()</span></span><br><span class="line">&#123;</span><br><span class="line">	<span class="type">char</span> c_str_array[] = <span class="string">&quot;veryitman.com&quot;</span>;</span><br><span class="line">    <span class="type">char</span> *p_str;</span><br><span class="line">    p_str = c_str_array;</span><br><span class="line">    <span class="built_in">printf</span>(<span class="string">&quot;p_str: %s\n&quot;</span>, p_str);</span><br><span class="line">	<span class="keyword">return</span> <span class="number">0</span>;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<h3 id="char-转-char-1"><a href="#char-转-char-1" class="headerlink" title="char * 转 char []"></a>char * 转 char []</h3><p>是不是也可以直接进行赋值呢？撸段代码看看，如下：</p>
+<figure class="highlight c"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br></pre></td><td class="code"><pre><span class="line"><span class="type">int</span> <span class="title function_">main</span><span class="params">()</span></span><br><span class="line">&#123;</span><br><span class="line">	<span class="type">char</span> c_str_array[] = <span class="string">&quot;veryitman.com&quot;</span>;</span><br><span class="line">    <span class="type">char</span> *p_str = <span class="string">&quot;veryitman.com&quot;</span>;</span><br><span class="line">    c_str_array = p_str;</span><br><span class="line">    <span class="built_in">printf</span>(<span class="string">&quot;c_str_array: %s\n&quot;</span>, c_str_array);</span><br><span class="line">	<span class="keyword">return</span> <span class="number">0</span>;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<p>很遗憾，编译报错，GCC编译错误截图如下：</p>
+<p><img class="lazy" src="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAABGdBTUEAALGPC/xhBQAAADhlWElmTU0AKgAAAAgAAYdpAAQAAAABAAAAGgAAAAAAAqACAAQAAAABAAAAAaADAAQAAAABAAAAAQAAAADa6r/EAAAAC0lEQVQIHWNgAAIAAAUAAY27m/MAAAAASUVORK5CYII=" data-src="/upload/images/2019/05/10/1.png" alt="1557417012236"></p>
+<p>Clang编译错误如下：</p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">Array type &#x27;char [14]&#x27; is not assignable</span><br></pre></td></tr></table></figure>
+
+<p>可以考虑使用 <code>strncpy</code> 来实现，示例代码如下：</p>
+<figure class="highlight c"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br></pre></td><td class="code"><pre><span class="line"><span class="meta">#<span class="keyword">include</span> <span class="string">&lt;stdlib.h&gt;</span></span></span><br><span class="line"><span class="meta">#<span class="keyword">include</span> <span class="string">&lt;stdio.h&gt;</span></span></span><br><span class="line"><span class="meta">#<span class="keyword">include</span> <span class="string">&lt;string.h&gt;</span></span></span><br><span class="line"></span><br><span class="line"><span class="type">int</span> <span class="title function_">main</span><span class="params">()</span></span><br><span class="line">&#123;</span><br><span class="line">    <span class="type">char</span> c_str_array[] = <span class="string">&quot;veryitman.com&quot;</span>;</span><br><span class="line">    <span class="type">char</span> *p_str = <span class="string">&quot;veryitman.com&quot;</span>;</span><br><span class="line">    <span class="built_in">strncpy</span>(c_str_array, p_str, <span class="built_in">strlen</span>(p_str));</span><br><span class="line">    <span class="built_in">printf</span>(<span class="string">&quot;c_str_array: %s\n&quot;</span>, c_str_array);</span><br><span class="line">    <span class="keyword">return</span> <span class="number">0</span></span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<p><strong>时间可以改变一切，但你得做点什么！</strong></p>
+<p><img class="lazy" src="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAABGdBTUEAALGPC/xhBQAAADhlWElmTU0AKgAAAAgAAYdpAAQAAAABAAAAGgAAAAAAAqACAAQAAAABAAAAAaADAAQAAAABAAAAAQAAAADa6r/EAAAAC0lEQVQIHWNgAAIAAAUAAY27m/MAAAAASUVORK5CYII=" data-src="/upload/me/qrcode_wx.jpg"></p>
+
+
+
+
+</article>
+
+<div class="related-wrap reveal" id="read-next"><section class="header cap theme"><span>接下来阅读</span></section><section class="body fs14"><a id="next" href="/2019/05/02/%E5%8F%8C%E5%AE%BF%E5%8F%8C%E9%A3%9E%E7%9A%84-malloc-%E5%92%8C-free/">双宿双飞的 malloc 和 free<span class="note">较早</span></a><div class="line"></div><a id="prev" href="/2019/05/11/macOS-%E7%94%9F%E6%88%90-RSA-%E5%85%AC%E9%92%A5%E5%92%8C%E7%A7%81%E9%92%A5/">macOS 生成 RSA 公钥和私钥<span class="note">较新</span></a></section></div>
+
+
+
+
+
+
+  <div class='related-wrap md reveal' id="comments">
+    <div class='cmt-title cap theme'>
+      快来参与讨论吧
+    </div>
+    <div class='cmt-body valine'>
+      
+
+<div id="valine_container" class="valine_thread"><svg class="loading" style="vertical-align: middle;fill: currentColor;overflow: hidden;" viewBox="0 0 1024 1024" version="1.1" xmlns="http://www.w3.org/2000/svg" p-id="2709"><path d="M832 512c0-176-144-320-320-320V128c211.2 0 384 172.8 384 384h-64zM192 512c0 176 144 320 320 320v64C300.8 896 128 723.2 128 512h64z" p-id="2710"></path></svg></div>
+
+    </div>
+  </div>
+
+
+
+      
+<footer class="page-footer reveal fs12"><hr><div class="text"><p>本博客所有文章除特别声明外，均采用 <a target="_blank" rel="noopener" href="https://creativecommons.org/licenses/by-nc-sa/4.0/">CC BY-NC-SA 4.0</a> 许可协议，转载请注明出处。</p>
+<p>veryitman</p>
+</div></footer>
+
+      <div class='float-panel mobile-only blur' style='display:none'>
+  <button type='button' class='sidebar-toggle mobile' onclick='sidebar.toggle()'>
+    <svg class="icon" style="width: 1em; height: 1em;vertical-align: middle;fill: currentColor;overflow: hidden;" viewBox="0 0 1024 1024" version="1.1" xmlns="http://www.w3.org/2000/svg" p-id="15301"><path d="M566.407 808.3c26.9-0.1 49.3-20.8 51.6-47.6-1.9-27.7-23.9-49.7-51.6-51.6h-412.6c-28.2-1.4-52.6 19.5-55.5 47.6 2.3 26.8 24.6 47.5 51.6 47.6h416.5v4z m309.3-249.9c26.9-0.1 49.3-20.8 51.6-47.6-2.2-26.8-24.6-47.5-51.6-47.6h-721.9c-27.7-2.8-52.5 17.4-55.3 45.1-0.1 0.8-0.1 1.7-0.2 2.5 0.9 27.2 23.6 48.5 50.7 47.6H875.707z m-103.1-245.9c26.9-0.1 49.3-20.8 51.6-47.6-0.4-28.3-23.2-51.1-51.5-51.6h-618.9c-29.5-1.1-54.3 21.9-55.5 51.4v0.2c1.4 27.8 25.2 49.2 53 47.8 0.8 0 1.7-0.1 2.5-0.2h618.8z" p-id="15302"></path><path d="M566.407 808.3c26.9-0.1 49.3-20.8 51.6-47.6-1.9-27.7-23.9-49.7-51.6-51.6h-412.6c-28.2-1.4-52.6 19.5-55.5 47.6 1.9 27.7 23.9 49.7 51.6 51.6h416.5z m309.3-249.9c26.9-0.1 49.3-20.8 51.6-47.6-2.2-26.8-24.6-47.5-51.6-47.6h-721.9c-27.7-2.8-52.5 17.4-55.3 45.1-0.1 0.8-0.1 1.7-0.2 2.5 0.9 27.2 23.6 48.5 50.7 47.6H875.707z m-103.1-245.9c26.9-0.1 49.3-20.8 51.6-47.6-0.4-28.3-23.2-51.1-51.5-51.6h-618.9c-29.5-1.1-54.3 21.9-55.5 51.4v0.2c1.4 27.8 25.2 49.2 53 47.8 0.8 0 1.7-0.1 2.5-0.2h618.8z" p-id="15303"></path></svg>
+  </button>
+</div>
+
+    </div>
+  </div>
+  <div class='scripts'>
+    <script type="text/javascript">
+  stellar = {
+    // 懒加载 css https://github.com/filamentgroup/loadCSS
+    loadCSS: (href, before, media, attributes) => {
+      var doc = window.document;
+      var ss = doc.createElement("link");
+      var ref;
+      if (before) {
+        ref = before;
+      } else {
+        var refs = (doc.body || doc.getElementsByTagName("head")[0]).childNodes;
+        ref = refs[refs.length - 1];
+      }
+      var sheets = doc.styleSheets;
+      if (attributes) {
+        for (var attributeName in attributes) {
+          if (attributes.hasOwnProperty(attributeName)) {
+            ss.setAttribute(attributeName, attributes[attributeName]);
+          }
+        }
+      }
+      ss.rel = "stylesheet";
+      ss.href = href;
+      ss.media = "only x";
+      function ready(cb) {
+        if (doc.body) {
+          return cb();
+        }
+        setTimeout(function () {
+          ready(cb);
+        });
+      }
+      ready(function () {
+        ref.parentNode.insertBefore(ss, before ? ref : ref.nextSibling);
+      });
+      var onloadcssdefined = function (cb) {
+        var resolvedHref = ss.href;
+        var i = sheets.length;
+        while (i--) {
+          if (sheets[i].href === resolvedHref) {
+            return cb();
+          }
+        }
+        setTimeout(function () {
+          onloadcssdefined(cb);
+        });
+      };
+      function loadCB() {
+        if (ss.addEventListener) {
+          ss.removeEventListener("load", loadCB);
+        }
+        ss.media = media || "all";
+      }
+      if (ss.addEventListener) {
+        ss.addEventListener("load", loadCB);
+      }
+      ss.onloadcssdefined = onloadcssdefined;
+      onloadcssdefined(loadCB);
+      return ss;
+    },
+
+    // 从 butterfly 和 volantis 获得灵感
+    loadScript: (src, opt) => new Promise((resolve, reject) => {
+      var script = document.createElement('script');
+      script.src = src;
+      if (opt) {
+        for (let key of Object.keys(opt)) {
+          script[key] = opt[key]
+        }
+      } else {
+        // 默认异步，如果需要同步，第二个参数传入 {} 即可
+        script.async = true
+      }
+      script.onerror = reject
+      script.onload = script.onreadystatechange = function() {
+        const loadState = this.readyState
+        if (loadState && loadState !== 'loaded' && loadState !== 'complete') return
+        script.onload = script.onreadystatechange = null
+        resolve()
+      }
+      document.head.appendChild(script)
+    }),
+
+    // https://github.com/jerryc127/hexo-theme-butterfly
+    jQuery: (fn) => {
+      if (typeof jQuery === 'undefined') {
+        stellar.loadScript(stellar.plugins.jQuery).then(fn)
+      } else {
+        fn()
+      }
+    }
+  };
+  stellar.github = 'https://github.com/xaoxuu/hexo-theme-stellar/tree/1.6.1';
+  stellar.config = {
+    date_suffix: {
+      just: '刚刚',
+      min: '分钟前',
+      hour: '小时前',
+      day: '天前',
+      month: '个月前',
+    },
+  };
+
+  // required plugins (only load if needs)
+  stellar.plugins = {
+    jQuery: 'https://cdn.jsdelivr.net/npm/jquery@3.5.1/dist/jquery.min.js',
+    sitesjs: '/js/plugins/sites.js',
+    friendsjs: '/js/plugins/friends.js',
+  };
+
+  // optional plugins
+  if ('true' == 'true') {
+    stellar.plugins.lazyload = Object.assign({"enable":true,"js":"https://cdn.jsdelivr.net/npm/vanilla-lazyload@17.3.1/dist/lazyload.min.js","transition":"blur"});
+  }
+  if ('true' == 'true') {
+    stellar.plugins.swiper = Object.assign({"enable":true,"css":"https://unpkg.com/swiper@6/swiper-bundle.min.css","js":"https://unpkg.com/swiper@6/swiper-bundle.min.js"});
+  }
+  if ('' == 'true') {
+    stellar.plugins.scrollreveal = Object.assign({"enable":null,"js":"https://cdn.jsdelivr.net/npm/scrollreveal@4.0.9/dist/scrollreveal.min.js","distance":"8px","duration":500,"interval":100,"scale":1});
+  }
+  if ('true' == 'true') {
+    stellar.plugins.preload = Object.assign({"enable":true,"service":"flying_pages","instant_page":"https://cdn.jsdelivr.net/gh/volantis-x/cdn-volantis@4.1.2/js/instant_page.js","flying_pages":"https://cdn.jsdelivr.net/gh/gijo-varghese/flying-pages@2.1.2/flying-pages.min.js"});
+  }
+</script>
+
+<!-- required -->
+
+  
+<script src="/js/main.js" async></script>
+
+
+
+<!-- optional -->
+
+  <script>
+  function getEmojiMaps() {
+    function emoji(path, idx, ext) {
+      return path + "/" + path + "-" + idx + "." + ext;
+    }
+    var emojiMaps = {};
+    for (var i = 1; i <= 54; i++) {
+      emojiMaps['tieba-' + i] = emoji('tieba', i, 'png');
+    }
+    for (var i = 1; i <= 101; i++) {
+      emojiMaps['qq-' + i] = emoji('qq', i, 'gif');
+    }
+    for (var i = 1; i <= 116; i++) {
+      emojiMaps['aru-' + i] = emoji('aru', i, 'gif');
+    }
+    for (var i = 1; i <= 125; i++) {
+      emojiMaps['twemoji-' + i] = emoji('twemoji', i, 'png');
+    }
+    for (var i = 1; i <= 4; i++) {
+      emojiMaps['weibo-' + i] = emoji('weibo', i, 'png');
+    }
+    return emojiMaps;
+  }
+  function load_comment(){
+    if(!document.getElementById("valine_container"))return;
+    stellar.loadScript('https://cdn.jsdelivr.net/gh/XuxuGood/simple-blog-cdn@main/js/Valine.min.js', {defer:true}).then(function () {
+      const el = document.getElementById("valine_container");
+      var path = el.getAttribute('comment_id');
+      const placeholder = "欢迎您留言~";
+      if (!path) {
+        path = decodeURI(window.location.pathname);
+      }
+      var valine = new Valine();
+      valine.init(Object.assign({"js":"https://cdn.jsdelivr.net/gh/XuxuGood/simple-blog-cdn@main/js/Valine.min.js","appId":"FY2C9UCttYNaE1j8umenqdCE-gzGzoHsz","appKey":"4i7xMwkfSEGmEDhi6SceKFxz","placeholder":"欢迎您留言~","requiredFields":["nick","mail"],"enableQQ":true,"recordIP":false,"avatar":"robohash","pageSize":10,"lang":"zh-cn","highlight":true,"mathJax":false,"tagMeta":["博主","小伙伴","访客"],"metaPlaceholder":{"nick":"昵称/QQ号(必填)","mail":"邮箱（必填，完全保密）"},"master":["6783037F2DF30EAB99F9FC256157D875"],"friends":["6783037F2DF30EAB99F9FC256157D875"],"comment_count":true}, {
+        el: '#valine_container',
+        path: path,
+        placeholder: placeholder,
+        emojiCDN: 'https://cdn.jsdelivr.net/gh/volantis-x/cdn-emoji/valine/',
+        emojiMaps: getEmojiMaps(),
+      }));
+    });
+  }
+  window.addEventListener('DOMContentLoaded', (event) => {
+    console.log('DOM fully loaded and parsed');
+    load_comment();
+  });
+
+</script>
+
+
+
+
+<!-- inject -->
+
+
+  </div>
+</body>
+</html>

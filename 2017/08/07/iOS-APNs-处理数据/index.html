@@ -1,0 +1,402 @@
+<!DOCTYPE html>
+<html lang='zh-CN'>
+
+<head>
+  <meta name="generator" content="Hexo 6.0.0">
+  <meta charset="utf-8">
+  
+
+  <meta http-equiv='x-dns-prefetch-control' content='on' />
+  <link rel='dns-prefetch' href='https://cdn.jsdelivr.net'>
+  <link rel="preconnect" href="https://cdn.jsdelivr.net" crossorigin>
+
+  <meta name="renderer" content="webkit">
+  <meta name="force-rendering" content="webkit">
+  <meta http-equiv="X-UA-Compatible" content="IE=Edge,chrome=1">
+  <meta name="HandheldFriendly" content="True" >
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1">
+  <meta name="theme-color" content="#f8f8f8">
+  <title>iOS APNs: 处理数据 - Veryitman</title>
+
+  
+    <meta name="description" content="简介博文: iOS 细说推送: 远程推送 和 iOS 细说推送: 本地推送分别介绍了 iOS 的两种典型推送, iOS 还有很多类型的推送, 如静默推送, VOIP 推送(iOS8)等, 后面会慢慢介绍给大家. 今天跟大家聊聊关于如何处理推送的数据(payload). 该系列博客:  iOS APNs: 远程推送iOS APNs: 本地推送iOS APNs: 处理数据(本篇)iOS APNs: 静">
+<meta property="og:type" content="article">
+<meta property="og:title" content="iOS APNs: 处理数据">
+<meta property="og:url" content="http://example.com/2017/08/07/iOS-APNs-%E5%A4%84%E7%90%86%E6%95%B0%E6%8D%AE/index.html">
+<meta property="og:site_name" content="Veryitman">
+<meta property="og:description" content="简介博文: iOS 细说推送: 远程推送 和 iOS 细说推送: 本地推送分别介绍了 iOS 的两种典型推送, iOS 还有很多类型的推送, 如静默推送, VOIP 推送(iOS8)等, 后面会慢慢介绍给大家. 今天跟大家聊聊关于如何处理推送的数据(payload). 该系列博客:  iOS APNs: 远程推送iOS APNs: 本地推送iOS APNs: 处理数据(本篇)iOS APNs: 静">
+<meta property="og:locale" content="zh_CN">
+<meta property="og:image" content="http://example.com/upload/images/2017/08/07/1.jpg">
+<meta property="article:published_time" content="2017-08-07T14:59:38.000Z">
+<meta property="article:modified_time" content="2022-03-09T14:53:24.303Z">
+<meta property="article:author" content="veryitman">
+<meta property="article:tag" content="APNs 推送">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:image" content="http://example.com/upload/images/2017/08/07/1.jpg">
+  
+  
+
+  <!-- feed -->
+  
+
+  
+    
+<link rel="stylesheet" href="/css/main.css">
+
+  
+
+  
+
+  
+</head>
+
+<body>
+  
+
+
+  <div class='l_body' id='start'>
+    <aside class='l_left' layout='post'>
+    
+
+
+<header class="header">
+
+<div class="logo-wrap"><a class="title" href="/"><div class="main">Veryitman</div></a></div>
+<nav class="menu dis-select"></nav></header>
+
+<div class="widgets">
+
+<div class="widget-wrap single" id="toc"><div class="widget-header cap dis-select"><span class="name">本文目录</span></div><div class="widget-body fs14"><div class="doc-tree active"><ol class="toc"><li class="toc-item toc-level-2"><a class="toc-link" href="#%E7%AE%80%E4%BB%8B"><span class="toc-text">简介</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#%E6%8E%A8%E9%80%81%E7%9A%84%E4%BB%A3%E7%90%86%E5%9B%9E%E8%B0%83%E6%97%B6%E6%9C%BA"><span class="toc-text">推送的代理回调时机</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#%E8%87%AA%E5%AE%9A%E4%B9%89%E6%8E%A8%E9%80%81%E5%86%85%E5%AE%B9"><span class="toc-text">自定义推送内容</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#%E5%86%8D%E5%94%A0%E5%8F%A8%E5%87%A0%E5%8F%A5"><span class="toc-text">再唠叨几句</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#%E6%84%9F%E8%B0%A2"><span class="toc-text">感谢</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#%E5%BF%85%E7%9C%8B%E6%96%87%E6%A1%A3"><span class="toc-text">必看文档</span></a></li></ol></div></div></div>
+
+
+</div>
+
+
+    </aside>
+    <div class='l_main'>
+      
+
+      
+
+
+<div class="bread-nav fs12"><div id="breadcrumb"><a class="cap breadcrumb" href="/">主页</a><span class="sep"></span><a class="cap breadcrumb" href="/">文章</a><span class="sep"></span><a class="cap breadcrumb-link" href="/categories/iOS/">iOS</a></div><div id="post-meta">发布于&nbsp;<time datetime="2017-08-07T14:59:38.000Z">2017-08-07</time></div></div>
+
+<article class='content md post'>
+<h1 class="article-title"><span>iOS APNs: 处理数据</span></h1>
+<h2 id="简介"><a href="#简介" class="headerlink" title="简介"></a>简介</h2><p>博文: <a target="_blank" rel="noopener" href="http://www.veryitman.com/2017/08/06/iOS-APNs-%E8%BF%9C%E7%A8%8B%E6%8E%A8%E9%80%81/">iOS 细说推送: 远程推送</a> 和 <a target="_blank" rel="noopener" href="http://www.veryitman.com/2017/08/07/iOS-APNs-%E5%A4%84%E7%90%86%E6%95%B0%E6%8D%AE/">iOS 细说推送: 本地推送</a><br>分别介绍了 iOS 的两种典型推送, iOS 还有很多类型的推送, 如静默推送, VOIP 推送(iOS8)等, 后面会慢慢介绍给大家.</p>
+<p>今天跟大家聊聊关于如何处理推送的数据(payload).</p>
+<p>该系列博客:</p>
+<blockquote>
+<p><a target="_blank" rel="noopener" href="http://www.veryitman.com/2017/08/06/iOS-APNs-%E8%BF%9C%E7%A8%8B%E6%8E%A8%E9%80%81/">iOS APNs: 远程推送</a><br><a target="_blank" rel="noopener" href="http://www.veryitman.com/2017/08/06/iOS-APNs-%E6%9C%AC%E5%9C%B0%E6%8E%A8%E9%80%81/">iOS APNs: 本地推送</a><br>iOS APNs: 处理数据(本篇)<br><a target="_blank" rel="noopener" href="http://www.veryitman.com/2018/02/06/iOS-APNs-%E9%9D%99%E9%BB%98%E6%8E%A8%E9%80%81/">iOS APNs: 静默推送</a><br><a target="_blank" rel="noopener" href="http://www.veryitman.com/2018/02/08/iOS-APNs-Background-Fetch/">iOS APNs: Background Fetch</a></p>
+</blockquote>
+<h2 id="推送的代理回调时机"><a href="#推送的代理回调时机" class="headerlink" title="推送的代理回调时机"></a>推送的代理回调时机</h2><p>还记得 AppDelegate 里面关于推送的几个代理方法吧.<br>~ 估计你也忘记了, 没关系, 我们再一起整理一下.</p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br></pre></td><td class="code"><pre><span class="line">- (void)application:(UIApplication *)application didReceiveRemoteNotification:(NSDictionary *)userInfo &#123;</span><br><span class="line">    </span><br><span class="line">    MZLOG(@&quot;markApp push. RemotePush userInfo: %@&quot;, userInfo);</span><br><span class="line">    </span><br><span class="line">    // 可以根据推送内容决定下一步的行为</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<p>该方法在接收到 RemotePush 的时候, 调用时机:</p>
+<p>1.APP 在前台运行的, RemotePush 被推送过来了.<br>2.APP 在后台运行, 无论是否被挂起只要没有被杀死, 点击推送内容.</p>
+<p>以上两种情况均可以进入 didReceiveRemoteNotification 方法.</p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br></pre></td><td class="code"><pre><span class="line">- (void)application:(UIApplication *)application didReceiveLocalNotification:(UILocalNotification *)notification &#123;</span><br><span class="line">    </span><br><span class="line">    MZLOG(@&quot;App push. LocalPush notification: %@&quot;, notification);</span><br><span class="line">    </span><br><span class="line">    // 可以根据推送内容决定下一步的行为</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<p>该方法接收到 LocalPush 的时候, 调用时机:</p>
+<p>1.APP 在前台运行的, LocalPush 被推送过来了.<br>2.APP 在后台运行, 无论是否被挂起只要没有被杀死, 点击推送内容.</p>
+<p>以上两种情况均可以进入 didReceiveLocalNotification 方法.</p>
+<p>这两个回调方法, 分别接收 RemotePush 和 LocalPush 的推送消息.</p>
+<p>有些人会问了, 假如这个时候我的应用在后台, 被系统杀死了或者被用户双击 Home 键杀死了, 此时远程推送过来了, 或者状态栏里面有本地推送的消息, 我点击推送消息, 这两个方法会被调用吗?</p>
+<p>类似这种效果, 上面是 RemotePush, 下面是 LocalPush.</p>
+<p><img class="lazy" src="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAABGdBTUEAALGPC/xhBQAAADhlWElmTU0AKgAAAAgAAYdpAAQAAAABAAAAGgAAAAAAAqACAAQAAAABAAAAAaADAAQAAAABAAAAAQAAAADa6r/EAAAAC0lEQVQIHWNgAAIAAAUAAY27m/MAAAAASUVORK5CYII=" data-src="/upload/images/2017/08/07/1.jpg" alt="1"></p>
+<p>我肯定的告诉大家, 应用被杀死的情况下, 点击推送内容, didReceiveRemoteNotification 和 didReceiveLocalNotification 都不会被调用.</p>
+<p>这个时候, AppDelegate 中的另一个方法上场了.</p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line">- (BOOL)application:(UIApplication *)application </span><br><span class="line">	didFinishLaunchingWithOptions:(NSDictionary *)launchOptions</span><br></pre></td></tr></table></figure>
+
+<p>看一下 didFinishLaunchingWithOptions 的具体实现, 示例代码如下:</p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br><span class="line">39</span><br><span class="line">40</span><br><span class="line">41</span><br><span class="line">42</span><br><span class="line">43</span><br><span class="line">44</span><br><span class="line">45</span><br><span class="line">46</span><br><span class="line">47</span><br></pre></td><td class="code"><pre><span class="line">- (BOOL)application:(UIApplication *)application didFinishLaunchingWithOptions:(NSDictionary *)launchOptions &#123;</span><br><span class="line">    </span><br><span class="line">    /// 将应用图标的 badge 清零</span><br><span class="line">    &#123;</span><br><span class="line">        [[UIApplication sharedApplication] setApplicationIconBadgeNumber:1];</span><br><span class="line">        [[UIApplication sharedApplication] setApplicationIconBadgeNumber:0];</span><br><span class="line">        [[UIApplication sharedApplication] cancelAllLocalNotifications];</span><br><span class="line">    &#125;</span><br><span class="line">    </span><br><span class="line">    if (nil != launchOptions) &#123;</span><br><span class="line">        /// 处理 LocalPush</span><br><span class="line">        &#123;</span><br><span class="line">            // 这里可以得到 UILocalNotification 对象</span><br><span class="line">            id localPushNotify = [launchOptions objectForKey:UIApplicationLaunchOptionsLocalNotificationKey];</span><br><span class="line">            </span><br><span class="line">            MZLOG(@&quot;AppDelegate localPush: %@&quot;, localPushNotify);</span><br><span class="line">            </span><br><span class="line">            if (nil != localPushNotify) &#123;</span><br><span class="line">                if ([localPushNotify isKindOfClass:[UILocalNotification class]]) &#123;</span><br><span class="line">                    // 获取 userinfo 数据</span><br><span class="line">                    NSDictionary *userInfo = [(UILocalNotification *)localPushNotify userInfo];</span><br><span class="line">                    MZLOG(@&quot;AppDelegate localPush of UILocalNotification: %@&quot;, userInfo);</span><br><span class="line">                    </span><br><span class="line">                    // 根据 userInfo 的内容处理如页面跳转等</span><br><span class="line">                &#125;</span><br><span class="line">            &#125;</span><br><span class="line">        &#125;</span><br><span class="line">        </span><br><span class="line">        /// 处理 RemotePush</span><br><span class="line">        &#123;</span><br><span class="line">            NSDictionary *remotePushNotify = [launchOptions objectForKey:UIApplicationLaunchOptionsRemoteNotificationKey];</span><br><span class="line">            MZLOG(@&quot;AppDelegate remotePush: %@&quot;, remotePushNotify);</span><br><span class="line">            </span><br><span class="line">            if (nil != remotePushNotify) &#123;</span><br><span class="line">                NSDictionary *remoteAps = [remotePushNotify objectForKey:@&quot;aps&quot;];</span><br><span class="line">                MZLOG(@&quot;AppDelegate remotePush. The aps&#x27; info, alert: %@, badge: %@, sound: %@&quot;,</span><br><span class="line">                      [remoteAps objectForKey:@&quot;alert&quot;],</span><br><span class="line">                      [remoteAps objectForKey:@&quot;badge&quot;], [remoteAps objectForKey:@&quot;sound&quot;]);</span><br><span class="line">				// 根据推送的内容处理如页面跳转等</span><br><span class="line">            &#125;</span><br><span class="line">        &#125;</span><br><span class="line">    &#125;</span><br><span class="line">    </span><br><span class="line">    MZLOG(@&quot;AppDelegate. launchOptions: %@&quot;, launchOptions);</span><br><span class="line">    </span><br><span class="line">    return YES;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<p>对应的打印输出内容, 如下</p>
+<p>本地推送的内容:</p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line"> AppDelegate localPush of UILocalNotification: &#123;</span><br><span class="line">    &quot;user_info_key&quot; = &quot;user_info_value_json_str&quot;;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<p>远程推送的内容:</p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br></pre></td><td class="code"><pre><span class="line">aps = &#123;</span><br><span class="line">			alert = &quot;Testing.. (2)&quot;;</span><br><span class="line">			badge = 1;</span><br><span class="line">			sound = default;</span><br><span class="line">      &#125;;</span><br><span class="line">            </span><br><span class="line">The aps&#x27; info, alert: Testing.. (19), badge: 1, sound: default</span><br></pre></td></tr></table></figure>
+
+<h2 id="自定义推送内容"><a href="#自定义推送内容" class="headerlink" title="自定义推送内容"></a>自定义推送内容</h2><blockquote>
+<p>对于推送的数据格式, 是苹果规定的格式, 我们可以在其基础上添加我们需要的数据.</p>
+</blockquote>
+<p>在介绍下面内容之前, 先了解一下什么是 payload.</p>
+<blockquote>
+<p>payload 是推送通知的一部分，每一条推送通知都包含一个 Payload.<br>它包含了系统提醒用户通知到达的方式，还可以添加自定义的数据, 即通知主要传递的数据为 payload.</p>
+</blockquote>
+<blockquote>
+<p>Payload 本身为 JSON 格式的字符串，它内部必须要包含一个键为 aps 的字典.也就是说 payload 是整个字符串.</p>
+</blockquote>
+<p>关于 payload 的限制</p>
+<p>在早期的推送中, payload 不能超过 256bytes, 中间还经历过推送的 payload 最大为 2KB.<br>现在苹果支持最大为5KB(VOIP 推送), 官方文档有说, 如下:</p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><span class="line">For regular remote notifications, the maximum size is 4KB (4096 bytes)</span><br><span class="line">For Voice over Internet Protocol (VoIP) notifications, the maximum size is 5KB (5120 bytes)</span><br><span class="line">NOTE</span><br><span class="line">If you are using the legacy APNs binary interface to send notifications instead of an HTTP/2 request, the maximum payload size is 2KB (2048 bytes)</span><br></pre></td></tr></table></figure>
+
+<p>上面是 <a target="_blank" rel="noopener" href="https://developer.apple.com/library/content/documentation/NetworkingInternet/Conceptual/RemoteNotificationsPG/CreatingtheNotificationPayload.html#//apple_ref/doc/uid/TP40008194-CH10-SW1">官方文档</a> 的原文, 大概意思是:</p>
+<blockquote>
+<p>现在 APNs 支持 payload 为 4KB, 如果是 VoIP 推送的话, 支持 5KB. 但是, 如果你使用传统的 APNs 而不是使用 HTTP&#x2F;2 的话, 最大支持 2KB. 也就是说, 推送的 payload 大小和 iOS 系统无关, 而是和协议有关.</p>
+</blockquote>
+<p>可以使用下面代码, 查看 payload 长度</p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">payload.getBytes().length</span><br></pre></td></tr></table></figure>
+
+<p>我们正常的推送内容是这样的, 正常格式:</p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">&#123;&quot;aps&quot;:&#123;&quot;alert&quot;:&quot;Testing.. (21)&quot;,&quot;badge&quot;:1,&quot;sound&quot;:&quot;default&quot;&#125;&#125;</span><br></pre></td></tr></table></figure>
+
+<p>如果想对推送内容做自定义, 可以自己添加额外的数据, 如:</p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">&#123;&quot;aps&quot;:&#123;&quot;alert&quot;:&quot;Testing.. (21)&quot;,&quot;badge&quot;:1,&quot;sound&quot;:&quot;default&quot;&#125;, &quot;ext&quot;:&#123;&quot;key&quot;:&quot;value&quot;&#125;&#125;</span><br></pre></td></tr></table></figure>
+
+<p>其中, ext 就是额外添加的数据模型.</p>
+<p>在 APP 收到这样的数据模型时, 可以对应不同的行为.</p>
+<p>大家可以根据自己的业务需求, 自行定义数据格式.</p>
+<p>自定义的数据格式, 注意内容的长度, 在不同的 iOS 系统上面, 对于推送的内容是有长度限制的.</p>
+<h2 id="再唠叨几句"><a href="#再唠叨几句" class="headerlink" title="再唠叨几句"></a>再唠叨几句</h2><p>关于 iOS7 以后添加的方法</p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line">- (void)application:(UIApplication *)application </span><br><span class="line">	didReceiveRemoteNotification:(NSDictionary *)userInfo </span><br><span class="line">	fetchCompletionHandler:(void (^)(UIBackgroundFetchResult))completionHandler</span><br></pre></td></tr></table></figure>
+<p>这个方法也是在 AppDelegate 中实现的.</p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line">- (void)application:(UIApplication *)application </span><br><span class="line">	didReceiveRemoteNotification:(NSDictionary *)userInfo</span><br></pre></td></tr></table></figure>
+
+<p>这个方法在 iOS3 就已经有了, 可谓是历史悠久.我姑且称之为该方法为 FatherMethod, 上面那个新加入的称之为 SonMethod.</p>
+<p><strong>注意事项:</strong></p>
+<p>[1]. 实现了 FatherMethod, 即使你实现了 SonMethod, SonMethod 也不会被调用.<br>[2]. SonMethod 比 FatherMethod 多了一个参数 completionHandler, 这个在后面会说到.主要用于 Background Mode 中的 Background Fetch.<br>[3]. 推送被调用的时机, 除了 FatherMethod 的时机外, 还多了一种时机, 就是在 APP 被杀死后, 点击推送内容打开 APP, 此时 APP 再次回到前台的时候, 该方法也会被调用(didFinishLaunchingWithOptions也会调用), 所以在处理远程推送内容的时候, 要注意这一点.</p>
+<p>针对注意事项[3], 目前我能给出的有两种解决方案:</p>
+<p>第一, 判断是否是第一次启动 APP, 如果是第一次启动 APP, 统一在didFinishLaunchingWithOptions 中处理, 不在 SonMethod 中处理.</p>
+<p>第二, 远程推送统一在 SonMethod 中处理, didFinishLaunchingWithOptions 中只处理在 APP 被杀死的情况下, 用户点击推送本地的内容.</p>
+<p>我个人采用的是第二中方案.</p>
+<h2 id="感谢"><a href="#感谢" class="headerlink" title="感谢"></a>感谢</h2><p>在推送工具 NWPusher 和 Xcode 的 Window&#x2F;Devices&#x2F;Console 帮助下, 才得以完善博文.</p>
+<p>NWPusher 用来发送推送内容.</p>
+<p>Window&#x2F;Devices&#x2F;Console 用于查看输出日志.</p>
+<h2 id="必看文档"><a href="#必看文档" class="headerlink" title="必看文档"></a>必看文档</h2><p><a target="_blank" rel="noopener" href="https://developer.apple.com/library/content/documentation/NetworkingInternet/Conceptual/RemoteNotificationsPG/CreatingtheNotificationPayload.html#//apple_ref/doc/uid/TP40008194-CH10-SW1">Creating the Remote Notification Payload</a></p>
+<p><a target="_blank" rel="noopener" href="https://developer.apple.com/library/content/documentation/NetworkingInternet/Conceptual/RemoteNotificationsPG/PayloadKeyReference.html#//apple_ref/doc/uid/TP40008194-CH17-SW1">Payload Key Reference</a></p>
+
+
+
+
+</article>
+
+<div class="related-wrap reveal" id="read-next"><section class="header cap theme"><span>接下来阅读</span></section><section class="body fs14"><a id="next" href="/2017/08/06/iOS-APNs-%E6%9C%AC%E5%9C%B0%E6%8E%A8%E9%80%81/">iOS APNs: 本地推送<span class="note">较早</span></a><div class="line"></div><a id="prev" href="/2017/10/03/GCC-%E7%BC%96%E8%AF%91C%E8%AF%AD%E8%A8%80%E7%9A%84%E6%B5%81%E7%A8%8B/">GCC: 编译C语言的流程<span class="note">较新</span></a></section></div>
+
+
+
+
+
+
+  <div class='related-wrap md reveal' id="comments">
+    <div class='cmt-title cap theme'>
+      快来参与讨论吧
+    </div>
+    <div class='cmt-body valine'>
+      
+
+<div id="valine_container" class="valine_thread"><svg class="loading" style="vertical-align: middle;fill: currentColor;overflow: hidden;" viewBox="0 0 1024 1024" version="1.1" xmlns="http://www.w3.org/2000/svg" p-id="2709"><path d="M832 512c0-176-144-320-320-320V128c211.2 0 384 172.8 384 384h-64zM192 512c0 176 144 320 320 320v64C300.8 896 128 723.2 128 512h64z" p-id="2710"></path></svg></div>
+
+    </div>
+  </div>
+
+
+
+      
+<footer class="page-footer reveal fs12"><hr><div class="text"><p>本博客所有文章除特别声明外，均采用 <a target="_blank" rel="noopener" href="https://creativecommons.org/licenses/by-nc-sa/4.0/">CC BY-NC-SA 4.0</a> 许可协议，转载请注明出处。</p>
+<p>veryitman</p>
+</div></footer>
+
+      <div class='float-panel mobile-only blur' style='display:none'>
+  <button type='button' class='sidebar-toggle mobile' onclick='sidebar.toggle()'>
+    <svg class="icon" style="width: 1em; height: 1em;vertical-align: middle;fill: currentColor;overflow: hidden;" viewBox="0 0 1024 1024" version="1.1" xmlns="http://www.w3.org/2000/svg" p-id="15301"><path d="M566.407 808.3c26.9-0.1 49.3-20.8 51.6-47.6-1.9-27.7-23.9-49.7-51.6-51.6h-412.6c-28.2-1.4-52.6 19.5-55.5 47.6 2.3 26.8 24.6 47.5 51.6 47.6h416.5v4z m309.3-249.9c26.9-0.1 49.3-20.8 51.6-47.6-2.2-26.8-24.6-47.5-51.6-47.6h-721.9c-27.7-2.8-52.5 17.4-55.3 45.1-0.1 0.8-0.1 1.7-0.2 2.5 0.9 27.2 23.6 48.5 50.7 47.6H875.707z m-103.1-245.9c26.9-0.1 49.3-20.8 51.6-47.6-0.4-28.3-23.2-51.1-51.5-51.6h-618.9c-29.5-1.1-54.3 21.9-55.5 51.4v0.2c1.4 27.8 25.2 49.2 53 47.8 0.8 0 1.7-0.1 2.5-0.2h618.8z" p-id="15302"></path><path d="M566.407 808.3c26.9-0.1 49.3-20.8 51.6-47.6-1.9-27.7-23.9-49.7-51.6-51.6h-412.6c-28.2-1.4-52.6 19.5-55.5 47.6 1.9 27.7 23.9 49.7 51.6 51.6h416.5z m309.3-249.9c26.9-0.1 49.3-20.8 51.6-47.6-2.2-26.8-24.6-47.5-51.6-47.6h-721.9c-27.7-2.8-52.5 17.4-55.3 45.1-0.1 0.8-0.1 1.7-0.2 2.5 0.9 27.2 23.6 48.5 50.7 47.6H875.707z m-103.1-245.9c26.9-0.1 49.3-20.8 51.6-47.6-0.4-28.3-23.2-51.1-51.5-51.6h-618.9c-29.5-1.1-54.3 21.9-55.5 51.4v0.2c1.4 27.8 25.2 49.2 53 47.8 0.8 0 1.7-0.1 2.5-0.2h618.8z" p-id="15303"></path></svg>
+  </button>
+</div>
+
+    </div>
+  </div>
+  <div class='scripts'>
+    <script type="text/javascript">
+  stellar = {
+    // 懒加载 css https://github.com/filamentgroup/loadCSS
+    loadCSS: (href, before, media, attributes) => {
+      var doc = window.document;
+      var ss = doc.createElement("link");
+      var ref;
+      if (before) {
+        ref = before;
+      } else {
+        var refs = (doc.body || doc.getElementsByTagName("head")[0]).childNodes;
+        ref = refs[refs.length - 1];
+      }
+      var sheets = doc.styleSheets;
+      if (attributes) {
+        for (var attributeName in attributes) {
+          if (attributes.hasOwnProperty(attributeName)) {
+            ss.setAttribute(attributeName, attributes[attributeName]);
+          }
+        }
+      }
+      ss.rel = "stylesheet";
+      ss.href = href;
+      ss.media = "only x";
+      function ready(cb) {
+        if (doc.body) {
+          return cb();
+        }
+        setTimeout(function () {
+          ready(cb);
+        });
+      }
+      ready(function () {
+        ref.parentNode.insertBefore(ss, before ? ref : ref.nextSibling);
+      });
+      var onloadcssdefined = function (cb) {
+        var resolvedHref = ss.href;
+        var i = sheets.length;
+        while (i--) {
+          if (sheets[i].href === resolvedHref) {
+            return cb();
+          }
+        }
+        setTimeout(function () {
+          onloadcssdefined(cb);
+        });
+      };
+      function loadCB() {
+        if (ss.addEventListener) {
+          ss.removeEventListener("load", loadCB);
+        }
+        ss.media = media || "all";
+      }
+      if (ss.addEventListener) {
+        ss.addEventListener("load", loadCB);
+      }
+      ss.onloadcssdefined = onloadcssdefined;
+      onloadcssdefined(loadCB);
+      return ss;
+    },
+
+    // 从 butterfly 和 volantis 获得灵感
+    loadScript: (src, opt) => new Promise((resolve, reject) => {
+      var script = document.createElement('script');
+      script.src = src;
+      if (opt) {
+        for (let key of Object.keys(opt)) {
+          script[key] = opt[key]
+        }
+      } else {
+        // 默认异步，如果需要同步，第二个参数传入 {} 即可
+        script.async = true
+      }
+      script.onerror = reject
+      script.onload = script.onreadystatechange = function() {
+        const loadState = this.readyState
+        if (loadState && loadState !== 'loaded' && loadState !== 'complete') return
+        script.onload = script.onreadystatechange = null
+        resolve()
+      }
+      document.head.appendChild(script)
+    }),
+
+    // https://github.com/jerryc127/hexo-theme-butterfly
+    jQuery: (fn) => {
+      if (typeof jQuery === 'undefined') {
+        stellar.loadScript(stellar.plugins.jQuery).then(fn)
+      } else {
+        fn()
+      }
+    }
+  };
+  stellar.github = 'https://github.com/xaoxuu/hexo-theme-stellar/tree/1.6.1';
+  stellar.config = {
+    date_suffix: {
+      just: '刚刚',
+      min: '分钟前',
+      hour: '小时前',
+      day: '天前',
+      month: '个月前',
+    },
+  };
+
+  // required plugins (only load if needs)
+  stellar.plugins = {
+    jQuery: 'https://cdn.jsdelivr.net/npm/jquery@3.5.1/dist/jquery.min.js',
+    sitesjs: '/js/plugins/sites.js',
+    friendsjs: '/js/plugins/friends.js',
+  };
+
+  // optional plugins
+  if ('true' == 'true') {
+    stellar.plugins.lazyload = Object.assign({"enable":true,"js":"https://cdn.jsdelivr.net/npm/vanilla-lazyload@17.3.1/dist/lazyload.min.js","transition":"blur"});
+  }
+  if ('true' == 'true') {
+    stellar.plugins.swiper = Object.assign({"enable":true,"css":"https://unpkg.com/swiper@6/swiper-bundle.min.css","js":"https://unpkg.com/swiper@6/swiper-bundle.min.js"});
+  }
+  if ('' == 'true') {
+    stellar.plugins.scrollreveal = Object.assign({"enable":null,"js":"https://cdn.jsdelivr.net/npm/scrollreveal@4.0.9/dist/scrollreveal.min.js","distance":"8px","duration":500,"interval":100,"scale":1});
+  }
+  if ('true' == 'true') {
+    stellar.plugins.preload = Object.assign({"enable":true,"service":"flying_pages","instant_page":"https://cdn.jsdelivr.net/gh/volantis-x/cdn-volantis@4.1.2/js/instant_page.js","flying_pages":"https://cdn.jsdelivr.net/gh/gijo-varghese/flying-pages@2.1.2/flying-pages.min.js"});
+  }
+</script>
+
+<!-- required -->
+
+  
+<script src="/js/main.js" async></script>
+
+
+
+<!-- optional -->
+
+  <script>
+  function getEmojiMaps() {
+    function emoji(path, idx, ext) {
+      return path + "/" + path + "-" + idx + "." + ext;
+    }
+    var emojiMaps = {};
+    for (var i = 1; i <= 54; i++) {
+      emojiMaps['tieba-' + i] = emoji('tieba', i, 'png');
+    }
+    for (var i = 1; i <= 101; i++) {
+      emojiMaps['qq-' + i] = emoji('qq', i, 'gif');
+    }
+    for (var i = 1; i <= 116; i++) {
+      emojiMaps['aru-' + i] = emoji('aru', i, 'gif');
+    }
+    for (var i = 1; i <= 125; i++) {
+      emojiMaps['twemoji-' + i] = emoji('twemoji', i, 'png');
+    }
+    for (var i = 1; i <= 4; i++) {
+      emojiMaps['weibo-' + i] = emoji('weibo', i, 'png');
+    }
+    return emojiMaps;
+  }
+  function load_comment(){
+    if(!document.getElementById("valine_container"))return;
+    stellar.loadScript('https://cdn.jsdelivr.net/gh/XuxuGood/simple-blog-cdn@main/js/Valine.min.js', {defer:true}).then(function () {
+      const el = document.getElementById("valine_container");
+      var path = el.getAttribute('comment_id');
+      const placeholder = "欢迎您留言~";
+      if (!path) {
+        path = decodeURI(window.location.pathname);
+      }
+      var valine = new Valine();
+      valine.init(Object.assign({"js":"https://cdn.jsdelivr.net/gh/XuxuGood/simple-blog-cdn@main/js/Valine.min.js","appId":"FY2C9UCttYNaE1j8umenqdCE-gzGzoHsz","appKey":"4i7xMwkfSEGmEDhi6SceKFxz","placeholder":"欢迎您留言~","requiredFields":["nick","mail"],"enableQQ":true,"recordIP":false,"avatar":"robohash","pageSize":10,"lang":"zh-cn","highlight":true,"mathJax":false,"tagMeta":["博主","小伙伴","访客"],"metaPlaceholder":{"nick":"昵称/QQ号(必填)","mail":"邮箱（必填，完全保密）"},"master":["6783037F2DF30EAB99F9FC256157D875"],"friends":["6783037F2DF30EAB99F9FC256157D875"],"comment_count":true}, {
+        el: '#valine_container',
+        path: path,
+        placeholder: placeholder,
+        emojiCDN: 'https://cdn.jsdelivr.net/gh/volantis-x/cdn-emoji/valine/',
+        emojiMaps: getEmojiMaps(),
+      }));
+    });
+  }
+  window.addEventListener('DOMContentLoaded', (event) => {
+    console.log('DOM fully loaded and parsed');
+    load_comment();
+  });
+
+</script>
+
+
+
+
+<!-- inject -->
+
+
+  </div>
+</body>
+</html>

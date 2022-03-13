@@ -1,0 +1,410 @@
+<!DOCTYPE html>
+<html lang='zh-CN'>
+
+<head>
+  <meta name="generator" content="Hexo 6.0.0">
+  <meta charset="utf-8">
+  
+
+  <meta http-equiv='x-dns-prefetch-control' content='on' />
+  <link rel='dns-prefetch' href='https://cdn.jsdelivr.net'>
+  <link rel="preconnect" href="https://cdn.jsdelivr.net" crossorigin>
+
+  <meta name="renderer" content="webkit">
+  <meta name="force-rendering" content="webkit">
+  <meta http-equiv="X-UA-Compatible" content="IE=Edge,chrome=1">
+  <meta name="HandheldFriendly" content="True" >
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1">
+  <meta name="theme-color" content="#f8f8f8">
+  <title>C/C++: 如何相互调用 - Veryitman</title>
+
+  
+    <meta name="description" content="最近在看人工智能相关的知识，无意中发现了一个巨牛的 人工智能教程，分享一下给大家。 教程不仅是零基础，通俗易懂，而且非常风趣幽默，像看小说一样！觉得太牛了，所以分享给大家。点 这里 可以直接看教程。 简介C++ 中调用 C 比较简单. 但是 C 调用 C++ 稍微复杂一些. C 调用 C++ 分为可以调用 C++ 类中的函数和普通 cpp 中的函数. 无论是哪种函数, 我们都可以使用封装了 C++">
+<meta property="og:type" content="article">
+<meta property="og:title" content="C&#x2F;C++: 如何相互调用">
+<meta property="og:url" content="http://example.com/2018/02/12/C-C-%E5%A6%82%E4%BD%95%E7%9B%B8%E4%BA%92%E8%B0%83%E7%94%A8/index.html">
+<meta property="og:site_name" content="Veryitman">
+<meta property="og:description" content="最近在看人工智能相关的知识，无意中发现了一个巨牛的 人工智能教程，分享一下给大家。 教程不仅是零基础，通俗易懂，而且非常风趣幽默，像看小说一样！觉得太牛了，所以分享给大家。点 这里 可以直接看教程。 简介C++ 中调用 C 比较简单. 但是 C 调用 C++ 稍微复杂一些. C 调用 C++ 分为可以调用 C++ 类中的函数和普通 cpp 中的函数. 无论是哪种函数, 我们都可以使用封装了 C++">
+<meta property="og:locale" content="zh_CN">
+<meta property="article:published_time" content="2018-02-11T16:14:40.000Z">
+<meta property="article:modified_time" content="2022-03-09T14:53:24.342Z">
+<meta property="article:author" content="veryitman">
+<meta property="article:tag" content="C C++ 编程语言">
+<meta name="twitter:card" content="summary">
+  
+  
+
+  <!-- feed -->
+  
+
+  
+    
+<link rel="stylesheet" href="/css/main.css">
+
+  
+
+  
+
+  
+</head>
+
+<body>
+  
+
+
+  <div class='l_body' id='start'>
+    <aside class='l_left' layout='post'>
+    
+
+
+<header class="header">
+
+<div class="logo-wrap"><a class="title" href="/"><div class="main">Veryitman</div></a></div>
+<nav class="menu dis-select"></nav></header>
+
+<div class="widgets">
+
+<div class="widget-wrap single" id="toc"><div class="widget-header cap dis-select"><span class="name">本文目录</span></div><div class="widget-body fs14"><div class="doc-tree active"><ol class="toc"><li class="toc-item toc-level-2"><a class="toc-link" href="#%E7%AE%80%E4%BB%8B"><span class="toc-text">简介</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#C-%E8%B0%83%E7%94%A8-C"><span class="toc-text">C++ 调用 C</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#C-%E8%B0%83%E7%94%A8%E6%99%AE%E9%80%9A-C-%E7%9A%84%E5%87%BD%E6%95%B0"><span class="toc-text">C 调用普通 C++ 的函数</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#C-%E8%B0%83%E7%94%A8-C-%E7%B1%BB%E4%B8%AD%E7%9A%84%E6%96%B9%E6%B3%95"><span class="toc-text">C 调用 C++ 类中的方法</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#extern-%E2%80%9CC%E2%80%9D"><span class="toc-text">extern “C”</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#cplusplus-%E5%AE%8F"><span class="toc-text">__cplusplus 宏</span></a></li></ol></div></div></div>
+
+
+</div>
+
+
+    </aside>
+    <div class='l_main'>
+      
+
+      
+
+
+<div class="bread-nav fs12"><div id="breadcrumb"><a class="cap breadcrumb" href="/">主页</a><span class="sep"></span><a class="cap breadcrumb" href="/">文章</a><span class="sep"></span><a class="cap breadcrumb-link" href="/categories/C-C/">C/C++</a></div><div id="post-meta">发布于&nbsp;<time datetime="2018-02-11T16:14:40.000Z">2018-02-12</time></div></div>
+
+<article class='content md post'>
+<h1 class="article-title"><span>C/C++: 如何相互调用</span></h1>
+<p>最近在看人工智能相关的知识，无意中发现了一个巨牛的 <a target="_blank" rel="noopener" href="https://www.cbedai.net/androidbluetooth">人工智能教程</a>，分享一下给大家。</p>
+<p>教程不仅是零基础，通俗易懂，而且非常风趣幽默，像看小说一样！觉得太牛了，所以分享给大家。点 <a target="_blank" rel="noopener" href="https://www.cbedai.net/androidbluetooth">这里</a> 可以直接看教程。</p>
+<h2 id="简介"><a href="#简介" class="headerlink" title="简介"></a>简介</h2><p>C++ 中调用 C 比较简单. 但是 C 调用 C++ 稍微复杂一些.</p>
+<p>C 调用 C++ 分为可以调用 C++ 类中的函数和普通 cpp 中的函数. 无论是哪种函数, 我们都可以使用封装了 C++ 的文件作为适配供给 C 来使用.</p>
+<p>下面看具体的例子.</p>
+<h2 id="C-调用-C"><a href="#C-调用-C" class="headerlink" title="C++ 调用 C"></a>C++ 调用 C</h2><p>首先创建 CFile.h 和 CFile.c 文件.</p>
+<blockquote>
+<p>CFile.h</p>
+</blockquote>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br></pre></td><td class="code"><pre><span class="line">#ifndef CFile_h</span><br><span class="line">#define CFile_h</span><br><span class="line"></span><br><span class="line">#include &lt;stdio.h&gt;</span><br><span class="line"></span><br><span class="line">extern void start_c(int cmd);</span><br><span class="line"></span><br><span class="line">#endif /* CFile_h */</span><br></pre></td></tr></table></figure>
+
+<blockquote>
+<p>CFile.c</p>
+</blockquote>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br></pre></td><td class="code"><pre><span class="line">#include &quot;CFile.h&quot;</span><br><span class="line"></span><br><span class="line">void start_c(int cmd) &#123;</span><br><span class="line">    </span><br><span class="line">    printf(&quot;start_c by cmd: %i\n&quot;, cmd);</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<p>在 C++ 文件中调用 C 代码, 示例如下:</p>
+<blockquote>
+<p>main.cpp</p>
+</blockquote>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br></pre></td><td class="code"><pre><span class="line">extern &quot;C&quot; &#123;</span><br><span class="line">#include &quot;CFile.h&quot;</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line">int main(int argc, const char * argv[]) &#123;</span><br><span class="line">    </span><br><span class="line">    start_c(1);</span><br><span class="line">    </span><br><span class="line">    return 0;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<p>这里可以看到导入 C 文件的方式:</p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line">extern &quot;C&quot; &#123;</span><br><span class="line">#include &quot;CFile.h&quot;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<p>如果直接导入, 如:</p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br></pre></td><td class="code"><pre><span class="line">#include &quot;CFile.h&quot;</span><br><span class="line"></span><br><span class="line">int main(int argc, const char * argv[]) &#123;</span><br><span class="line">    </span><br><span class="line">    start_c(1);</span><br><span class="line">    </span><br><span class="line">    return 0;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<p>编译报错:</p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><span class="line">Undefined symbols for architecture x86_64:</span><br><span class="line">  &quot;start_c(int)&quot;, referenced from:</span><br><span class="line">      _main in main.o</span><br><span class="line">ld: symbol(s) not found for architecture x86_64</span><br></pre></td></tr></table></figure>
+
+<p>这里的 <code>extern &quot;C&quot;</code> 告诉编译器, 要按照 C 的链接约定，而不是 C++ 的链接约定.</p>
+<p>C 编译器不支持 <code>extern &quot;C&quot;</code>.</p>
+<h2 id="C-调用普通-C-的函数"><a href="#C-调用普通-C-的函数" class="headerlink" title="C 调用普通 C++ 的函数"></a>C 调用普通 C++ 的函数</h2><p>C 调用 C++ 有点曲折.</p>
+<blockquote>
+<p>CPPFile.hpp</p>
+</blockquote>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br></pre></td><td class="code"><pre><span class="line">#ifndef CPPFile_hpp</span><br><span class="line">#define CPPFile_hpp</span><br><span class="line"></span><br><span class="line">void start_cpp(int cmd);</span><br><span class="line"></span><br><span class="line">#endif /* CPPFile_hpp */</span><br></pre></td></tr></table></figure>
+
+<blockquote>
+<p>CPPFile.cpp</p>
+</blockquote>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br></pre></td><td class="code"><pre><span class="line">#include &quot;CPPFile.hpp&quot;</span><br><span class="line">#include &lt;iostream&gt;</span><br><span class="line"></span><br><span class="line">using namespace std;</span><br><span class="line"></span><br><span class="line">void start_cpp(int cmd) &#123;</span><br><span class="line">    </span><br><span class="line">    cout &lt;&lt; &quot;start_cpp by cmd: &quot; &lt;&lt; cmd &lt;&lt; endl;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<p>这里需要写一个中间的 cpp(CPPAdapter.cpp)文件, 提供方法给 C 来使用.</p>
+<p>注意: 这里没有 <code>CPPAdapter.hpp</code> 头文件.</p>
+<blockquote>
+<p>CPPAdapter.cpp</p>
+</blockquote>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br></pre></td><td class="code"><pre><span class="line">#include &quot;CPPFile.hpp&quot;</span><br><span class="line"></span><br><span class="line">#ifdef __cplusplus</span><br><span class="line">extern &quot;C&quot; &#123;</span><br><span class="line">#endif</span><br><span class="line">    </span><br><span class="line">    void adapter_start_cpp(int cmd) &#123;</span><br><span class="line">        </span><br><span class="line">        //调用 CPPFile 中的方法</span><br><span class="line">        start_cpp(cmd);</span><br><span class="line">    &#125;</span><br><span class="line">    </span><br><span class="line">#ifdef __cplusplus</span><br><span class="line">&#125;</span><br><span class="line">#endif</span><br></pre></td></tr></table></figure>
+
+<p>然后在 C 中调用 C++ 的代码:</p>
+<blockquote>
+<p>CFile.c</p>
+</blockquote>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br></pre></td><td class="code"><pre><span class="line">#include &quot;CFile.h&quot;</span><br><span class="line"></span><br><span class="line">//声明函数</span><br><span class="line">extern void adapter_start_cpp(int cmd);</span><br><span class="line"></span><br><span class="line">void start_c(int cmd) &#123;</span><br><span class="line">        </span><br><span class="line">    //调用 c++ 代码</span><br><span class="line">    adapter_start_cpp(5);</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<h2 id="C-调用-C-类中的方法"><a href="#C-调用-C-类中的方法" class="headerlink" title="C 调用 C++ 类中的方法"></a>C 调用 C++ 类中的方法</h2><p>和上面例子的原理一样的.</p>
+<blockquote>
+<p>CPPClassFile.hpp</p>
+</blockquote>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br></pre></td><td class="code"><pre><span class="line">#ifndef CPPClassFile_hpp</span><br><span class="line">#define CPPClassFile_hpp</span><br><span class="line"></span><br><span class="line">#include &lt;iostream&gt;</span><br><span class="line">#include &lt;string&gt;</span><br><span class="line"></span><br><span class="line">using namespace std;</span><br><span class="line"></span><br><span class="line">class Person &#123;</span><br><span class="line">private:</span><br><span class="line">    string name;</span><br><span class="line">    </span><br><span class="line">public:</span><br><span class="line">    Person();</span><br><span class="line">    ~Person();</span><br><span class="line">    </span><br><span class="line">    int setName(string name);</span><br><span class="line">&#125;;</span><br><span class="line"></span><br><span class="line">#endif /* CPPClassFile_hpp */</span><br></pre></td></tr></table></figure>
+
+<blockquote>
+<p>CPPClassFile.cpp</p>
+</blockquote>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br></pre></td><td class="code"><pre><span class="line">#include &quot;CPPClassFile.hpp&quot;</span><br><span class="line"></span><br><span class="line">Person::Person() &#123;</span><br><span class="line">    </span><br><span class="line">    cout &lt;&lt; &quot;Person()&quot; &lt;&lt; endl;</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line">Person::~Person() &#123;</span><br><span class="line">    </span><br><span class="line">    cout &lt;&lt; &quot;~Person()&quot; &lt;&lt; endl;</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line">int Person::setName(string name) &#123;</span><br><span class="line">    </span><br><span class="line">    this-&gt;name = name;</span><br><span class="line">    </span><br><span class="line">    cout &lt;&lt; &quot;Set name: &quot; &lt;&lt; name &lt;&lt; endl;</span><br><span class="line">    </span><br><span class="line">    return 0;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<blockquote>
+<p>CPPAdapter.cpp</p>
+</blockquote>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br></pre></td><td class="code"><pre><span class="line">#include &quot;CPPFile.hpp&quot;</span><br><span class="line">#include &quot;CPPClassFile.hpp&quot;</span><br><span class="line"></span><br><span class="line">#ifdef __cplusplus</span><br><span class="line">extern &quot;C&quot; &#123;</span><br><span class="line">#endif</span><br><span class="line">    </span><br><span class="line">    void adapter_start_cpp(int cmd) &#123;</span><br><span class="line">        </span><br><span class="line">        //调用 CPPFile 中的方法</span><br><span class="line">        start_cpp(cmd);</span><br><span class="line">    &#125;</span><br><span class="line">    </span><br><span class="line">    int adapter_set_name(const char *cName) &#123;</span><br><span class="line">        </span><br><span class="line">        Person *person = new Person();</span><br><span class="line">        int ret = person-&gt;setName(cName);</span><br><span class="line">        delete person;</span><br><span class="line">        </span><br><span class="line">        return ret;</span><br><span class="line">    &#125;</span><br><span class="line">    </span><br><span class="line">#ifdef __cplusplus</span><br><span class="line">&#125;</span><br><span class="line">#endif</span><br></pre></td></tr></table></figure>
+
+<p>在 C 中可以调用了, 如下代码:</p>
+<blockquote>
+<p>CFile.c</p>
+</blockquote>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br></pre></td><td class="code"><pre><span class="line">#include &quot;CFile.h&quot;</span><br><span class="line"></span><br><span class="line">///声明 CPPFile 中的方法</span><br><span class="line">extern void adapter_start_cpp(int cmd);</span><br><span class="line"></span><br><span class="line">///声明 CPPClassFile 中的方法</span><br><span class="line">extern int adapter_set_name(const char *cName);</span><br><span class="line"></span><br><span class="line">void start_c(int cmd) &#123;</span><br><span class="line">    </span><br><span class="line">    printf(&quot;start_c by cmd: %i\n&quot;, cmd);</span><br><span class="line">    </span><br><span class="line">    //调用 CPPFile 中的方法</span><br><span class="line">    adapter_start_cpp(5);</span><br><span class="line">    </span><br><span class="line">    //调用 CPPClassFile 中的方法</span><br><span class="line">    adapter_set_name(&quot;www.veryitman.com&quot;);</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<h2 id="extern-“C”"><a href="#extern-“C”" class="headerlink" title="extern “C”"></a>extern “C”</h2><p><code>extern &quot;C&quot;</code> 中的 “C” 并不表示 C 语言，”C” 表示的是一种链接约定.</p>
+<p><code>extern &quot;C&quot;</code> 指令描述的是一种链接约定，它并不影响调用函数的定义，即使做了该声明，对函数类型的检查和参数转换仍要遵循 C++ 的标准，而不是 C 的标准.</p>
+<p>不同的编程语言(编译型)链接特性是不同的，这也决定了它们编译后的链接符号的不同.</p>
+<p>如函数 <code>void function(int d)</code>，C 语言会把它编译成类似 <code>_function</code> 这样的符号，C 链接器只要找到该函数符号就可以链接成功.</p>
+<p>C++ 会把这个函数编译成类似 <code>_function_int</code> 或 <code>_xxx_functionIntxxx</code> 这样的符号，即在符号上增加了类型信息，这也解释了为什么 C++ 可以实现函数重载了.</p>
+<p>那么，对于用 C 编译器编译成的库，用 C++ 直接链接势必会出现不能识别符号的问题，用 <code>extern &quot;C&quot;</code> 就可以解决, 正如上面的例子.</p>
+<p>简单来说, <code>extern &quot;C&quot;</code> 的作用就是让编译器知道要以 C 语言的方式编译和链接函数.</p>
+<h2 id="cplusplus-宏"><a href="#cplusplus-宏" class="headerlink" title="__cplusplus 宏"></a>__cplusplus 宏</h2><p><code>__cplusplus</code> 宏是 C++ 编译器默认定义的.</p>
+<p>类似如下的代码:</p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br></pre></td><td class="code"><pre><span class="line">#ifdef __cplusplus</span><br><span class="line">extern &quot;C&quot;&#123;</span><br><span class="line">#endif</span><br><span class="line"></span><br><span class="line">void fun(int, size_t);</span><br><span class="line"></span><br><span class="line">#ifdef __cplusplus</span><br><span class="line">&#125;</span><br><span class="line">#endif</span><br></pre></td></tr></table></figure>
+
+<p>在 C++ 中, 编译器将 fun 按照 C 的链接约定来编译, 而如果是 C 编译器, 直接按照 C 的链接约定来编译即可.</p>
+<p><code>__cplusplus</code> 是在 C++ 编译器中默认定义的,Ｃ语言不支持 <code>extern &quot;Ｃ&quot;</code>.</p>
+<p>上面的代码很实用, 也是一种编程技巧.</p>
+
+
+
+
+</article>
+
+<div class="related-wrap reveal" id="read-next"><section class="header cap theme"><span>接下来阅读</span></section><section class="body fs14"><a id="next" href="/2018/02/08/iOS-APNs-Background-Fetch/">iOS APNs: Background Fetch<span class="note">较早</span></a><div class="line"></div><a id="prev" href="/2018/02/12/iOS-%E5%A4%9A%E7%BA%BF%E7%A8%8B-%E5%88%9D%E6%AD%A5%E8%AE%A4%E8%AF%86/">iOS 多线程: 初步认识<span class="note">较新</span></a></section></div>
+
+
+
+
+
+
+  <div class='related-wrap md reveal' id="comments">
+    <div class='cmt-title cap theme'>
+      快来参与讨论吧
+    </div>
+    <div class='cmt-body valine'>
+      
+
+<div id="valine_container" class="valine_thread"><svg class="loading" style="vertical-align: middle;fill: currentColor;overflow: hidden;" viewBox="0 0 1024 1024" version="1.1" xmlns="http://www.w3.org/2000/svg" p-id="2709"><path d="M832 512c0-176-144-320-320-320V128c211.2 0 384 172.8 384 384h-64zM192 512c0 176 144 320 320 320v64C300.8 896 128 723.2 128 512h64z" p-id="2710"></path></svg></div>
+
+    </div>
+  </div>
+
+
+
+      
+<footer class="page-footer reveal fs12"><hr><div class="text"><p>本博客所有文章除特别声明外，均采用 <a target="_blank" rel="noopener" href="https://creativecommons.org/licenses/by-nc-sa/4.0/">CC BY-NC-SA 4.0</a> 许可协议，转载请注明出处。</p>
+<p>veryitman</p>
+</div></footer>
+
+      <div class='float-panel mobile-only blur' style='display:none'>
+  <button type='button' class='sidebar-toggle mobile' onclick='sidebar.toggle()'>
+    <svg class="icon" style="width: 1em; height: 1em;vertical-align: middle;fill: currentColor;overflow: hidden;" viewBox="0 0 1024 1024" version="1.1" xmlns="http://www.w3.org/2000/svg" p-id="15301"><path d="M566.407 808.3c26.9-0.1 49.3-20.8 51.6-47.6-1.9-27.7-23.9-49.7-51.6-51.6h-412.6c-28.2-1.4-52.6 19.5-55.5 47.6 2.3 26.8 24.6 47.5 51.6 47.6h416.5v4z m309.3-249.9c26.9-0.1 49.3-20.8 51.6-47.6-2.2-26.8-24.6-47.5-51.6-47.6h-721.9c-27.7-2.8-52.5 17.4-55.3 45.1-0.1 0.8-0.1 1.7-0.2 2.5 0.9 27.2 23.6 48.5 50.7 47.6H875.707z m-103.1-245.9c26.9-0.1 49.3-20.8 51.6-47.6-0.4-28.3-23.2-51.1-51.5-51.6h-618.9c-29.5-1.1-54.3 21.9-55.5 51.4v0.2c1.4 27.8 25.2 49.2 53 47.8 0.8 0 1.7-0.1 2.5-0.2h618.8z" p-id="15302"></path><path d="M566.407 808.3c26.9-0.1 49.3-20.8 51.6-47.6-1.9-27.7-23.9-49.7-51.6-51.6h-412.6c-28.2-1.4-52.6 19.5-55.5 47.6 1.9 27.7 23.9 49.7 51.6 51.6h416.5z m309.3-249.9c26.9-0.1 49.3-20.8 51.6-47.6-2.2-26.8-24.6-47.5-51.6-47.6h-721.9c-27.7-2.8-52.5 17.4-55.3 45.1-0.1 0.8-0.1 1.7-0.2 2.5 0.9 27.2 23.6 48.5 50.7 47.6H875.707z m-103.1-245.9c26.9-0.1 49.3-20.8 51.6-47.6-0.4-28.3-23.2-51.1-51.5-51.6h-618.9c-29.5-1.1-54.3 21.9-55.5 51.4v0.2c1.4 27.8 25.2 49.2 53 47.8 0.8 0 1.7-0.1 2.5-0.2h618.8z" p-id="15303"></path></svg>
+  </button>
+</div>
+
+    </div>
+  </div>
+  <div class='scripts'>
+    <script type="text/javascript">
+  stellar = {
+    // 懒加载 css https://github.com/filamentgroup/loadCSS
+    loadCSS: (href, before, media, attributes) => {
+      var doc = window.document;
+      var ss = doc.createElement("link");
+      var ref;
+      if (before) {
+        ref = before;
+      } else {
+        var refs = (doc.body || doc.getElementsByTagName("head")[0]).childNodes;
+        ref = refs[refs.length - 1];
+      }
+      var sheets = doc.styleSheets;
+      if (attributes) {
+        for (var attributeName in attributes) {
+          if (attributes.hasOwnProperty(attributeName)) {
+            ss.setAttribute(attributeName, attributes[attributeName]);
+          }
+        }
+      }
+      ss.rel = "stylesheet";
+      ss.href = href;
+      ss.media = "only x";
+      function ready(cb) {
+        if (doc.body) {
+          return cb();
+        }
+        setTimeout(function () {
+          ready(cb);
+        });
+      }
+      ready(function () {
+        ref.parentNode.insertBefore(ss, before ? ref : ref.nextSibling);
+      });
+      var onloadcssdefined = function (cb) {
+        var resolvedHref = ss.href;
+        var i = sheets.length;
+        while (i--) {
+          if (sheets[i].href === resolvedHref) {
+            return cb();
+          }
+        }
+        setTimeout(function () {
+          onloadcssdefined(cb);
+        });
+      };
+      function loadCB() {
+        if (ss.addEventListener) {
+          ss.removeEventListener("load", loadCB);
+        }
+        ss.media = media || "all";
+      }
+      if (ss.addEventListener) {
+        ss.addEventListener("load", loadCB);
+      }
+      ss.onloadcssdefined = onloadcssdefined;
+      onloadcssdefined(loadCB);
+      return ss;
+    },
+
+    // 从 butterfly 和 volantis 获得灵感
+    loadScript: (src, opt) => new Promise((resolve, reject) => {
+      var script = document.createElement('script');
+      script.src = src;
+      if (opt) {
+        for (let key of Object.keys(opt)) {
+          script[key] = opt[key]
+        }
+      } else {
+        // 默认异步，如果需要同步，第二个参数传入 {} 即可
+        script.async = true
+      }
+      script.onerror = reject
+      script.onload = script.onreadystatechange = function() {
+        const loadState = this.readyState
+        if (loadState && loadState !== 'loaded' && loadState !== 'complete') return
+        script.onload = script.onreadystatechange = null
+        resolve()
+      }
+      document.head.appendChild(script)
+    }),
+
+    // https://github.com/jerryc127/hexo-theme-butterfly
+    jQuery: (fn) => {
+      if (typeof jQuery === 'undefined') {
+        stellar.loadScript(stellar.plugins.jQuery).then(fn)
+      } else {
+        fn()
+      }
+    }
+  };
+  stellar.github = 'https://github.com/xaoxuu/hexo-theme-stellar/tree/1.6.1';
+  stellar.config = {
+    date_suffix: {
+      just: '刚刚',
+      min: '分钟前',
+      hour: '小时前',
+      day: '天前',
+      month: '个月前',
+    },
+  };
+
+  // required plugins (only load if needs)
+  stellar.plugins = {
+    jQuery: 'https://cdn.jsdelivr.net/npm/jquery@3.5.1/dist/jquery.min.js',
+    sitesjs: '/js/plugins/sites.js',
+    friendsjs: '/js/plugins/friends.js',
+  };
+
+  // optional plugins
+  if ('true' == 'true') {
+    stellar.plugins.lazyload = Object.assign({"enable":true,"js":"https://cdn.jsdelivr.net/npm/vanilla-lazyload@17.3.1/dist/lazyload.min.js","transition":"blur"});
+  }
+  if ('true' == 'true') {
+    stellar.plugins.swiper = Object.assign({"enable":true,"css":"https://unpkg.com/swiper@6/swiper-bundle.min.css","js":"https://unpkg.com/swiper@6/swiper-bundle.min.js"});
+  }
+  if ('' == 'true') {
+    stellar.plugins.scrollreveal = Object.assign({"enable":null,"js":"https://cdn.jsdelivr.net/npm/scrollreveal@4.0.9/dist/scrollreveal.min.js","distance":"8px","duration":500,"interval":100,"scale":1});
+  }
+  if ('true' == 'true') {
+    stellar.plugins.preload = Object.assign({"enable":true,"service":"flying_pages","instant_page":"https://cdn.jsdelivr.net/gh/volantis-x/cdn-volantis@4.1.2/js/instant_page.js","flying_pages":"https://cdn.jsdelivr.net/gh/gijo-varghese/flying-pages@2.1.2/flying-pages.min.js"});
+  }
+</script>
+
+<!-- required -->
+
+  
+<script src="/js/main.js" async></script>
+
+
+
+<!-- optional -->
+
+  <script>
+  function getEmojiMaps() {
+    function emoji(path, idx, ext) {
+      return path + "/" + path + "-" + idx + "." + ext;
+    }
+    var emojiMaps = {};
+    for (var i = 1; i <= 54; i++) {
+      emojiMaps['tieba-' + i] = emoji('tieba', i, 'png');
+    }
+    for (var i = 1; i <= 101; i++) {
+      emojiMaps['qq-' + i] = emoji('qq', i, 'gif');
+    }
+    for (var i = 1; i <= 116; i++) {
+      emojiMaps['aru-' + i] = emoji('aru', i, 'gif');
+    }
+    for (var i = 1; i <= 125; i++) {
+      emojiMaps['twemoji-' + i] = emoji('twemoji', i, 'png');
+    }
+    for (var i = 1; i <= 4; i++) {
+      emojiMaps['weibo-' + i] = emoji('weibo', i, 'png');
+    }
+    return emojiMaps;
+  }
+  function load_comment(){
+    if(!document.getElementById("valine_container"))return;
+    stellar.loadScript('https://cdn.jsdelivr.net/gh/XuxuGood/simple-blog-cdn@main/js/Valine.min.js', {defer:true}).then(function () {
+      const el = document.getElementById("valine_container");
+      var path = el.getAttribute('comment_id');
+      const placeholder = "欢迎您留言~";
+      if (!path) {
+        path = decodeURI(window.location.pathname);
+      }
+      var valine = new Valine();
+      valine.init(Object.assign({"js":"https://cdn.jsdelivr.net/gh/XuxuGood/simple-blog-cdn@main/js/Valine.min.js","appId":"FY2C9UCttYNaE1j8umenqdCE-gzGzoHsz","appKey":"4i7xMwkfSEGmEDhi6SceKFxz","placeholder":"欢迎您留言~","requiredFields":["nick","mail"],"enableQQ":true,"recordIP":false,"avatar":"robohash","pageSize":10,"lang":"zh-cn","highlight":true,"mathJax":false,"tagMeta":["博主","小伙伴","访客"],"metaPlaceholder":{"nick":"昵称/QQ号(必填)","mail":"邮箱（必填，完全保密）"},"master":["6783037F2DF30EAB99F9FC256157D875"],"friends":["6783037F2DF30EAB99F9FC256157D875"],"comment_count":true}, {
+        el: '#valine_container',
+        path: path,
+        placeholder: placeholder,
+        emojiCDN: 'https://cdn.jsdelivr.net/gh/volantis-x/cdn-emoji/valine/',
+        emojiMaps: getEmojiMaps(),
+      }));
+    });
+  }
+  window.addEventListener('DOMContentLoaded', (event) => {
+    console.log('DOM fully loaded and parsed');
+    load_comment();
+  });
+
+</script>
+
+
+
+
+<!-- inject -->
+
+
+  </div>
+</body>
+</html>

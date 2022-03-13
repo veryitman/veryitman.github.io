@@ -1,0 +1,374 @@
+<!DOCTYPE html>
+<html lang='zh-CN'>
+
+<head>
+  <meta name="generator" content="Hexo 6.0.0">
+  <meta charset="utf-8">
+  
+
+  <meta http-equiv='x-dns-prefetch-control' content='on' />
+  <link rel='dns-prefetch' href='https://cdn.jsdelivr.net'>
+  <link rel="preconnect" href="https://cdn.jsdelivr.net" crossorigin>
+
+  <meta name="renderer" content="webkit">
+  <meta name="force-rendering" content="webkit">
+  <meta http-equiv="X-UA-Compatible" content="IE=Edge,chrome=1">
+  <meta name="HandheldFriendly" content="True" >
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1">
+  <meta name="theme-color" content="#f8f8f8">
+  <title>Wireshark：抓取 HTTP 包 - Veryitman</title>
+
+  
+    <meta name="description" content="广告时间，见谅勿怪，看到了就点一下吧，感激不尽🙇‍！  最近在看人工智能相关的知识，无意中发现了一个巨牛的 人工智能教程，分享一下给大家。 教程不仅是零基础，通俗易懂，而且非常风趣幽默，像看小说一样！觉得太牛了，所以分享给大家。 点 这里 可以直接看教程。  开篇简要初识 Wireshark 简单介绍了强大的 Wireshark 工具，想用好或者是说想发挥 Wireshark 的巨大威力，还有很">
+<meta property="og:type" content="article">
+<meta property="og:title" content="Wireshark：抓取 HTTP 包">
+<meta property="og:url" content="http://example.com/2018/09/01/Wireshark%EF%BC%9A%E6%8A%93%E5%8F%96-HTTP-%E5%8C%85/index.html">
+<meta property="og:site_name" content="Veryitman">
+<meta property="og:description" content="广告时间，见谅勿怪，看到了就点一下吧，感激不尽🙇‍！  最近在看人工智能相关的知识，无意中发现了一个巨牛的 人工智能教程，分享一下给大家。 教程不仅是零基础，通俗易懂，而且非常风趣幽默，像看小说一样！觉得太牛了，所以分享给大家。 点 这里 可以直接看教程。  开篇简要初识 Wireshark 简单介绍了强大的 Wireshark 工具，想用好或者是说想发挥 Wireshark 的巨大威力，还有很">
+<meta property="og:locale" content="zh_CN">
+<meta property="og:image" content="http://example.com/upload/images/2018/09/01/1.jpg">
+<meta property="og:image" content="http://example.com/upload/images/2018/09/01/2.jpg">
+<meta property="og:image" content="http://example.com/upload/images/2018/09/01/3.jpg">
+<meta property="og:image" content="http://example.com/upload/images/2018/09/01/4.jpg">
+<meta property="og:image" content="http://example.com/upload/images/2018/09/01/5.jpg">
+<meta property="og:image" content="http://example.com/upload/images/2018/09/01/6.jpg">
+<meta property="og:image" content="http://example.com/upload/images/2018/09/01/7.jpg">
+<meta property="og:image" content="http://example.com/upload/images/2018/09/01/8.jpg">
+<meta property="og:image" content="http://example.com/upload/images/2018/09/01/9.jpg">
+<meta property="og:image" content="http://example.com/upload/images/2018/09/01/10.jpg">
+<meta property="og:image" content="http://example.com/upload/me/qrcode_wx.jpg">
+<meta property="article:published_time" content="2018-09-01T06:08:37.000Z">
+<meta property="article:modified_time" content="2022-03-09T14:53:24.346Z">
+<meta property="article:author" content="veryitman">
+<meta property="article:tag" content="Wireshark http https">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:image" content="http://example.com/upload/images/2018/09/01/1.jpg">
+  
+  
+
+  <!-- feed -->
+  
+
+  
+    
+<link rel="stylesheet" href="/css/main.css">
+
+  
+
+  
+
+  
+</head>
+
+<body>
+  
+
+
+  <div class='l_body' id='start'>
+    <aside class='l_left' layout='post'>
+    
+
+
+<header class="header">
+
+<div class="logo-wrap"><a class="title" href="/"><div class="main">Veryitman</div></a></div>
+<nav class="menu dis-select"></nav></header>
+
+<div class="widgets">
+
+<div class="widget-wrap single" id="toc"><div class="widget-header cap dis-select"><span class="name">本文目录</span></div><div class="widget-body fs14"><div class="doc-tree active"><ol class="toc"><li class="toc-item toc-level-2"><a class="toc-link" href="#%E5%BC%80%E7%AF%87%E7%AE%80%E8%A6%81"><span class="toc-text">开篇简要</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#PC-%E7%AB%AF%E7%9A%84-HTTP-%E8%AF%B7%E6%B1%82"><span class="toc-text">PC 端的 HTTP 请求</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#iOS-%E8%AE%BE%E5%A4%87%E7%9A%84-HTTP-%E8%AF%B7%E6%B1%82"><span class="toc-text">iOS 设备的 HTTP 请求</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#%E6%98%BE%E7%A4%BA%E5%9F%9F%E5%90%8D"><span class="toc-text">显示域名</span></a></li></ol></div></div></div>
+
+
+</div>
+
+
+    </aside>
+    <div class='l_main'>
+      
+
+      
+
+
+<div class="bread-nav fs12"><div id="breadcrumb"><a class="cap breadcrumb" href="/">主页</a><span class="sep"></span><a class="cap breadcrumb" href="/">文章</a><span class="sep"></span><a class="cap breadcrumb-link" href="/categories/%E7%BD%91%E7%BB%9C%E5%8D%8F%E8%AE%AE/">网络协议</a></div><div id="post-meta">发布于&nbsp;<time datetime="2018-09-01T06:08:37.000Z">2018-09-01</time></div></div>
+
+<article class='content md post'>
+<h1 class="article-title"><span>Wireshark：抓取 HTTP 包</span></h1>
+<p>广告时间，见谅勿怪，看到了就点一下吧，感激不尽🙇‍！</p>
+<hr>
+<p>最近在看人工智能相关的知识，无意中发现了一个巨牛的 <a target="_blank" rel="noopener" href="https://www.cbedai.net/androidbluetooth">人工智能教程</a>，分享一下给大家。</p>
+<p>教程不仅是零基础，通俗易懂，而且非常风趣幽默，像看小说一样！觉得太牛了，所以分享给大家。</p>
+<p>点 <a target="_blank" rel="noopener" href="https://www.cbedai.net/androidbluetooth">这里</a> 可以直接看教程。</p>
+<hr>
+<h2 id="开篇简要"><a href="#开篇简要" class="headerlink" title="开篇简要"></a>开篇简要</h2><p><a target="_blank" rel="noopener" href="http://www.veryitman.com/2018/08/20/%E5%88%9D%E8%AF%86-Wireshark/">初识 Wireshark</a> 简单介绍了强大的 <code>Wireshark</code> 工具，想用好或者是说想发挥 <code>Wireshark</code> 的巨大威力，还有很长的路要走（对我来说）。学习 <code>Wireshark</code> 的成本要比其他网络抓包工具的成本高，所以请做好学习的准备。</p>
+<p>我身边很多开发同事，甚至包括一些刚入职的测试工程师都不喜欢使用抓包工具，遇到问题凭着自己的感觉在那里侃侃而谈，既耽误时间又没有解决问题，有时候还伤了和气，明明可以使用工具可以解决的问题，偏偏要各抒己见。</p>
+<p>说到 <code>Wireshark</code> 更是很少人使用，至少我身边的同事是这样。如果让你一直去看那些 RFC 等网络协议，不到半小时估计你就会感到疲惫，但是结合 <code>Wireshark</code> 来理解网络协议就会感到无比的快乐，何乐而不为呢？！</p>
+<p>继续阅读下去，你可以了解到如下几个知识：</p>
+<p><strong>1. 如何抓取 PC 端、iOS 设备的网络包？</strong><br><strong>2. 使用一些过滤条件如何查看包的内容？</strong><br><strong>3. 如何在 <code>Wireshark</code> 中显示域名？</strong></p>
+<h2 id="PC-端的-HTTP-请求"><a href="#PC-端的-HTTP-请求" class="headerlink" title="PC 端的 HTTP 请求"></a>PC 端的 HTTP 请求</h2><p>打开 <code>Wireshark</code>，选择对应的网口，因为我使用的是无线网络（WiFi），所以选择 <code>Wi-Fi：en0</code> 这个网口，你可以根据你的网络使用情况来选择对应的网口，如下图：</p>
+<p><img class="lazy" src="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAABGdBTUEAALGPC/xhBQAAADhlWElmTU0AKgAAAAgAAYdpAAQAAAABAAAAGgAAAAAAAqACAAQAAAABAAAAAaADAAQAAAABAAAAAQAAAADa6r/EAAAAC0lEQVQIHWNgAAIAAAUAAY27m/MAAAAASUVORK5CYII=" data-src="/upload/images/2018/09/01/1.jpg"></p>
+<p>可以看到对应有网络数据的网口，<code>Wireshark</code> 还在右侧显示对应的波浪，很人性化的设计。双击对应的网口，就可以使用 <code>Wireshark</code> 来抓包看数据了。</p>
+<p>下面我就以 PC 端访问 <code>www.veryitman.com</code> 来演示 HTTP 请求的抓包情况。</p>
+<p>查看本机的 ip 地址，我的是 <code>10.4.17.7</code>, 再来看一下 <code>www.veryitman.com</code> 对应的 ip 地址：</p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">ping ww.veryitman.com</span><br></pre></td></tr></table></figure>
+
+<p>显示结果如下：</p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">64 bytes from 185.199.110.153: icmp_seq=0 ttl=52 time=317.074 ms</span><br></pre></td></tr></table></figure>
+
+<p>那么， <code>185.199.110.153</code> 就是其对应的 ip 地址。总的来说，对于 PC 端，源地址是 <code>10.4.17.7</code>，目的地址是 <code>185.199.110.153</code>，对于服务器来说，正好反过来。</p>
+<p>首先在过滤器中输入 <code>http</code>, 如下图所示：</p>
+<p><img class="lazy" src="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAABGdBTUEAALGPC/xhBQAAADhlWElmTU0AKgAAAAgAAYdpAAQAAAABAAAAGgAAAAAAAqACAAQAAAABAAAAAaADAAQAAAABAAAAAQAAAADa6r/EAAAAC0lEQVQIHWNgAAIAAAUAAY27m/MAAAAASUVORK5CYII=" data-src="/upload/images/2018/09/01/2.jpg"></p>
+<p>然后打开浏览器，我使用的是 Chrome，打开 <code>http://www.veryitman.com/2018/08/20/%E5%88%9D%E8%AF%86-Wireshark/</code> 网站站点，<code>Wireshark</code> 显示如下（部分截图）：<br><img class="lazy" src="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAABGdBTUEAALGPC/xhBQAAADhlWElmTU0AKgAAAAgAAYdpAAQAAAABAAAAGgAAAAAAAqACAAQAAAABAAAAAaADAAQAAAABAAAAAQAAAADa6r/EAAAAC0lEQVQIHWNgAAIAAAUAAY27m/MAAAAASUVORK5CYII=" data-src="/upload/images/2018/09/01/3.jpg"></p>
+<p>改变一下过滤语句，将之前的 <code>http</code> 改为 <code>ip.src==10.4.17.7 &amp;&amp; http &amp;&amp; ip.dst==185.199.109.153</code>， 显示如下：<br><img class="lazy" src="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAABGdBTUEAALGPC/xhBQAAADhlWElmTU0AKgAAAAgAAYdpAAQAAAABAAAAGgAAAAAAAqACAAQAAAABAAAAAaADAAQAAAABAAAAAQAAAADa6r/EAAAAC0lEQVQIHWNgAAIAAAUAAY27m/MAAAAASUVORK5CYII=" data-src="/upload/images/2018/09/01/4.jpg"></p>
+<p>可以选择任何一个请求，展示区域如下：<br><img class="lazy" src="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAABGdBTUEAALGPC/xhBQAAADhlWElmTU0AKgAAAAgAAYdpAAQAAAABAAAAGgAAAAAAAqACAAQAAAABAAAAAaADAAQAAAABAAAAAQAAAADa6r/EAAAAC0lEQVQIHWNgAAIAAAUAAY27m/MAAAAASUVORK5CYII=" data-src="/upload/images/2018/09/01/5.jpg"></p>
+<p>上图中的三个区域分别对应的是 <code>View</code> 中的 <code>Packet List</code>， <code>Packet Details</code>，<code>Packet Bytes</code> 三个视图。<br><img class="lazy" src="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAABGdBTUEAALGPC/xhBQAAADhlWElmTU0AKgAAAAgAAYdpAAQAAAABAAAAGgAAAAAAAqACAAQAAAABAAAAAaADAAQAAAABAAAAAQAAAADa6r/EAAAAC0lEQVQIHWNgAAIAAAUAAY27m/MAAAAASUVORK5CYII=" data-src="/upload/images/2018/09/01/6.jpg"></p>
+<p>选择任何一个请求，在对应的 <code>区域2</code> 可以看到该请求的详情。</p>
+<p>刚才使用的过滤条件只看到 PC（客户端）的请求，没有看到服务器返回信息，我们修改一下过滤条件为 <code>ip.src==185.199.109.153 &amp;&amp; http &amp;&amp; ip.dst==10.4.17.7</code>，这样就看以看到服务器的回包信息了，如下图所示：<br><img class="lazy" src="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAABGdBTUEAALGPC/xhBQAAADhlWElmTU0AKgAAAAgAAYdpAAQAAAABAAAAGgAAAAAAAqACAAQAAAABAAAAAaADAAQAAAABAAAAAQAAAADa6r/EAAAAC0lEQVQIHWNgAAIAAAUAAY27m/MAAAAASUVORK5CYII=" data-src="/upload/images/2018/09/01/7.jpg"></p>
+<p>双击进入该响应，就可以看到对应的响应数据详情了。</p>
+<h2 id="iOS-设备的-HTTP-请求"><a href="#iOS-设备的-HTTP-请求" class="headerlink" title="iOS 设备的 HTTP 请求"></a>iOS 设备的 HTTP 请求</h2><p>跟查看 PC 端的 HTTP 请求方式基本一致，只是此时的本机 ip 地址是手机端的而不是 pc 端的。</p>
+<p><a target="_blank" rel="noopener" href="http://www.veryitman.com/2018/08/20/%E5%88%9D%E8%AF%86-Wireshark/">初识 Wireshark</a> 中已经跟大家分享过如何去连接 iOS 设备到 <code>Wireshark</code> 抓包了，这里不再赘述。</p>
+<p>至于查看 iOS 设备的 ip 地址，就很简单了，打开 <code>设置/wifi</code> 看一下详情就知道了。</p>
+<h2 id="显示域名"><a href="#显示域名" class="headerlink" title="显示域名"></a>显示域名</h2><p>如果你经常使用 <code>Charles</code> 抓包，就可以发现 <code>Charles</code> 展示的请求中都是以域名来显示的，但是在 <code>Wireshark</code> 都是显示 ip 地址，或许因此感到不适，那么，<code>Wireshark</code> 能否展示域名呢？</p>
+<p><code>Wireshark</code> 是可以像 <code>Charles</code> 那样展示域名的，只是它默认显示 ip 地址罢了。</p>
+<p>打开 Preferences，如图：<br><img class="lazy" src="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAABGdBTUEAALGPC/xhBQAAADhlWElmTU0AKgAAAAgAAYdpAAQAAAABAAAAGgAAAAAAAqACAAQAAAABAAAAAaADAAQAAAABAAAAAQAAAADa6r/EAAAAC0lEQVQIHWNgAAIAAAUAAY27m/MAAAAASUVORK5CYII=" data-src="/upload/images/2018/09/01/8.jpg"><br><img class="lazy" src="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAABGdBTUEAALGPC/xhBQAAADhlWElmTU0AKgAAAAgAAYdpAAQAAAABAAAAGgAAAAAAAqACAAQAAAABAAAAAaADAAQAAAABAAAAAQAAAADa6r/EAAAAC0lEQVQIHWNgAAIAAAUAAY27m/MAAAAASUVORK5CYII=" data-src="/upload/images/2018/09/01/9.jpg"></p>
+<p>这样 <code>Wireshark</code> 的显示就是另一番景象了如下图所示：<br><img class="lazy" src="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAABGdBTUEAALGPC/xhBQAAADhlWElmTU0AKgAAAAgAAYdpAAQAAAABAAAAGgAAAAAAAqACAAQAAAABAAAAAaADAAQAAAABAAAAAQAAAADa6r/EAAAAC0lEQVQIHWNgAAIAAAUAAY27m/MAAAAASUVORK5CYII=" data-src="/upload/images/2018/09/01/10.jpg"></p>
+<p>当然，你也看出来了，过滤条件还是可以使用的。</p>
+<p>你还可以使用其他的过滤条件，如下面的一些过滤条件，能帮你快速定位你要的数据。</p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br></pre></td><td class="code"><pre><span class="line">http.host == &quot;veryitman.com&quot;</span><br><span class="line"></span><br><span class="line">http.host contains &quot;veryitman.com&quot;</span><br><span class="line"></span><br><span class="line">http contains &quot;HTTP/1.1 200 OK&quot;</span><br></pre></td></tr></table></figure>
+
+<hr>
+<p><strong>扫码关注，你我就各多一个朋友~</strong></p>
+<p><img class="lazy" src="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAABGdBTUEAALGPC/xhBQAAADhlWElmTU0AKgAAAAgAAYdpAAQAAAABAAAAGgAAAAAAAqACAAQAAAABAAAAAaADAAQAAAABAAAAAQAAAADa6r/EAAAAC0lEQVQIHWNgAAIAAAUAAY27m/MAAAAASUVORK5CYII=" data-src="/upload/me/qrcode_wx.jpg"></p>
+
+
+
+
+</article>
+
+<div class="related-wrap reveal" id="read-next"><section class="header cap theme"><span>接下来阅读</span></section><section class="body fs14"><a id="next" href="/2018/08/26/%E5%8D%96%E5%BA%9F%E5%93%81%E7%9A%84%E4%B8%80%E6%AC%A1%E7%BB%8F%E5%8E%86/">卖废品的一次经历<span class="note">较早</span></a><div class="line"></div><a id="prev" href="/2018/09/09/Wireshark-%E7%AE%80%E5%8D%95%E5%88%86%E6%9E%90-TCP-%E4%B8%89%E6%AC%A1%E6%8C%A5%E6%89%8B/">Wireshark: 简单分析 TCP 三次挥手<span class="note">较新</span></a></section></div>
+
+
+
+
+
+
+  <div class='related-wrap md reveal' id="comments">
+    <div class='cmt-title cap theme'>
+      快来参与讨论吧
+    </div>
+    <div class='cmt-body valine'>
+      
+
+<div id="valine_container" class="valine_thread"><svg class="loading" style="vertical-align: middle;fill: currentColor;overflow: hidden;" viewBox="0 0 1024 1024" version="1.1" xmlns="http://www.w3.org/2000/svg" p-id="2709"><path d="M832 512c0-176-144-320-320-320V128c211.2 0 384 172.8 384 384h-64zM192 512c0 176 144 320 320 320v64C300.8 896 128 723.2 128 512h64z" p-id="2710"></path></svg></div>
+
+    </div>
+  </div>
+
+
+
+      
+<footer class="page-footer reveal fs12"><hr><div class="text"><p>本博客所有文章除特别声明外，均采用 <a target="_blank" rel="noopener" href="https://creativecommons.org/licenses/by-nc-sa/4.0/">CC BY-NC-SA 4.0</a> 许可协议，转载请注明出处。</p>
+<p>veryitman</p>
+</div></footer>
+
+      <div class='float-panel mobile-only blur' style='display:none'>
+  <button type='button' class='sidebar-toggle mobile' onclick='sidebar.toggle()'>
+    <svg class="icon" style="width: 1em; height: 1em;vertical-align: middle;fill: currentColor;overflow: hidden;" viewBox="0 0 1024 1024" version="1.1" xmlns="http://www.w3.org/2000/svg" p-id="15301"><path d="M566.407 808.3c26.9-0.1 49.3-20.8 51.6-47.6-1.9-27.7-23.9-49.7-51.6-51.6h-412.6c-28.2-1.4-52.6 19.5-55.5 47.6 2.3 26.8 24.6 47.5 51.6 47.6h416.5v4z m309.3-249.9c26.9-0.1 49.3-20.8 51.6-47.6-2.2-26.8-24.6-47.5-51.6-47.6h-721.9c-27.7-2.8-52.5 17.4-55.3 45.1-0.1 0.8-0.1 1.7-0.2 2.5 0.9 27.2 23.6 48.5 50.7 47.6H875.707z m-103.1-245.9c26.9-0.1 49.3-20.8 51.6-47.6-0.4-28.3-23.2-51.1-51.5-51.6h-618.9c-29.5-1.1-54.3 21.9-55.5 51.4v0.2c1.4 27.8 25.2 49.2 53 47.8 0.8 0 1.7-0.1 2.5-0.2h618.8z" p-id="15302"></path><path d="M566.407 808.3c26.9-0.1 49.3-20.8 51.6-47.6-1.9-27.7-23.9-49.7-51.6-51.6h-412.6c-28.2-1.4-52.6 19.5-55.5 47.6 1.9 27.7 23.9 49.7 51.6 51.6h416.5z m309.3-249.9c26.9-0.1 49.3-20.8 51.6-47.6-2.2-26.8-24.6-47.5-51.6-47.6h-721.9c-27.7-2.8-52.5 17.4-55.3 45.1-0.1 0.8-0.1 1.7-0.2 2.5 0.9 27.2 23.6 48.5 50.7 47.6H875.707z m-103.1-245.9c26.9-0.1 49.3-20.8 51.6-47.6-0.4-28.3-23.2-51.1-51.5-51.6h-618.9c-29.5-1.1-54.3 21.9-55.5 51.4v0.2c1.4 27.8 25.2 49.2 53 47.8 0.8 0 1.7-0.1 2.5-0.2h618.8z" p-id="15303"></path></svg>
+  </button>
+</div>
+
+    </div>
+  </div>
+  <div class='scripts'>
+    <script type="text/javascript">
+  stellar = {
+    // 懒加载 css https://github.com/filamentgroup/loadCSS
+    loadCSS: (href, before, media, attributes) => {
+      var doc = window.document;
+      var ss = doc.createElement("link");
+      var ref;
+      if (before) {
+        ref = before;
+      } else {
+        var refs = (doc.body || doc.getElementsByTagName("head")[0]).childNodes;
+        ref = refs[refs.length - 1];
+      }
+      var sheets = doc.styleSheets;
+      if (attributes) {
+        for (var attributeName in attributes) {
+          if (attributes.hasOwnProperty(attributeName)) {
+            ss.setAttribute(attributeName, attributes[attributeName]);
+          }
+        }
+      }
+      ss.rel = "stylesheet";
+      ss.href = href;
+      ss.media = "only x";
+      function ready(cb) {
+        if (doc.body) {
+          return cb();
+        }
+        setTimeout(function () {
+          ready(cb);
+        });
+      }
+      ready(function () {
+        ref.parentNode.insertBefore(ss, before ? ref : ref.nextSibling);
+      });
+      var onloadcssdefined = function (cb) {
+        var resolvedHref = ss.href;
+        var i = sheets.length;
+        while (i--) {
+          if (sheets[i].href === resolvedHref) {
+            return cb();
+          }
+        }
+        setTimeout(function () {
+          onloadcssdefined(cb);
+        });
+      };
+      function loadCB() {
+        if (ss.addEventListener) {
+          ss.removeEventListener("load", loadCB);
+        }
+        ss.media = media || "all";
+      }
+      if (ss.addEventListener) {
+        ss.addEventListener("load", loadCB);
+      }
+      ss.onloadcssdefined = onloadcssdefined;
+      onloadcssdefined(loadCB);
+      return ss;
+    },
+
+    // 从 butterfly 和 volantis 获得灵感
+    loadScript: (src, opt) => new Promise((resolve, reject) => {
+      var script = document.createElement('script');
+      script.src = src;
+      if (opt) {
+        for (let key of Object.keys(opt)) {
+          script[key] = opt[key]
+        }
+      } else {
+        // 默认异步，如果需要同步，第二个参数传入 {} 即可
+        script.async = true
+      }
+      script.onerror = reject
+      script.onload = script.onreadystatechange = function() {
+        const loadState = this.readyState
+        if (loadState && loadState !== 'loaded' && loadState !== 'complete') return
+        script.onload = script.onreadystatechange = null
+        resolve()
+      }
+      document.head.appendChild(script)
+    }),
+
+    // https://github.com/jerryc127/hexo-theme-butterfly
+    jQuery: (fn) => {
+      if (typeof jQuery === 'undefined') {
+        stellar.loadScript(stellar.plugins.jQuery).then(fn)
+      } else {
+        fn()
+      }
+    }
+  };
+  stellar.github = 'https://github.com/xaoxuu/hexo-theme-stellar/tree/1.6.1';
+  stellar.config = {
+    date_suffix: {
+      just: '刚刚',
+      min: '分钟前',
+      hour: '小时前',
+      day: '天前',
+      month: '个月前',
+    },
+  };
+
+  // required plugins (only load if needs)
+  stellar.plugins = {
+    jQuery: 'https://cdn.jsdelivr.net/npm/jquery@3.5.1/dist/jquery.min.js',
+    sitesjs: '/js/plugins/sites.js',
+    friendsjs: '/js/plugins/friends.js',
+  };
+
+  // optional plugins
+  if ('true' == 'true') {
+    stellar.plugins.lazyload = Object.assign({"enable":true,"js":"https://cdn.jsdelivr.net/npm/vanilla-lazyload@17.3.1/dist/lazyload.min.js","transition":"blur"});
+  }
+  if ('true' == 'true') {
+    stellar.plugins.swiper = Object.assign({"enable":true,"css":"https://unpkg.com/swiper@6/swiper-bundle.min.css","js":"https://unpkg.com/swiper@6/swiper-bundle.min.js"});
+  }
+  if ('' == 'true') {
+    stellar.plugins.scrollreveal = Object.assign({"enable":null,"js":"https://cdn.jsdelivr.net/npm/scrollreveal@4.0.9/dist/scrollreveal.min.js","distance":"8px","duration":500,"interval":100,"scale":1});
+  }
+  if ('true' == 'true') {
+    stellar.plugins.preload = Object.assign({"enable":true,"service":"flying_pages","instant_page":"https://cdn.jsdelivr.net/gh/volantis-x/cdn-volantis@4.1.2/js/instant_page.js","flying_pages":"https://cdn.jsdelivr.net/gh/gijo-varghese/flying-pages@2.1.2/flying-pages.min.js"});
+  }
+</script>
+
+<!-- required -->
+
+  
+<script src="/js/main.js" async></script>
+
+
+
+<!-- optional -->
+
+  <script>
+  function getEmojiMaps() {
+    function emoji(path, idx, ext) {
+      return path + "/" + path + "-" + idx + "." + ext;
+    }
+    var emojiMaps = {};
+    for (var i = 1; i <= 54; i++) {
+      emojiMaps['tieba-' + i] = emoji('tieba', i, 'png');
+    }
+    for (var i = 1; i <= 101; i++) {
+      emojiMaps['qq-' + i] = emoji('qq', i, 'gif');
+    }
+    for (var i = 1; i <= 116; i++) {
+      emojiMaps['aru-' + i] = emoji('aru', i, 'gif');
+    }
+    for (var i = 1; i <= 125; i++) {
+      emojiMaps['twemoji-' + i] = emoji('twemoji', i, 'png');
+    }
+    for (var i = 1; i <= 4; i++) {
+      emojiMaps['weibo-' + i] = emoji('weibo', i, 'png');
+    }
+    return emojiMaps;
+  }
+  function load_comment(){
+    if(!document.getElementById("valine_container"))return;
+    stellar.loadScript('https://cdn.jsdelivr.net/gh/XuxuGood/simple-blog-cdn@main/js/Valine.min.js', {defer:true}).then(function () {
+      const el = document.getElementById("valine_container");
+      var path = el.getAttribute('comment_id');
+      const placeholder = "欢迎您留言~";
+      if (!path) {
+        path = decodeURI(window.location.pathname);
+      }
+      var valine = new Valine();
+      valine.init(Object.assign({"js":"https://cdn.jsdelivr.net/gh/XuxuGood/simple-blog-cdn@main/js/Valine.min.js","appId":"FY2C9UCttYNaE1j8umenqdCE-gzGzoHsz","appKey":"4i7xMwkfSEGmEDhi6SceKFxz","placeholder":"欢迎您留言~","requiredFields":["nick","mail"],"enableQQ":true,"recordIP":false,"avatar":"robohash","pageSize":10,"lang":"zh-cn","highlight":true,"mathJax":false,"tagMeta":["博主","小伙伴","访客"],"metaPlaceholder":{"nick":"昵称/QQ号(必填)","mail":"邮箱（必填，完全保密）"},"master":["6783037F2DF30EAB99F9FC256157D875"],"friends":["6783037F2DF30EAB99F9FC256157D875"],"comment_count":true}, {
+        el: '#valine_container',
+        path: path,
+        placeholder: placeholder,
+        emojiCDN: 'https://cdn.jsdelivr.net/gh/volantis-x/cdn-emoji/valine/',
+        emojiMaps: getEmojiMaps(),
+      }));
+    });
+  }
+  window.addEventListener('DOMContentLoaded', (event) => {
+    console.log('DOM fully loaded and parsed');
+    load_comment();
+  });
+
+</script>
+
+
+
+
+<!-- inject -->
+
+
+  </div>
+</body>
+</html>
