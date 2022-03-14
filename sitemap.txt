@@ -1,3 +1,4 @@
+http://example.com/2022/03/14/Ruby-on-Rails-%E7%8E%AF%E5%A2%83%E6%90%AD%E5%BB%BA/
 http://example.com/categories/index.html
 http://example.com/README.html
 http://example.com/Android/index.html
@@ -335,6 +336,7 @@ http://example.com/tags/%E7%84%A6%E8%99%91-%E5%B7%A5%E4%BD%9C-%E7%94%9F%E6%B4%BB
 http://example.com/tags/%E5%BF%83%E6%B5%81-%E5%B7%A5%E4%BD%9C-%E7%94%9F%E6%B4%BB/
 http://example.com/tags/tool-hexo-githubpages/
 http://example.com/tags/SSH-tool/
+http://example.com/tags/Ruby-Rails-Gem/
 http://example.com/categories/%E9%9A%8F%E7%AC%94/
 http://example.com/categories/iOS/
 http://example.com/categories/ReactNative/
@@ -349,3 +351,4 @@ http://example.com/categories/Philosophy/
 http://example.com/categories/Android/
 http://example.com/categories/%E9%A1%B9%E7%9B%AE%E7%AE%A1%E7%90%86/
 http://example.com/categories/Flutter/
+http://example.com/categories/Ruby-on-Rails/
