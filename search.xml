@@ -4,6 +4,31 @@
   
     
     <entry>
+      <title>Ruby on Rails: 常用的开发工具</title>
+      <link href="/2022/03/15/Ruby-on-Rails-%E5%B8%B8%E7%94%A8%E7%9A%84%E5%BC%80%E5%8F%91%E5%B7%A5%E5%85%B7/"/>
+      <url>/2022/03/15/Ruby-on-Rails-%E5%B8%B8%E7%94%A8%E7%9A%84%E5%BC%80%E5%8F%91%E5%B7%A5%E5%85%B7/</url>
+      
+        <content type="html"><![CDATA[<h2 id="简介"><a href="#简介" class="headerlink" title="简介"></a>简介</h2><p>好的工具能让开发效率事半功倍，我把自己常用的工具介绍给大家，后续会持续更新。</p><p>如果你想使用 ruby 可以参考 <a href="https://veryitman.com/2022/03/14/Ruby-on-Rails-%E7%8E%AF%E5%A2%83%E6%90%AD%E5%BB%BA/">Ruby 开发环境搭建</a>。</p><h2 id="常用网站"><a href="#常用网站" class="headerlink" title="常用网站"></a>常用网站</h2><ul><li><p>Ruby 手册：<a href="https://ruby-doc.org/core-2.7.2/">ruby-doc</a>，可以查询不同 ruby 版本的手册</p></li><li><p>Gem 国内镜像：<a href="https://gems.ruby-china.com/">gems.ruby-china</a></p></li><li><p>Ruby on Rails 官网：<a href="https://rubyonrails.org/">https://rubyonrails.org/</a></p></li><li><p>查看 Rails 所有版本：<a href="https://rubygems.org/gems/rails/versions">rail release</a></p></li></ul><h2 id="常用工具"><a href="#常用工具" class="headerlink" title="常用工具"></a>常用工具</h2><h3 id="静态分析"><a href="#静态分析" class="headerlink" title="静态分析"></a>静态分析</h3><p><a href="https://github.com/rubocop/rubocop">rubocop</a></p><blockquote><p>gem install rubocop</p></blockquote><figure class="highlight shell"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br></pre></td><td class="code"><pre><span class="line">cd ruby-work-dir</span><br><span class="line"></span><br><span class="line">rubocop</span><br><span class="line"><span class="meta"></span></span><br><span class="line"><span class="meta"># </span><span class="language-bash">检查指定的文件</span></span><br><span class="line">rubocop xxx.rb</span><br></pre></td></tr></table></figure><h3 id="代码格式化"><a href="#代码格式化" class="headerlink" title="代码格式化"></a>代码格式化</h3><p><a href="https://github.com/ruby-formatter/rufo">rufo</a></p><blockquote><p>gem install rubocop</p></blockquote><figure class="highlight shell"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br></pre></td><td class="code"><pre><span class="line">cd ruby-work-dir</span><br><span class="line"></span><br><span class="line">rufo .</span><br><span class="line"><span class="meta"></span></span><br><span class="line"><span class="meta"># </span><span class="language-bash">格式化指定的文件</span></span><br><span class="line">rufo xxx.rb</span><br></pre></td></tr></table></figure><h3 id="代码规范"><a href="#代码规范" class="headerlink" title="代码规范"></a>代码规范</h3><p>ruby 代码规范：<a href="https://github.com/rubocop/ruby-style-guide">ruby-style-guide</a></p><p>rails 代码规范：<a href="https://github.com/rubocop/rails-style-guide">rails-style-guide</a></p><h3 id="开发-IDE"><a href="#开发-IDE" class="headerlink" title="开发 IDE"></a>开发 IDE</h3><p>推荐使用 <code>Visual Studio Code</code>。</p><p>安装插件，在 <code>VSCode</code> 中搜索安装即可。</p><ul><li><p><a href="https://marketplace.visualstudio.com/items?itemName=rebornix.Ruby">Ruby</a>；</p></li><li><p><a href="https://marketplace.visualstudio.com/items?itemName=hridoy.rails-snippets">Rails on Rails</a>；</p></li><li><p><a href="https://marketplace.visualstudio.com/items?itemName=castwide.solargraph">Ruby Solargraph</a>，功能比较强大，代码提示，方法文档提示等；</p><blockquote><p>需要安装 solargraph，gem install solargraph</p></blockquote></li></ul><p>如果大家有足够的 Money，可以考虑购买 RubyMine，不过建议刚入门的同学还是先从 <code>irb</code> （ruby 自带的命令行交互工具，终端打开使用即可）或者 <code>VSCode</code> 开始。</p><hr><p><strong>本是后山人，偶做前堂客；醉舞经阁半卷书，坐井说天阔。</strong></p><p><img src="/upload/me/qrcode_wx2022.png"></p>]]></content>
+      
+      
+      <categories>
+          
+          <category> Ruby-on-Rails </category>
+          
+      </categories>
+      
+      
+        <tags>
+            
+            <tag> ruby rails gem </tag>
+            
+        </tags>
+      
+    </entry>
+    
+    
+    
+    <entry>
       <title>Ruby on Rails: 环境搭建</title>
       <link href="/2022/03/14/Ruby-on-Rails-%E7%8E%AF%E5%A2%83%E6%90%AD%E5%BB%BA/"/>
       <url>/2022/03/14/Ruby-on-Rails-%E7%8E%AF%E5%A2%83%E6%90%AD%E5%BB%BA/</url>
