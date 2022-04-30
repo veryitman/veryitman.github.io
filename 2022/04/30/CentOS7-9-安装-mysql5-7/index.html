@@ -1,0 +1,438 @@
+<!DOCTYPE html>
+<html lang='zh-CN'>
+
+<head>
+  <meta name="generator" content="Hexo 6.0.0">
+  <meta charset="utf-8">
+  
+
+  <meta http-equiv='x-dns-prefetch-control' content='on' />
+  <link rel='dns-prefetch' href='https://cdn.jsdelivr.net'>
+  <link rel="preconnect" href="https://cdn.jsdelivr.net" crossorigin>
+
+  <meta name="renderer" content="webkit">
+  <meta name="force-rendering" content="webkit">
+  <meta http-equiv="X-UA-Compatible" content="IE=Edge,chrome=1">
+  <meta name="HandheldFriendly" content="True" >
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1">
+  <meta name="theme-color" content="#f8f8f8">
+  <title>CentOS7.9 安装 mysql5.7 - Veryitman</title>
+
+  
+    <meta name="description" content="简介在 CentOS 7 上面安装 MySQL5.7 经历了一点小挫折，特此记录，给有需要的朋友做个参考。 CentOS 版本 1234567&gt; lsb_release -aLSB Version:	:core-4.1-amd64:core-4.1-noarchDistributor ID:	CentOSDescription:	CentOS Linux release 7.9.2009 (">
+<meta property="og:type" content="article">
+<meta property="og:title" content="CentOS7.9 安装 mysql5.7">
+<meta property="og:url" content="http://example.com/2022/04/30/CentOS7-9-%E5%AE%89%E8%A3%85-mysql5-7/index.html">
+<meta property="og:site_name" content="Veryitman">
+<meta property="og:description" content="简介在 CentOS 7 上面安装 MySQL5.7 经历了一点小挫折，特此记录，给有需要的朋友做个参考。 CentOS 版本 1234567&gt; lsb_release -aLSB Version:	:core-4.1-amd64:core-4.1-noarchDistributor ID:	CentOSDescription:	CentOS Linux release 7.9.2009 (">
+<meta property="og:locale" content="zh_CN">
+<meta property="article:published_time" content="2022-04-30T14:45:03.000Z">
+<meta property="article:modified_time" content="2022-04-30T16:05:37.437Z">
+<meta property="article:author" content="veryitman">
+<meta name="twitter:card" content="summary">
+  
+  
+
+  <!-- feed -->
+  
+
+  
+    
+<link rel="stylesheet" href="/css/main.css">
+
+  
+
+  
+
+  
+</head>
+
+<body>
+  
+
+
+  <div class='l_body' id='start'>
+    <aside class='l_left' layout='post'>
+    
+
+
+<header class="header">
+
+<div class="logo-wrap"><a class="title" href="/"><div class="main">Veryitman</div></a></div>
+<nav class="menu dis-select"></nav></header>
+
+<div class="widgets">
+
+<div class="widget-wrap single" id="toc"><div class="widget-header cap dis-select"><span class="name">本文目录</span></div><div class="widget-body fs14"><div class="doc-tree active"><ol class="toc"><li class="toc-item toc-level-2"><a class="toc-link" href="#%E7%AE%80%E4%BB%8B"><span class="toc-text">简介</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#%E5%AE%89%E8%A3%85-MySQL"><span class="toc-text">安装 MySQL</span></a><ol class="toc-child"><li class="toc-item toc-level-3"><a class="toc-link" href="#1%E3%80%81Adding-the-MySQL-Yum-Repository"><span class="toc-text">1、Adding the MySQL Yum Repository</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#2%E3%80%81Selecting-a-Release-Series"><span class="toc-text">2、Selecting a Release Series</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#3%E3%80%81Install"><span class="toc-text">3、Install</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#4%E3%80%81Start-mysqld"><span class="toc-text">4、Start mysqld</span></a></li></ol></li><li class="toc-item toc-level-2"><a class="toc-link" href="#%E4%BD%BF%E7%94%A8-MySQL"><span class="toc-text">使用 MySQL</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#%E8%AE%BE%E7%BD%AE%E7%BC%96%E7%A0%81"><span class="toc-text">设置编码</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#%E5%A2%9E%E5%8A%A0%E7%94%A8%E6%88%B7"><span class="toc-text">增加用户</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#%E9%BB%98%E8%AE%A4%E9%85%8D%E7%BD%AE%E8%B7%AF%E5%BE%84"><span class="toc-text">默认配置路径</span></a></li></ol></div></div></div>
+
+
+</div>
+
+
+    </aside>
+    <div class='l_main'>
+      
+
+      
+
+
+<div class="bread-nav fs12"><div id="breadcrumb"><a class="cap breadcrumb" href="/">主页</a><span class="sep"></span><a class="cap breadcrumb" href="/">文章</a></div><div id="post-meta">发布于&nbsp;<time datetime="2022-04-30T14:45:03.000Z">2022-04-30</time></div></div>
+
+<article class='content md post'>
+<h1 class="article-title"><span>CentOS7.9 安装 mysql5.7</span></h1>
+<h2 id="简介"><a href="#简介" class="headerlink" title="简介"></a>简介</h2><p>在 CentOS 7 上面安装 MySQL5.7 经历了一点小挫折，特此记录，给有需要的朋友做个参考。</p>
+<p>CentOS 版本</p>
+<figure class="highlight shell"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br></pre></td><td class="code"><pre><span class="line"><span class="meta">&gt; </span><span class="language-bash">lsb_release -a</span></span><br><span class="line"></span><br><span class="line">LSB Version:	:core-4.1-amd64:core-4.1-noarch</span><br><span class="line">Distributor ID:	CentOS</span><br><span class="line">Description:	CentOS Linux release 7.9.2009 (Core)</span><br><span class="line">Release:	7.9.2009</span><br><span class="line">Codename:	Core</span><br></pre></td></tr></table></figure>
+
+<h2 id="安装-MySQL"><a href="#安装-MySQL" class="headerlink" title="安装 MySQL"></a>安装 MySQL</h2><p>因为工程的需要，我要在主机上面安装 MySQL5.7 版本。</p>
+<p>在网上找了挺多安装方法的，但总是事与愿违，最后在 <a target="_blank" rel="noopener" href="https://dev.mysql.com/doc/refman/5.7/en/linux-installation-yum-repo.html">MySQL 官方文档</a> 找到了解决方案。</p>
+<p>如果你已经使用 <code>root</code> 身份登录了主机，在下面的步骤中可以不使用 <code>sudo</code>。</p>
+<h3 id="1、Adding-the-MySQL-Yum-Repository"><a href="#1、Adding-the-MySQL-Yum-Repository" class="headerlink" title="1、Adding the MySQL Yum Repository"></a>1、Adding the MySQL Yum Repository</h3><figure class="highlight shell"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">sudo yum localinstall mysql57-community-release-el7-11.noarch.rpm</span><br></pre></td></tr></table></figure>
+
+<h3 id="2、Selecting-a-Release-Series"><a href="#2、Selecting-a-Release-Series" class="headerlink" title="2、Selecting a Release Series"></a>2、Selecting a Release Series</h3><figure class="highlight shell"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br></pre></td><td class="code"><pre><span class="line">yum repolist all | grep mysql</span><br><span class="line"></span><br><span class="line">sudo yum-config-manager --enable mysql57-community</span><br><span class="line"></span><br><span class="line">yum repolist enabled | grep mysql</span><br></pre></td></tr></table></figure>
+
+<h3 id="3、Install"><a href="#3、Install" class="headerlink" title="3、Install"></a>3、Install</h3><figure class="highlight shell"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">sudo yum install mysql-community-server</span><br></pre></td></tr></table></figure>
+
+<p>如果你是 CentOS8，还需要在执行此步骤操作前，需要执行如下命令</p>
+<figure class="highlight shell"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">sudo yum module disable mysql</span><br></pre></td></tr></table></figure>
+
+<h3 id="4、Start-mysqld"><a href="#4、Start-mysqld" class="headerlink" title="4、Start mysqld"></a>4、Start mysqld</h3><figure class="highlight shell"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">sudo service mysqld status</span><br></pre></td></tr></table></figure>
+
+<h2 id="使用-MySQL"><a href="#使用-MySQL" class="headerlink" title="使用 MySQL"></a>使用 MySQL</h2><p>经过上面简单的 4 个步骤就可以轻松的完成对 MySQL 的安装，接下来我们开始使用它。</p>
+<figure class="highlight shell"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">mysql -uroot -p</span><br></pre></td></tr></table></figure>
+
+<p>提示错误</p>
+<figure class="highlight shell"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">ERROR 1045 (28000): Access denied for user &#x27;root&#x27;@&#x27;localhost&#x27; (using password: NO)</span><br></pre></td></tr></table></figure>
+
+<p>解决上述问题，需要先想办法登入 MySQL，然后再修改 root 用户的密码。</p>
+<p>如何解决这个错误登入呢？</p>
+<p>MySQL 安装完成之后，生成的默认密码在 <code>/var/log/mysqld.log</code> 文件中。使用 <code>grep</code> 命令找到日志中的密码。</p>
+<figure class="highlight shell"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">grep &#x27;temporary password&#x27; /var/log/mysqld.log</span><br></pre></td></tr></table></figure>
+
+<p>可以看到临时密码：2022-04-30T04:40:47.234502Z 1 [Note] A temporary password is generated for root@localhost: <code>Tq%y:sUnC7;d</code>，用该密码登入 MySQL 即可。</p>
+<p><code>mysql 5.7</code> 默认安装了密码安全检查插件（validate_password），默认密码检查策略要求密码必须包含：大小写字母、数字和特殊符号，并且长度不能少于8位。否则会提示错误。查看 <a target="_blank" rel="noopener" href="https://links.jianshu.com/go?to=https://dev.mysql.com/doc/refman/5.7/en/validate-password-options-variables.html%23sysvar_validate_password_policy">MySQL官网密码详细策略</a>。</p>
+<p>登入成功之后，修改 root 用户密码：</p>
+<figure class="highlight shell"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">ALTER USER &#x27;root&#x27;@&#x27;localhost&#x27; IDENTIFIED BY &#x27;MyNewPass4!&#x27;;</span><br></pre></td></tr></table></figure>
+
+<p>也可以通过下面的方式修改密码：</p>
+<figure class="highlight shell"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">ALTER USER &#x27;root&#x27;@&#x27;localhost&#x27; IDENTIFIED BY &#x27;MyNewPass4!&#x27;;</span><br></pre></td></tr></table></figure>
+
+<p>后续可以通过如下方式修改密码：</p>
+<figure class="highlight shell"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line">update user set authentication_string=password(&#x27;MyNewPass4!&#x27;) where user=&#x27;root&#x27;;</span><br><span class="line"></span><br><span class="line">flush privileges;</span><br></pre></td></tr></table></figure>
+
+<p>以上操作完成后，需要重启一下 MySQL 服务。</p>
+<figure class="highlight shell"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">service mysqld restart</span><br></pre></td></tr></table></figure>
+
+<p>另外还有一种解决方案，就是修改 my.cnf 配置文件</p>
+<figure class="highlight shell"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">sudo vim /etc/my.cnf</span><br></pre></td></tr></table></figure>
+
+<p>在 mysqld 下面新增 <code>skip-grant-tables</code></p>
+<figure class="highlight shell"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><span class="line">[mysqld]</span><br><span class="line">...</span><br><span class="line"></span><br><span class="line">skip-grant-tables</span><br></pre></td></tr></table></figure>
+
+<p>登入之后再用上述方法设置 root 用户密码即可。</p>
+<h2 id="设置编码"><a href="#设置编码" class="headerlink" title="设置编码"></a>设置编码</h2><p>现在 MySQL 的字符编码，可以通过下述方式查看</p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">show variables like &#x27;character%&#x27;;</span><br></pre></td></tr></table></figure>
+
+<p>我们通过编辑 &#x2F;etc&#x2F;my.cnf 配置文件来改变编码。</p>
+<figure class="highlight shell"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br></pre></td><td class="code"><pre><span class="line">[mysqld]</span><br><span class="line">character-set-server=utf8</span><br><span class="line">[client]</span><br><span class="line">default-character-set=utf8</span><br><span class="line">[mysql]</span><br><span class="line">default-character-set=utf8</span><br></pre></td></tr></table></figure>
+
+<p>需要重启一下 MySQL 服务。</p>
+<figure class="highlight shell"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">service mysqld restart</span><br></pre></td></tr></table></figure>
+
+<h2 id="增加用户"><a href="#增加用户" class="headerlink" title="增加用户"></a>增加用户</h2><p>默认只允许 root 帐户在本地登录，如果其它机器要连接或者访问 mysql，必须添加一个允许远程连接的帐户。</p>
+<p>当然你也可以设置让 root 用户进行远程访问，但这样就很不安全，一般也不会这么做。</p>
+<figure class="highlight shell"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">select host,user,authentication_string from user;</span><br></pre></td></tr></table></figure>
+
+<table>
+<thead>
+<tr>
+<th>host</th>
+<th>user</th>
+<th>authentication_string</th>
+</tr>
+</thead>
+<tbody><tr>
+<td>localhost</td>
+<td>root</td>
+<td>*88195A6507F4892C6CED9F6E30BA6C609AF5AFA7</td>
+</tr>
+<tr>
+<td>localhost</td>
+<td>mysql.session</td>
+<td>*THISISNOTAVALIDPASSWORDTHATCANBEUSEDHERE</td>
+</tr>
+<tr>
+<td></td>
+<td></td>
+<td></td>
+</tr>
+</tbody></table>
+<p>下面新增一个允许远程连接的帐户 lisi，注意密码要符合 MySQL 复杂度要求，否则设置会失败。</p>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line">GRANT ALL PRIVILEGES ON *.* TO <span class="string">&#x27;lisi&#x27;</span>@<span class="string">&#x27;%&#x27;</span> IDENTIFIED BY <span class="string">&#x27;lisi2018!A&#x27;</span> WITH GRANT OPTION;</span><br><span class="line"></span><br><span class="line">flush privileges;</span><br></pre></td></tr></table></figure>
+
+<p>再次查看一下用户会发现多了 <code>lisi</code> 这个用户。</p>
+<table>
+<thead>
+<tr>
+<th>host</th>
+<th>user</th>
+<th>authentication_string</th>
+</tr>
+</thead>
+<tbody><tr>
+<td>localhost</td>
+<td>root</td>
+<td>*88195A6507F4892C6CED9F6E30BA6C609AF5AFA7</td>
+</tr>
+<tr>
+<td>localhost</td>
+<td>mysql.session</td>
+<td>*THISISNOTAVALIDPASSWORDTHATCANBEUSEDHERE</td>
+</tr>
+<tr>
+<td>%</td>
+<td>lisi</td>
+<td>*86BA32081A204071832FE6D1DECD57D9519D6411</td>
+</tr>
+</tbody></table>
+<h2 id="默认配置路径"><a href="#默认配置路径" class="headerlink" title="默认配置路径"></a>默认配置路径</h2><p>下面给出安装 MySQL 成功后，默认的配置文件路径，方便后续使用。</p>
+<ul>
+<li>配置文件：<code>/etc/my.cnf</code></li>
+<li>日志文件：<code>/var/log/mysqld.log</code></li>
+<li>服务启动脚本：<code>/usr/lib/systemd/system/mysqld.service</code></li>
+<li>socket文件：<code>/var/run/mysqld/mysqld.pid</code></li>
+</ul>
+
+
+
+
+</article>
+
+<div class="related-wrap reveal" id="read-next"><section class="header cap theme"><span>接下来阅读</span></section><section class="body fs14"><a id="next" href="/2022/03/16/Ruby-on-Rails-RubyGems/">Ruby on Rails: RubyGems<span class="note">较早</span></a><div class="line"></div></section></div>
+
+
+
+
+
+
+  <div class='related-wrap md reveal' id="comments">
+    <div class='cmt-title cap theme'>
+      快来参与讨论吧
+    </div>
+    <div class='cmt-body valine'>
+      
+
+<div id="valine_container" class="valine_thread"><svg class="loading" style="vertical-align: middle;fill: currentColor;overflow: hidden;" viewBox="0 0 1024 1024" version="1.1" xmlns="http://www.w3.org/2000/svg" p-id="2709"><path d="M832 512c0-176-144-320-320-320V128c211.2 0 384 172.8 384 384h-64zM192 512c0 176 144 320 320 320v64C300.8 896 128 723.2 128 512h64z" p-id="2710"></path></svg></div>
+
+    </div>
+  </div>
+
+
+
+      
+<footer class="page-footer reveal fs12"><hr><div class="text"><p>本博客所有文章除特别声明外，均采用 <a target="_blank" rel="noopener" href="https://creativecommons.org/licenses/by-nc-sa/4.0/">CC BY-NC-SA 4.0</a> 许可协议，转载请注明出处。</p>
+<p>veryitman</p>
+</div></footer>
+
+      <div class='float-panel mobile-only blur' style='display:none'>
+  <button type='button' class='sidebar-toggle mobile' onclick='sidebar.toggle()'>
+    <svg class="icon" style="width: 1em; height: 1em;vertical-align: middle;fill: currentColor;overflow: hidden;" viewBox="0 0 1024 1024" version="1.1" xmlns="http://www.w3.org/2000/svg" p-id="15301"><path d="M566.407 808.3c26.9-0.1 49.3-20.8 51.6-47.6-1.9-27.7-23.9-49.7-51.6-51.6h-412.6c-28.2-1.4-52.6 19.5-55.5 47.6 2.3 26.8 24.6 47.5 51.6 47.6h416.5v4z m309.3-249.9c26.9-0.1 49.3-20.8 51.6-47.6-2.2-26.8-24.6-47.5-51.6-47.6h-721.9c-27.7-2.8-52.5 17.4-55.3 45.1-0.1 0.8-0.1 1.7-0.2 2.5 0.9 27.2 23.6 48.5 50.7 47.6H875.707z m-103.1-245.9c26.9-0.1 49.3-20.8 51.6-47.6-0.4-28.3-23.2-51.1-51.5-51.6h-618.9c-29.5-1.1-54.3 21.9-55.5 51.4v0.2c1.4 27.8 25.2 49.2 53 47.8 0.8 0 1.7-0.1 2.5-0.2h618.8z" p-id="15302"></path><path d="M566.407 808.3c26.9-0.1 49.3-20.8 51.6-47.6-1.9-27.7-23.9-49.7-51.6-51.6h-412.6c-28.2-1.4-52.6 19.5-55.5 47.6 1.9 27.7 23.9 49.7 51.6 51.6h416.5z m309.3-249.9c26.9-0.1 49.3-20.8 51.6-47.6-2.2-26.8-24.6-47.5-51.6-47.6h-721.9c-27.7-2.8-52.5 17.4-55.3 45.1-0.1 0.8-0.1 1.7-0.2 2.5 0.9 27.2 23.6 48.5 50.7 47.6H875.707z m-103.1-245.9c26.9-0.1 49.3-20.8 51.6-47.6-0.4-28.3-23.2-51.1-51.5-51.6h-618.9c-29.5-1.1-54.3 21.9-55.5 51.4v0.2c1.4 27.8 25.2 49.2 53 47.8 0.8 0 1.7-0.1 2.5-0.2h618.8z" p-id="15303"></path></svg>
+  </button>
+</div>
+
+    </div>
+  </div>
+  <div class='scripts'>
+    <script type="text/javascript">
+  stellar = {
+    // 懒加载 css https://github.com/filamentgroup/loadCSS
+    loadCSS: (href, before, media, attributes) => {
+      var doc = window.document;
+      var ss = doc.createElement("link");
+      var ref;
+      if (before) {
+        ref = before;
+      } else {
+        var refs = (doc.body || doc.getElementsByTagName("head")[0]).childNodes;
+        ref = refs[refs.length - 1];
+      }
+      var sheets = doc.styleSheets;
+      if (attributes) {
+        for (var attributeName in attributes) {
+          if (attributes.hasOwnProperty(attributeName)) {
+            ss.setAttribute(attributeName, attributes[attributeName]);
+          }
+        }
+      }
+      ss.rel = "stylesheet";
+      ss.href = href;
+      ss.media = "only x";
+      function ready(cb) {
+        if (doc.body) {
+          return cb();
+        }
+        setTimeout(function () {
+          ready(cb);
+        });
+      }
+      ready(function () {
+        ref.parentNode.insertBefore(ss, before ? ref : ref.nextSibling);
+      });
+      var onloadcssdefined = function (cb) {
+        var resolvedHref = ss.href;
+        var i = sheets.length;
+        while (i--) {
+          if (sheets[i].href === resolvedHref) {
+            return cb();
+          }
+        }
+        setTimeout(function () {
+          onloadcssdefined(cb);
+        });
+      };
+      function loadCB() {
+        if (ss.addEventListener) {
+          ss.removeEventListener("load", loadCB);
+        }
+        ss.media = media || "all";
+      }
+      if (ss.addEventListener) {
+        ss.addEventListener("load", loadCB);
+      }
+      ss.onloadcssdefined = onloadcssdefined;
+      onloadcssdefined(loadCB);
+      return ss;
+    },
+
+    // 从 butterfly 和 volantis 获得灵感
+    loadScript: (src, opt) => new Promise((resolve, reject) => {
+      var script = document.createElement('script');
+      script.src = src;
+      if (opt) {
+        for (let key of Object.keys(opt)) {
+          script[key] = opt[key]
+        }
+      } else {
+        // 默认异步，如果需要同步，第二个参数传入 {} 即可
+        script.async = true
+      }
+      script.onerror = reject
+      script.onload = script.onreadystatechange = function() {
+        const loadState = this.readyState
+        if (loadState && loadState !== 'loaded' && loadState !== 'complete') return
+        script.onload = script.onreadystatechange = null
+        resolve()
+      }
+      document.head.appendChild(script)
+    }),
+
+    // https://github.com/jerryc127/hexo-theme-butterfly
+    jQuery: (fn) => {
+      if (typeof jQuery === 'undefined') {
+        stellar.loadScript(stellar.plugins.jQuery).then(fn)
+      } else {
+        fn()
+      }
+    }
+  };
+  stellar.github = 'https://github.com/xaoxuu/hexo-theme-stellar/tree/1.6.1';
+  stellar.config = {
+    date_suffix: {
+      just: '刚刚',
+      min: '分钟前',
+      hour: '小时前',
+      day: '天前',
+      month: '个月前',
+    },
+  };
+
+  // required plugins (only load if needs)
+  stellar.plugins = {
+    jQuery: 'https://cdn.jsdelivr.net/npm/jquery@3.5.1/dist/jquery.min.js',
+    sitesjs: '/js/plugins/sites.js',
+    friendsjs: '/js/plugins/friends.js',
+  };
+
+  // optional plugins
+  if ('true' == 'true') {
+    stellar.plugins.lazyload = Object.assign({"enable":true,"js":"https://cdn.jsdelivr.net/npm/vanilla-lazyload@17.3.1/dist/lazyload.min.js","transition":"blur"});
+  }
+  if ('true' == 'true') {
+    stellar.plugins.swiper = Object.assign({"enable":true,"css":"https://unpkg.com/swiper@6/swiper-bundle.min.css","js":"https://unpkg.com/swiper@6/swiper-bundle.min.js"});
+  }
+  if ('' == 'true') {
+    stellar.plugins.scrollreveal = Object.assign({"enable":null,"js":"https://cdn.jsdelivr.net/npm/scrollreveal@4.0.9/dist/scrollreveal.min.js","distance":"8px","duration":500,"interval":100,"scale":1});
+  }
+  if ('true' == 'true') {
+    stellar.plugins.preload = Object.assign({"enable":true,"service":"flying_pages","instant_page":"https://cdn.jsdelivr.net/gh/volantis-x/cdn-volantis@4.1.2/js/instant_page.js","flying_pages":"https://cdn.jsdelivr.net/gh/gijo-varghese/flying-pages@2.1.2/flying-pages.min.js"});
+  }
+</script>
+
+<!-- required -->
+
+  
+<script src="/js/main.js" async></script>
+
+
+
+<!-- optional -->
+
+  <script>
+  function getEmojiMaps() {
+    function emoji(path, idx, ext) {
+      return path + "/" + path + "-" + idx + "." + ext;
+    }
+    var emojiMaps = {};
+    for (var i = 1; i <= 54; i++) {
+      emojiMaps['tieba-' + i] = emoji('tieba', i, 'png');
+    }
+    for (var i = 1; i <= 101; i++) {
+      emojiMaps['qq-' + i] = emoji('qq', i, 'gif');
+    }
+    for (var i = 1; i <= 116; i++) {
+      emojiMaps['aru-' + i] = emoji('aru', i, 'gif');
+    }
+    for (var i = 1; i <= 125; i++) {
+      emojiMaps['twemoji-' + i] = emoji('twemoji', i, 'png');
+    }
+    for (var i = 1; i <= 4; i++) {
+      emojiMaps['weibo-' + i] = emoji('weibo', i, 'png');
+    }
+    return emojiMaps;
+  }
+  function load_comment(){
+    if(!document.getElementById("valine_container"))return;
+    stellar.loadScript('https://cdn.jsdelivr.net/gh/XuxuGood/simple-blog-cdn@main/js/Valine.min.js', {defer:true}).then(function () {
+      const el = document.getElementById("valine_container");
+      var path = el.getAttribute('comment_id');
+      const placeholder = "欢迎您留言~";
+      if (!path) {
+        path = decodeURI(window.location.pathname);
+      }
+      var valine = new Valine();
+      valine.init(Object.assign({"js":"https://cdn.jsdelivr.net/gh/XuxuGood/simple-blog-cdn@main/js/Valine.min.js","appId":"FY2C9UCttYNaE1j8umenqdCE-gzGzoHsz","appKey":"4i7xMwkfSEGmEDhi6SceKFxz","placeholder":"欢迎您留言~","requiredFields":["nick","mail"],"enableQQ":true,"recordIP":false,"avatar":"robohash","pageSize":10,"lang":"zh-cn","highlight":true,"mathJax":false,"tagMeta":["博主","小伙伴","访客"],"metaPlaceholder":{"nick":"昵称/QQ号(必填)","mail":"邮箱（必填，完全保密）"},"master":["6783037F2DF30EAB99F9FC256157D875"],"friends":["6783037F2DF30EAB99F9FC256157D875"],"comment_count":true}, {
+        el: '#valine_container',
+        path: path,
+        placeholder: placeholder,
+        emojiCDN: 'https://cdn.jsdelivr.net/gh/volantis-x/cdn-emoji/valine/',
+        emojiMaps: getEmojiMaps(),
+      }));
+    });
+  }
+  window.addEventListener('DOMContentLoaded', (event) => {
+    console.log('DOM fully loaded and parsed');
+    load_comment();
+  });
+
+</script>
+
+
+
+
+<!-- inject -->
+
+
+  </div>
+</body>
+</html>

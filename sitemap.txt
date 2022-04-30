@@ -1,6 +1,7 @@
+http://example.com/2022/04/30/CentOS7-9-%E5%AE%89%E8%A3%85-mysql5-7/
+http://example.com/2022/03/15/Ruby-on-Rails-%E5%B8%B8%E7%94%A8%E7%9A%84%E5%BC%80%E5%8F%91%E5%B7%A5%E5%85%B7/
 http://example.com/2022/03/16/Ruby-on-Rails-RubyGems/
 http://example.com/2022/03/14/Ruby-on-Rails-%E7%8E%AF%E5%A2%83%E6%90%AD%E5%BB%BA/
-http://example.com/2022/03/15/Ruby-on-Rails-%E5%B8%B8%E7%94%A8%E7%9A%84%E5%BC%80%E5%8F%91%E5%B7%A5%E5%85%B7/
 http://example.com/categories/index.html
 http://example.com/README.html
 http://example.com/Android/index.html
