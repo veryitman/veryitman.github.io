@@ -1,4 +1,9 @@
 http://example.com/2022/04/30/CentOS7-9-%E5%AE%89%E8%A3%85-mysql5-7/
+http://example.com/2020/12/13/%E5%AF%BC%E5%85%A5MySQL%E6%95%B0%E6%8D%AE%E5%BA%93%E6%96%87%E4%BB%B6/
+http://example.com/2020/11/15/Win10-%E5%AE%89%E8%A3%85-Redis/
+http://example.com/2020/04/11/%E5%BE%AE%E6%9C%8D%E5%8A%A1-%E7%BB%93%E5%90%88MySQL%E5%AE%9E%E7%8E%B0%E7%99%BB%E5%BD%95%E6%B3%A8%E5%86%8C/
+http://example.com/2019/12/07/%E5%BE%AE%E6%9C%8D%E5%8A%A1-MySQL%E5%9F%BA%E6%9C%AC%E6%93%8D%E4%BD%9C/
+http://example.com/2019/11/10/MySQL8-0-15%E5%9C%A8Win10%E4%B8%8A%E7%9A%84%E6%8A%98%E8%85%BE%E8%AE%B0/
 http://example.com/2022/03/15/Ruby-on-Rails-%E5%B8%B8%E7%94%A8%E7%9A%84%E5%BC%80%E5%8F%91%E5%B7%A5%E5%85%B7/
 http://example.com/2022/03/16/Ruby-on-Rails-RubyGems/
 http://example.com/2022/03/14/Ruby-on-Rails-%E7%8E%AF%E5%A2%83%E6%90%AD%E5%BB%BA/
@@ -76,7 +81,6 @@ http://example.com/2018/03/11/GO-%E5%86%99%E7%AC%AC%E4%B8%80%E4%B8%AA-GOLang-%E7
 http://example.com/2020/12/13/%E8%A7%A3%E5%86%B3bash-profile%E4%B8%8D%E7%94%9F%E6%95%88%E7%9A%84%E6%96%B9%E6%B3%95/
 http://example.com/2020/06/06/%E7%AE%80%E8%B0%88%E4%BA%B2%E5%AD%90%E6%95%99%E8%82%B2/
 http://example.com/2020/12/05/%E5%BE%AE%E6%9C%8D%E5%8A%A1-SpringBoot-%E9%9B%86%E6%88%90-Redis/
-http://example.com/2020/12/13/%E5%AF%BC%E5%85%A5MySQL%E6%95%B0%E6%8D%AE%E5%BA%93%E6%96%87%E4%BB%B6/
 http://example.com/2020/01/05/OpenSSL-%E5%AE%9E%E6%88%98-RSA%E5%88%86%E6%AE%B5%E8%A7%A3%E5%AF%86/
 http://example.com/2020/06/20/%E5%BE%AE%E6%9C%8D%E5%8A%A1-Android%E5%AE%A2%E6%88%B7%E7%AB%AF-%E5%AE%9E%E7%8E%B0%E6%B3%A8%E5%86%8C%E5%92%8C%E7%99%BB%E5%BD%95/
 http://example.com/2020/08/15/%E7%98%A6%E8%BA%AB%E7%A7%98%E7%AC%88-%E9%A5%AE%E9%A3%9F%E8%BF%90%E5%8A%A8%E7%9B%B8%E5%BE%97%E7%9B%8A%E5%BD%B0/
@@ -87,11 +91,9 @@ http://example.com/2020/07/16/ngrok%E8%AE%A9%E6%9C%8D%E5%8A%A1%E8%BF%91%E5%9C%A8
 http://example.com/2020/09/05/C-%E4%B8%AD%E7%94%A8char%E6%95%B0%E7%BB%84%E6%9E%84%E9%80%A0string/
 http://example.com/2020/02/27/OC%E5%9D%91%E9%9B%86%E4%B9%8Bblock%E4%BD%9C%E4%B8%BA%E5%87%BD%E6%95%B0%E5%8F%82%E6%95%B0/
 http://example.com/2020/05/23/%E5%BE%AE%E6%9C%8D%E5%8A%A1-%E9%85%8D%E7%BD%AENginx%E5%8F%8D%E5%90%91%E4%BB%A3%E7%90%86/
-http://example.com/2020/11/15/Win10-%E5%AE%89%E8%A3%85-Redis/
 http://example.com/2020/05/03/%E5%BE%AE%E6%9C%8D%E5%8A%A1-Admin%E4%B8%8E%E6%9C%8D%E5%8A%A1%E7%9B%91%E6%B5%8B%E5%92%8C%E7%AE%A1%E7%90%86/
 http://example.com/2020/05/01/%E5%BE%AE%E6%9C%8D%E5%8A%A1-Actuator%E5%AE%9E%E7%8E%B0%E6%9C%8D%E5%8A%A1%E7%9B%91%E6%B5%8B/
 http://example.com/2020/05/10/%E7%98%A6%E8%BA%AB%E7%A7%98%E7%AC%88-%E5%85%BB%E6%88%90%E5%A5%BD%E4%B9%A0%E6%83%AF/
-http://example.com/2020/04/11/%E5%BE%AE%E6%9C%8D%E5%8A%A1-%E7%BB%93%E5%90%88MySQL%E5%AE%9E%E7%8E%B0%E7%99%BB%E5%BD%95%E6%B3%A8%E5%86%8C/
 http://example.com/2021/12/19/%E6%80%80%E5%BF%B5-Ubuntu%EF%BC%9A%E6%9F%A5%E7%9C%8B-CPU-%E4%BF%A1%E6%81%AF/
 http://example.com/2021/01/17/%E5%BE%AE%E6%9C%8D%E5%8A%A1-Token-%E7%9B%B8%E5%85%B3%E7%9A%84%E9%87%8D%E6%9E%84/
 http://example.com/2021/01/03/%E5%BE%AE%E6%9C%8D%E5%8A%A1-Token%E7%9A%84%E5%A4%84%E7%90%86/
@@ -101,7 +103,6 @@ http://example.com/2021/08/08/GCC-attribute-visibility/
 http://example.com/2021/05/23/%E8%B5%B0%E4%B8%8A%E9%A1%B9%E7%AE%A1%E4%B9%8B%E8%B7%AF/
 http://example.com/2021/11/07/%E6%8A%80%E6%9C%AF%E4%BA%BA%EF%BC%8C%E4%B9%9F%E5%BA%94%E5%85%B7%E5%A4%87%E9%A1%B9%E7%9B%AE%E7%AE%A1%E7%90%86%E8%83%BD%E5%8A%9B/
 http://example.com/2021/11/28/%E8%A1%8C%E5%8A%A8%E8%B5%B7%E6%9D%A5%E6%89%8D%E8%83%BD%E8%A7%A3%E5%86%B3%E7%84%A6%E8%99%91/
-http://example.com/2019/12/07/%E5%BE%AE%E6%9C%8D%E5%8A%A1-MySQL%E5%9F%BA%E6%9C%AC%E6%93%8D%E4%BD%9C/
 http://example.com/2021/04/12/AS%E3%80%81VSCode%E4%B8%AD%E5%AE%9E%E6%97%B6%E6%98%BE%E7%A4%BA%E6%AF%8F%E8%A1%8C%E4%BB%A3%E7%A0%81%E7%9A%84%E4%BF%AE%E6%94%B9%E8%AE%B0%E5%BD%95/
 http://example.com/2019/06/08/%E8%B0%83%E4%BE%83C%E4%B8%AD%E7%9A%84define/
 http://example.com/2019/06/23/%E8%AE%A4%E7%9F%A5/
@@ -133,7 +134,6 @@ http://example.com/2019/11/23/OpenSSL-%E5%AE%8C%E6%88%90VS2017%E7%9A%84%E9%85%8D
 http://example.com/2019/11/24/%E7%9F%AD%E5%9C%B0%E5%9D%80%E5%8E%9F%E7%90%86/
 http://example.com/2019/11/23/OpenSSL-%E7%94%A8VS2017%E5%88%9B%E5%BB%BAC%E5%B7%A5%E7%A8%8B/
 http://example.com/2019/02/15/%E4%BA%86%E8%A7%A3-Emscripten/
-http://example.com/2019/11/10/MySQL8-0-15%E5%9C%A8Win10%E4%B8%8A%E7%9A%84%E6%8A%98%E8%85%BE%E8%AE%B0/
 http://example.com/2019/02/23/%E7%BB%99-Homebrew-%E8%AE%BE%E7%BD%AE%E4%BB%A3%E7%90%86/
 http://example.com/2019/02/08/C-%E7%BB%93%E6%9E%84%E4%BD%93%E6%8C%87%E9%92%88%E5%88%9D%E5%A7%8B%E5%8C%96/
 http://example.com/2019/02/24/%E5%86%B7%E7%AC%91%E8%AF%9D%E7%9A%84%E5%90%AF%E7%A4%BA/
@@ -279,7 +279,6 @@ http://example.com/tags/macOS-C-string/
 http://example.com/tags/Redis-SpringBoot/
 http://example.com/tags/%E8%BF%90%E5%8A%A8-%E9%A5%AE%E9%A3%9F-%E5%81%A5%E5%BA%B7/
 http://example.com/tags/%E6%83%85%E7%BB%AA%E7%AE%A1%E7%90%86-%E5%BF%83%E6%80%81-%E9%98%B3%E5%85%89/
-http://example.com/tags/Redis-windows10/
 http://example.com/tags/MySQL-windows/
 http://example.com/tags/macOS-ohmyz-bash/
 http://example.com/tags/Emscripten-wasm-JavaScript/
@@ -341,6 +340,9 @@ http://example.com/tags/tool-hexo-githubpages/
 http://example.com/tags/SSH-tool/
 http://example.com/tags/Ruby-Rails-Gem/
 http://example.com/tags/ruby-rails-gem/
+http://example.com/tags/Redis-Windows10/
+http://example.com/tags/MySQL-CentOS7/
+http://example.com/tags/MySQL-Windows/
 http://example.com/categories/%E9%9A%8F%E7%AC%94/
 http://example.com/categories/iOS/
 http://example.com/categories/ReactNative/
@@ -356,3 +358,4 @@ http://example.com/categories/Android/
 http://example.com/categories/%E9%A1%B9%E7%9B%AE%E7%AE%A1%E7%90%86/
 http://example.com/categories/Flutter/
 http://example.com/categories/Ruby-on-Rails/
+http://example.com/categories/DB/
