@@ -29,7 +29,7 @@
 <meta property="og:locale" content="zh_CN">
 <meta property="og:image" content="http://example.com/upload/me/qrcode_wx2022.png">
 <meta property="article:published_time" content="2022-04-30T14:45:03.000Z">
-<meta property="article:modified_time" content="2022-05-01T10:14:12.150Z">
+<meta property="article:modified_time" content="2022-05-14T13:49:04.263Z">
 <meta property="article:author" content="veryitman">
 <meta property="article:tag" content="MySQL CentOS7">
 <meta name="twitter:card" content="summary">
@@ -88,17 +88,36 @@
 <p>我的云主机 CentOS 版本</p>
 <figure class="highlight shell"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br></pre></td><td class="code"><pre><span class="line"><span class="meta">&gt; </span><span class="language-bash">lsb_release -a</span></span><br><span class="line"></span><br><span class="line">LSB Version:	:core-4.1-amd64:core-4.1-noarch</span><br><span class="line">Distributor ID:	CentOS</span><br><span class="line">Description:	CentOS Linux release 7.9.2009 (Core)</span><br><span class="line">Release:	7.9.2009</span><br><span class="line">Codename:	Core</span><br></pre></td></tr></table></figure>
 
+<p>当然你要是不想安装指定版本的 MySQL，直接使用 <code>yum install mysql</code> 也可以。</p>
 <h2 id="安装-MySQL"><a href="#安装-MySQL" class="headerlink" title="安装 MySQL"></a>安装 MySQL</h2><p>因为现有工程的各种缘故，我需要在云主机上面安装 MySQL5.7 版本。</p>
 <p>在网上找了挺多安装方法但总是事与愿违，会出现各种各样的问题，还好在 <a target="_blank" rel="noopener" href="https://dev.mysql.com/doc/refman/5.7/en/linux-installation-yum-repo.html">MySQL 官方文档</a> 找到了解决方案。所以说遇到问题还是要到官网去找方案。</p>
 <p>如果你已经使用 <code>root</code> 身份登录了主机，在下面的步骤中可以不使用 <code>sudo</code>。</p>
 <h3 id="1、Adding-the-Yum-Repository"><a href="#1、Adding-the-Yum-Repository" class="headerlink" title="1、Adding the Yum Repository"></a>1、Adding the Yum Repository</h3><figure class="highlight shell"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">sudo yum localinstall mysql57-community-release-el7-11.noarch.rpm</span><br></pre></td></tr></table></figure>
 
-<h3 id="2、Selecting-a-Release-Series"><a href="#2、Selecting-a-Release-Series" class="headerlink" title="2、Selecting a Release Series"></a>2、Selecting a Release Series</h3><figure class="highlight shell"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br></pre></td><td class="code"><pre><span class="line">yum repolist all | grep mysql</span><br><span class="line"></span><br><span class="line">sudo yum-config-manager --enable mysql57-community</span><br><span class="line"></span><br><span class="line">yum repolist enabled | grep mysql</span><br></pre></td></tr></table></figure>
+<p>如果出现类似 <code>Failed to set locale, defaulting to C</code> 这样的错误，说明该源无法找到，可以换中方式：</p>
+<figure class="highlight shell"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">yum localinstall mysql57-community-release-el7.rpm</span><br></pre></td></tr></table></figure>
+
+<p>关于源可以在 <a target="_blank" rel="noopener" href="http://repo.mysql.com/">http://repo.mysql.com/</a> 找。</p>
+<h3 id="2、Selecting-a-Release-Series"><a href="#2、Selecting-a-Release-Series" class="headerlink" title="2、Selecting a Release Series"></a>2、Selecting a Release Series</h3><p>执行如下命令前，记得安装 <code>yum -y install yum-utils</code></p>
+<figure class="highlight shell"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br></pre></td><td class="code"><pre><span class="line">yum repolist all | grep mysql</span><br><span class="line"></span><br><span class="line">yum-config-manager --enable mysql57-community</span><br><span class="line"></span><br><span class="line">yum repolist enabled | grep mysql</span><br></pre></td></tr></table></figure>
+
+
 
 <h3 id="3、Install"><a href="#3、Install" class="headerlink" title="3、Install"></a>3、Install</h3><figure class="highlight shell"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">sudo yum install mysql-community-server</span><br></pre></td></tr></table></figure>
 
 <p><strong>注意</strong>：如果你是 <code>CentOS8</code>，还需要在执行此步骤操作前，需要执行如下命令:</p>
 <figure class="highlight shell"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">sudo yum module disable mysql</span><br></pre></td></tr></table></figure>
+
+<p>在安装过程中，可能会出现下面的错误（此时 MySQL 并没有安装成功）</p>
+<blockquote>
+<p>Public key for mysql-community-libs-compat-5.7.38-1.el7.x86_64.rpm is not installed</p>
+<p> Failing package is: mysql-community-libs-compat-5.7.38-1.el7.x86_64</p>
+<p> GPG Keys are configured as: file:&#x2F;&#x2F;&#x2F;etc&#x2F;pki&#x2F;rpm-gpg&#x2F;RPM-GPG-KEY-mysql</p>
+</blockquote>
+<p>需要升级一下 GPG 然后重新安装，方式如下：</p>
+<figure class="highlight shell"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line">rpm --import https://repo.mysql.com/RPM-GPG-KEY-mysql-2022</span><br><span class="line"></span><br><span class="line"> yum install mysql-community-server</span><br></pre></td></tr></table></figure>
+
+
 
 <h3 id="4、Start-mysqld"><a href="#4、Start-mysqld" class="headerlink" title="4、Start mysqld"></a>4、Start mysqld</h3><figure class="highlight shell"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">sudo service mysqld start</span><br></pre></td></tr></table></figure>
 
@@ -203,6 +222,7 @@
 <td>*86BA32081A204071832FE6D1DECD57D9519D6411</td>
 </tr>
 </tbody></table>
+<p>如果你在安装过程中，遇到了文中没有提到的问题，请耐心解决也可以给我留言，一起进步！</p>
 <hr>
 <p><strong>祝大家五一节日快乐，生活幸福</strong></p>
 <p><img class="lazy" src="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAABGdBTUEAALGPC/xhBQAAADhlWElmTU0AKgAAAAgAAYdpAAQAAAABAAAAGgAAAAAAAqACAAQAAAABAAAAAaADAAQAAAABAAAAAQAAAADa6r/EAAAAC0lEQVQIHWNgAAIAAAUAAY27m/MAAAAASUVORK5CYII=" data-src="/upload/me/qrcode_wx2022.png"></p>
