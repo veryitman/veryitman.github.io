@@ -2,6 +2,15 @@
 <urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">
   
   <url>
+    <loc>http://example.com/2022/03/05/SSH%E9%97%AE%E9%A2%98%E6%B1%87%E9%9B%86%E7%AC%94%E8%AE%B0/</loc>
+    
+    <lastmod>2022-05-15</lastmod>
+    
+    <changefreq>monthly</changefreq>
+    <priority>0.6</priority>
+  </url>
+  
+  <url>
     <loc>http://example.com/2022/04/30/CentOS7-9-%E5%AE%89%E8%A3%85-mysql5-7/</loc>
     
     <lastmod>2022-05-15</lastmod>
@@ -1704,15 +1713,6 @@
   
   <url>
     <loc>http://example.com/2022/03/06/Hexo-GithubPages-404/</loc>
-    
-    <lastmod>2022-03-09</lastmod>
-    
-    <changefreq>monthly</changefreq>
-    <priority>0.6</priority>
-  </url>
-  
-  <url>
-    <loc>http://example.com/2022/03/05/SSH%E9%97%AE%E9%A2%98%E6%B1%87%E9%9B%86%E7%AC%94%E8%AE%B0/</loc>
     
     <lastmod>2022-03-09</lastmod>
     
