@@ -29,7 +29,7 @@
 <meta property="og:locale" content="zh_CN">
 <meta property="og:image" content="http://example.com/upload/me/qrcode_wx2022.png">
 <meta property="article:published_time" content="2022-04-30T14:45:03.000Z">
-<meta property="article:modified_time" content="2022-05-15T04:36:04.739Z">
+<meta property="article:modified_time" content="2022-06-26T08:00:01.488Z">
 <meta property="article:author" content="veryitman">
 <meta property="article:tag" content="MySQL CentOS7">
 <meta name="twitter:card" content="summary">
@@ -67,7 +67,7 @@
 
 <div class="widgets">
 
-<div class="widget-wrap single" id="toc"><div class="widget-header cap dis-select"><span class="name">本文目录</span></div><div class="widget-body fs14"><div class="doc-tree active"><ol class="toc"><li class="toc-item toc-level-2"><a class="toc-link" href="#%E7%AE%80%E4%BB%8B"><span class="toc-text">简介</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#%E5%AE%89%E8%A3%85-MySQL"><span class="toc-text">安装 MySQL</span></a><ol class="toc-child"><li class="toc-item toc-level-3"><a class="toc-link" href="#1%E3%80%81Adding-the-Yum-Repository"><span class="toc-text">1、Adding the Yum Repository</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#2%E3%80%81Selecting-a-Release-Series"><span class="toc-text">2、Selecting a Release Series</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#3%E3%80%81Install"><span class="toc-text">3、Install</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#4%E3%80%81Start-mysqld"><span class="toc-text">4、Start mysqld</span></a></li></ol></li><li class="toc-item toc-level-2"><a class="toc-link" href="#%E4%BD%BF%E7%94%A8-MySQL"><span class="toc-text">使用 MySQL</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#%E4%BF%AE%E6%94%B9%E9%BB%98%E8%AE%A4%E7%BC%96%E7%A0%81"><span class="toc-text">修改默认编码</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#%E5%A2%9E%E5%8A%A0%E7%94%A8%E6%88%B7"><span class="toc-text">增加用户</span></a></li></ol></div></div></div>
+<div class="widget-wrap single" id="toc"><div class="widget-header cap dis-select"><span class="name">本文目录</span></div><div class="widget-body fs14"><div class="doc-tree active"><ol class="toc"><li class="toc-item toc-level-2"><a class="toc-link" href="#%E7%AE%80%E4%BB%8B"><span class="toc-text">简介</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#%E5%AE%89%E8%A3%85-MySQL"><span class="toc-text">安装 MySQL</span></a><ol class="toc-child"><li class="toc-item toc-level-3"><a class="toc-link" href="#1%E3%80%81Adding-the-Yum-Repository"><span class="toc-text">1、Adding the Yum Repository</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#2%E3%80%81Selecting-a-Release-Series"><span class="toc-text">2、Selecting a Release Series</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#3%E3%80%81Install"><span class="toc-text">3、Install</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#4%E3%80%81Start-mysqld"><span class="toc-text">4、Start mysqld</span></a></li></ol></li><li class="toc-item toc-level-2"><a class="toc-link" href="#%E4%BD%BF%E7%94%A8-MySQL"><span class="toc-text">使用 MySQL</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#%E4%BF%AE%E6%94%B9%E9%BB%98%E8%AE%A4%E7%BC%96%E7%A0%81"><span class="toc-text">修改默认编码</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#%E5%A2%9E%E5%8A%A0%E7%94%A8%E6%88%B7"><span class="toc-text">增加用户</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#%E9%87%8D%E7%BD%AE-root-%E5%AF%86%E7%A0%81"><span class="toc-text">重置 root 密码</span></a></li></ol></div></div></div>
 
 
 </div>
@@ -223,6 +223,31 @@
 <td>*86BA32081A204071832FE6D1DECD57D9519D6411</td>
 </tr>
 </tbody></table>
+<h2 id="重置-root-密码"><a href="#重置-root-密码" class="headerlink" title="重置 root 密码"></a>重置 root 密码</h2><p>如果不小心忘记了 MySQL 的 root 用户登录密码，不要紧张，通过下面简单几步的操作就可以重置。</p>
+<p>1、修改配置文件</p>
+<p>在 <code>/e t c/my.cnf</code> （可能你的配置文件在其他目录如 <code>/e t c/mysql/my.cnf</code>），文件中新增</p>
+<figure class="highlight shell"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">skip-grant-tables</span><br></pre></td></tr></table></figure>
+
+<p>2、重启服务</p>
+<figure class="highlight shell"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">service mysql restart</span><br></pre></td></tr></table></figure>
+
+<p>3、登录</p>
+<p>在命令行直接输入 <code>mysql</code> 即可。</p>
+<figure class="highlight shell"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">mysql</span><br></pre></td></tr></table></figure>
+
+<p>4、重置 root 密码</p>
+<p>依次执行如下命令即可。</p>
+<figure class="highlight sql"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br></pre></td><td class="code"><pre><span class="line">USE mysql;</span><br><span class="line"></span><br><span class="line"># 注意 new_password 是你要重新设置的密码</span><br><span class="line"><span class="keyword">UPDATE</span> <span class="keyword">user</span> <span class="keyword">SET</span> authentication_string <span class="operator">=</span> password (<span class="string">&#x27;new_password&#x27;</span>) <span class="keyword">WHERE</span> <span class="keyword">User</span> <span class="operator">=</span> <span class="string">&#x27;root&#x27;</span>;</span><br><span class="line">flush privileges;</span><br><span class="line">quit</span><br></pre></td></tr></table></figure>
+
+<p>5、再次修改配置文件</p>
+<p>记得注释掉在第1步中增加的内容</p>
+<figure class="highlight shell"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line"><span class="meta"># </span><span class="language-bash">skip-grant-tables</span></span><br></pre></td></tr></table></figure>
+
+<p>6、重启 mysql 服务</p>
+<p>7、使用 root 登录</p>
+<figure class="highlight shell"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">mysql -urot -p</span><br></pre></td></tr></table></figure>
+
+<hr>
 <p>如果你在安装过程中，遇到了文中没有提到的问题，请耐心解决也可以给我留言，一起进步！</p>
 <hr>
 <p><strong>祝大家五一节日快乐，生活幸福</strong></p>
