@@ -4,6 +4,56 @@
   
     
     <entry>
+      <title>Ruby on Rails 实践：创建 aloe 项目</title>
+      <link href="/2022/09/04/Ruby-on-Rails-%E5%AE%9E%E8%B7%B5%EF%BC%9A%E5%88%9B%E5%BB%BA-aloe-%E9%A1%B9%E7%9B%AE/"/>
+      <url>/2022/09/04/Ruby-on-Rails-%E5%AE%9E%E8%B7%B5%EF%BC%9A%E5%88%9B%E5%BB%BA-aloe-%E9%A1%B9%E7%9B%AE/</url>
+      
+        <content type="html"><![CDATA[<p>在看正文之前，说一个发生的真实案例。</p><p>产品的业务后端是 PHP 写的，而其他一些基础服务是 C++ 开发的。不幸的是产品线上出了一个事故，原因是 PHP 写的一个 API 响应速度过慢，导致整个客户端卡顿，客户端同事抱怨服务端写的 API 垃圾，C++ 同事鄙视 PHP 的同事，C++ 同事现场撸了这个 API 并进行了严格的测试，结论是这个 API 如果用 C++ 写不用 5 毫秒就可以响应任何客户端的请求。一时间项目组陷入了深度怀疑 PHP 的漩涡之中，仿佛罪魁祸首就是那帮写 PHP 的人一样。最后复盘总结发现原来是业务后端架构设计不合理导致的跟编程语言没有半毛钱关系。</p><p>编程语言之间确实存在一定的鄙视链，选择哪种编程语言要提前做好规划，综合现有的业务场景、人才储备来考虑，能解决当下问题才是王道。Ruby 不是最好的，但它能解决我遇到的问题，我知道我目前需要它。</p><h2 id="简介"><a href="#简介" class="headerlink" title="简介"></a>简介</h2><p>本次课程主要跟大家分享一下，如何使用 rails 命令创建工程，同时可以了解到：</p><ul><li><p>rails 工程目录以及作用</p></li><li><p>配置和修改 gem 源</p></li></ul><h2 id="创建项目"><a href="#创建项目" class="headerlink" title="创建项目"></a>创建项目</h2><p>使用 rails 创建项目的命令如下</p><figure class="highlight ruby"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">rails new APP_PATH [options]</span><br></pre></td></tr></table></figure><p>在创建项目之前，检查一下是否已经安装了 <code>sqlite3</code> 这个数据库，没有的话请查阅资料自行安装一下。</p><p>检查方法</p><figure class="highlight shell"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">sqlite3 --version</span><br></pre></td></tr></table></figure><p>指定 rails 版本创建项目，选项 <code>--skip-bundle</code> 是为了跳过安装 gems，后面会详细说。</p><figure class="highlight ruby"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">rails _7.<span class="number">0.3</span>.1_ new ~<span class="regexp">/work/aloe</span> --skip-bundle</span><br></pre></td></tr></table></figure><p>不到 2s 的时间，会在你的 <code>~/work</code> 目录下有个名为 <code>aloe</code> 的文件夹，它就是我们创建的项目目录。</p><h2 id="工程目录介绍"><a href="#工程目录介绍" class="headerlink" title="工程目录介绍"></a>工程目录介绍</h2><p><img src="/upload/2022/09/04/1.png"></p><p>下表列出了对应文件夹包含的内容以及作用，便于大家查阅。</p><table><thead><tr><th align="center">序号</th><th align="left">文件&#x2F;文件夹</th><th align="left">作用</th></tr></thead><tbody><tr><td align="center">1</td><td align="left"><code>app/</code></td><td align="left">包含应用的（MVC）控制器、模型、视图、辅助方法、邮件程序、频道、作业和静态资源文件。这个文件夹跟我们日常开发关系最大</td></tr><tr><td align="center">2</td><td align="left"><code>bin/</code></td><td align="left">包含用于启动应用的 rails 脚本，以及用于安装、更新、部署或运行应用的其他脚本</td></tr><tr><td align="center">3</td><td align="left"><code>config/</code></td><td align="left">配置应用的路由、数据库等。</td></tr><tr><td align="center">4</td><td align="left"><code>config.ru</code></td><td align="left">基于 Rack 的服务器所需的 Rack 配置，用于启动应用</td></tr><tr><td align="center">5</td><td align="left"><code>db/</code></td><td align="left">包含当前数据库的模式，以及数据库迁移文件</td></tr><tr><td align="center">6</td><td align="left"><code>Gemfile</code>, <code>Gemfile.lock</code></td><td align="left">这两个文件用于指定 Rails 应用所需的 gem 依赖。Bundler gem 需要用到这两个文件</td></tr><tr><td align="center">7</td><td align="left"><code>lib/</code></td><td align="left">应用的扩展模块</td></tr><tr><td align="center">8</td><td align="left"><code>log/</code></td><td align="left">应用日志文件</td></tr><tr><td align="center">9</td><td align="left"><code>public/</code></td><td align="left">仅有的可以直接从外部访问的文件夹，包含静态文件和编译后的静态资源文件</td></tr><tr><td align="center">10</td><td align="left"><code>Rakefile</code></td><td align="left">定位并加载可在命令行中执行的任务。这些任务在 Rails 的各个组件中定义。如果要添加自定义任务，请不要修改 Rakefile，直接把自定义任务保存在 <code>lib/tasks</code> 文件夹中即可</td></tr><tr><td align="center">11</td><td align="left"><code>README.md</code></td><td align="left">应用的自述文件，说明应用的用途、安装方法等</td></tr><tr><td align="center">12</td><td align="left"><code>storage</code></td><td align="left">磁盘服务的活动存储文件。跟 Active Storage 有关，后面用到再说</td></tr><tr><td align="center">13</td><td align="left"><code>test/</code></td><td align="left">单元测试、固件和其他测试装置。详情请参阅<a href="https://clwy.cn/guide/pages/testing.html">Rails 应用测试指南</a></td></tr><tr><td align="center">14</td><td align="left"><code>tmp/</code></td><td align="left">临时文件（如缓存和 PID 文件）</td></tr><tr><td align="center">15</td><td align="left"><code>vendor/</code></td><td align="left">包含第三方代码如第三方 gem，在生产环境我们可以直接把 gems 放到这里</td></tr><tr><td align="center">16</td><td align="left"><code>.gitignore</code></td><td align="left">告诉 Git 要忽略的文件（或模式）</td></tr><tr><td align="center">17</td><td align="left"><code>.ruby-version</code></td><td align="left">记录工程使用的 ruby 版本</td></tr></tbody></table><h2 id="运行项目"><a href="#运行项目" class="headerlink" title="运行项目"></a>运行项目</h2><p>更改 gem 源，修改 Gemfile 修改完成后，保存。</p><figure class="highlight yaml"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment"># source &quot;https://rubygems.org&quot;</span></span><br><span class="line"><span class="string">source</span> <span class="string">&quot;https://gems.ruby-china.com&quot;</span></span><br></pre></td></tr></table></figure><p>运行项目，执行</p><figure class="highlight shell"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br></pre></td><td class="code"><pre><span class="line"><span class="meta"># </span><span class="language-bash">安装 gems</span></span><br><span class="line">bundle install</span><br><span class="line"><span class="meta"></span></span><br><span class="line"><span class="meta"># </span><span class="language-bash">运行项目</span></span><br><span class="line">rails s</span><br></pre></td></tr></table></figure><p>在浏览器访问 <a href="http://127.0.0.1:3000/">http://127.0.0.1:3000</a> 就可以看到对应的页面。</p><p><img src="/upload/2022/09/04/2.png"></p><p>这里补充一个小知识点，<code>rails s</code> 是 <code>rails server</code> 命令的简写。关于它的用法还有很多，随着大家的深入学习也会逐渐接触到的。</p><blockquote><p><strong>Usage</strong>:</p><p>rails server -u [thin&#x2F;puma&#x2F;webrick] [options]</p><p><strong>Options</strong>:</p><p>-e, [–environment&#x3D;ENVIRONMENT]   # Specifies the environment to run this server under (test&#x2F;development&#x2F;production).</p><p>-p, [–port&#x3D;port]              # Runs Rails on the specified port - defaults to 3000.</p><p>-b, [–binding&#x3D;IP]           # Binds Rails to the specified IP - defaults to ‘localhost’ in development and ‘0.0.0.0’ in other environments’.</p><p>-c, [–config&#x3D;file]            # Uses a custom rackup configuration.</p><p>​                                       # Default: config.ru</p><p>-d, [–daemon], [–no-daemon]        # Runs server as a Daemon.</p><p>-u, [–using&#x3D;name]              # Specifies the Rack server used to run the application (thin&#x2F;puma&#x2F;webrick).</p><p>-P, [–pid&#x3D;PID]                    # Specifies the PID file - defaults to tmp&#x2F;pids&#x2F;server.pid.</p><p>-C, [–dev-caching], [–no-dev-caching]   # Specifies whether to perform caching in development.</p><p>​       [–early-hints], [–no-early-hints]         # Enables HTTP&#x2F;2 early hints.</p><p>​       [–log-to-stdout], [–no-log-to-stdout]  # Whether to log to stdout. Enabled by default in development when not daemonized.</p></blockquote><h2 id="参考资料"><a href="#参考资料" class="headerlink" title="参考资料"></a>参考资料</h2><ul><li><a href="https://guides.rubyonrails.org/getting_started.html">Getting Started with Rails</a> 使用 Rails 创建项目</li></ul>]]></content>
+      
+      
+      <categories>
+          
+          <category> Ruby-on-Rails </category>
+          
+      </categories>
+      
+      
+        <tags>
+            
+            <tag> ruby rails gem </tag>
+            
+        </tags>
+      
+    </entry>
+    
+    
+    
+    <entry>
+      <title>Ruby on Rails 实践：课程导读</title>
+      <link href="/2022/09/04/Ruby-on-Rails-%E5%AE%9E%E8%B7%B5%EF%BC%9A%E8%AF%BE%E7%A8%8B%E5%AF%BC%E8%AF%BB/"/>
+      <url>/2022/09/04/Ruby-on-Rails-%E5%AE%9E%E8%B7%B5%EF%BC%9A%E8%AF%BE%E7%A8%8B%E5%AF%BC%E8%AF%BB/</url>
+      
+        <content type="html"><![CDATA[<h2 id="写在前面"><a href="#写在前面" class="headerlink" title="写在前面"></a>写在前面</h2><p>第一次听说 Ruby 这门编程语言是在 2012 年，那个时候的 Ruby 是 <code>1.9.x</code> 版本，截至到本文写的时候 Ruby 已经发布了 <code>3.x</code> 版本了。</p><p>Ruby 在国内并没有那么火，用 Ruby 进行开发的人也很少，如果不是 Rails 估计 Ruby 早就被人忘得一干二净了。现在在国内找 Ruby on Rails 的学习资料少之又少，无形之中给自己的学习带来了一定的成本。在我了解和初步学习 Ruby on Rails 之后，发现它学习成本不高，并且能够很快的实现你的一些想法，在 Web 开发领域，有它就够了。</p><p>编程语言和框架无所谓对错，就看你用它来做什么，有需要就学吧。我想把自己的一些学习实践拿出来跟大家分享一下，希望能够帮助到有需要的人。</p><p>学习这套课程需要你有一定的编程基础，至少你需要做好如下几点准备</p><ol><li>有 Java&#x2F;C#&#x2F;C&#x2F;C++&#x2F;Javascript&#x2F;Python&#x2F;PHP&#x2F;Rust 等其中一种编程语言基础；</li><li>了解或者熟悉 MVC，了解 B&#x2F;S、C&#x2F;S 等架构；</li><li>会基本的 Ruby 编程，关于 Ruby 版本的发布历程可以参考 <a href="https://www.ruby-lang.org/zh_cn/news/">Ruby News</a> 网站拍；</li><li>了解 HTML&#x2F;CSS 前端编程，会一些基本的 Linux 命令操作；</li><li>了解 Redis&#x2F;SQLite&#x2F;Mysql 或者其他数据库基本知识，会使用常用的 SQL 语句。</li></ol><p>如果你没有上面的全部基础也没关系，可以边看边学，遇到不懂的知识可以留言评论给我或者自学。请您记住兴趣才是最好的老师，心里只要充满爱，那里都是阳光明媚。我也是利用业余时间来完成这套课程的，内容肯定有不少遗漏和不足的地方，请大家多多指正。</p><h2 id="课程目录"><a href="#课程目录" class="headerlink" title="课程目录"></a>课程目录</h2><p>目录是动态更新的，希望大家耐心等待⌛️</p><h3 id="1、创建-aloe-项目"><a href="#1、创建-aloe-项目" class="headerlink" title="1、创建 aloe 项目"></a>1、创建 aloe 项目</h3><p>本小节介绍了项目环境的准备以及如何创建项目，本篇教程可以 <a href="">点击我</a> 直达现场。</p><ul><li>安装相关的软件和 Ruby 版本</li><li><a href="http://veryitman.com/2022/03/14/Ruby-on-Rails-%E7%8E%AF%E5%A2%83%E6%90%AD%E5%BB%BA/">Ruby on Rails 环境搭建</a></li></ul><p>本次课程使用的版本</p><ul><li><p>Ruby：3.0.0</p></li><li><p>Rails：7.0.x</p></li></ul><h3 id="2、给-aloe-画个简妆"><a href="#2、给-aloe-画个简妆" class="headerlink" title="2、给 aloe 画个简妆"></a>2、给 aloe 画个简妆</h3><p>在这一个小节中，我介绍了如下内容</p><ul><li>如何通过 rails g 创建控制器？</li><li>如何通过 rails routes 查看控制器的路由？</li><li>如何修改工程的路由配置？</li><li>ERB 文件是什么？</li></ul>]]></content>
+      
+      
+      <categories>
+          
+          <category> Ruby-on-Rails </category>
+          
+      </categories>
+      
+      
+        <tags>
+            
+            <tag> ruby rails gem </tag>
+            
+        </tags>
+      
+    </entry>
+    
+    
+    
+    <entry>
       <title>CentOS7.9 安装 mysql5.7</title>
       <link href="/2022/04/30/CentOS7-9-%E5%AE%89%E8%A3%85-mysql5-7/"/>
       <url>/2022/04/30/CentOS7-9-%E5%AE%89%E8%A3%85-mysql5-7/</url>
