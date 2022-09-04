@@ -2,6 +2,15 @@
 <urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">
   
   <url>
+    <loc>http://example.com/2022/03/15/Ruby-on-Rails-%E5%B8%B8%E7%94%A8%E7%9A%84%E5%BC%80%E5%8F%91%E5%B7%A5%E5%85%B7/</loc>
+    
+    <lastmod>2022-09-04</lastmod>
+    
+    <changefreq>monthly</changefreq>
+    <priority>0.6</priority>
+  </url>
+  
+  <url>
     <loc>http://example.com/2022/09/04/Ruby-on-Rails-%E5%AE%9E%E8%B7%B5%EF%BC%9A%E8%AF%BE%E7%A8%8B%E5%AF%BC%E8%AF%BB/</loc>
     
     <lastmod>2022-09-04</lastmod>
@@ -23,15 +32,6 @@
     <loc>http://example.com/2022/04/30/CentOS7-9-%E5%AE%89%E8%A3%85-mysql5-7/</loc>
     
     <lastmod>2022-07-09</lastmod>
-    
-    <changefreq>monthly</changefreq>
-    <priority>0.6</priority>
-  </url>
-  
-  <url>
-    <loc>http://example.com/2022/03/15/Ruby-on-Rails-%E5%B8%B8%E7%94%A8%E7%9A%84%E5%BC%80%E5%8F%91%E5%B7%A5%E5%85%B7/</loc>
-    
-    <lastmod>2022-06-14</lastmod>
     
     <changefreq>monthly</changefreq>
     <priority>0.6</priority>
@@ -2813,6 +2813,27 @@
   
   <url>
     <loc>http://example.com/tags/MySQL-Windows/</loc>
+    <lastmod>2022-09-04</lastmod>
+    <changefreq>weekly</changefreq>
+    <priority>0.2</priority>
+  </url>
+  
+  <url>
+    <loc>http://example.com/tags/project-ruby-rails/</loc>
+    <lastmod>2022-09-04</lastmod>
+    <changefreq>weekly</changefreq>
+    <priority>0.2</priority>
+  </url>
+  
+  <url>
+    <loc>http://example.com/tags/tutorial-ruby-rails/</loc>
+    <lastmod>2022-09-04</lastmod>
+    <changefreq>weekly</changefreq>
+    <priority>0.2</priority>
+  </url>
+  
+  <url>
+    <loc>http://example.com/tags/develop-ruby-rails/</loc>
     <lastmod>2022-09-04</lastmod>
     <changefreq>weekly</changefreq>
     <priority>0.2</priority>
