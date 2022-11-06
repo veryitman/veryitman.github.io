@@ -17,14 +17,14 @@
   <meta name="apple-mobile-web-app-capable" content="yes">
   <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1">
   <meta name="theme-color" content="#f8f8f8">
-  <title>解决bash profile不生效的方法 - Veryitman</title>
+  <title>解决bash profile不生效的方法 - veryitman</title>
 
   
     <meta name="description" content="我喜欢把 macOS 上面的一些环境变量（主要是一些开发套件如 Java、Android、Flutter 等）放到  ~&#x2F;.bash_profile 这个文件中，But… 自从在 macOS 上面安装了 ohmyz.sh 之后，每次重启电脑或者新开终端的时候，我在  ~&#x2F;.bash_profile 这个文件中的所有命令都无法使用了。除非再次执行下面的命令： 1source ~&#x2F;.bash_prof">
 <meta property="og:type" content="article">
 <meta property="og:title" content="解决bash profile不生效的方法">
 <meta property="og:url" content="http://example.com/2020/12/13/%E8%A7%A3%E5%86%B3bash-profile%E4%B8%8D%E7%94%9F%E6%95%88%E7%9A%84%E6%96%B9%E6%B3%95/index.html">
-<meta property="og:site_name" content="Veryitman">
+<meta property="og:site_name" content="veryitman">
 <meta property="og:description" content="我喜欢把 macOS 上面的一些环境变量（主要是一些开发套件如 Java、Android、Flutter 等）放到  ~&#x2F;.bash_profile 这个文件中，But… 自从在 macOS 上面安装了 ohmyz.sh 之后，每次重启电脑或者新开终端的时候，我在  ~&#x2F;.bash_profile 这个文件中的所有命令都无法使用了。除非再次执行下面的命令： 1source ~&#x2F;.bash_prof">
 <meta property="og:locale" content="zh_CN">
 <meta property="og:image" content="http://example.com/upload/me/qrcode_wx.jpg">
@@ -62,13 +62,13 @@
 
 <header class="header">
 
-<div class="logo-wrap"><a class="title" href="/"><div class="main">Veryitman</div></a></div>
+<div class="logo-wrap"><a class="title" href="/"><div class="main">veryitman</div></a></div>
 <nav class="menu dis-select"></nav></header>
 
 <div class="widgets">
 
 
-<div class="widget-wrap" id="recent"><div class="widget-header cap dis-select"><span class="name">最近更新</span></div><div class="widget-body fs14"><div class="line"></div><a class="more-item" href="/2022/03/15/Ruby-on-Rails-%E5%B8%B8%E7%94%A8%E7%9A%84%E5%BC%80%E5%8F%91%E5%B7%A5%E5%85%B7/"><div class="cap"><time>2022-09-04</time><span>Ruby-on-Rails</span></div><span class="title">Ruby on Rails: 常用的开发工具</span></a><div class="line"></div><a class="more-item" href="/2022/09/04/Ruby-on-Rails-%E5%AE%9E%E8%B7%B5%EF%BC%9A%E8%AF%BE%E7%A8%8B%E5%AF%BC%E8%AF%BB/"><div class="cap"><time>2022-09-04</time><span>Ruby-on-Rails</span></div><span class="title">Ruby on Rails 实践：课程导读</span></a><div class="line"></div><a class="more-item" href="/2022/09/04/Ruby-on-Rails-%E5%AE%9E%E8%B7%B5%EF%BC%9A%E5%88%9B%E5%BB%BA-aloe-%E9%A1%B9%E7%9B%AE/"><div class="cap"><time>2022-09-04</time><span>Ruby-on-Rails</span></div><span class="title">Ruby on Rails 实践：创建 aloe 项目</span></a><div class="line"></div><a class="more-item" href="/2022/04/30/CentOS7-9-%E5%AE%89%E8%A3%85-mysql5-7/"><div class="cap"><time>2022-07-09</time><span>Server</span></div><span class="title">CentOS7.9 安装 mysql5.7</span></a><div class="line"></div><a class="more-item" href="/2022/03/16/Ruby-on-Rails-RubyGems/"><div class="cap"><time>2022-05-15</time><span>Ruby-on-Rails</span></div><span class="title">Ruby on Rails: RubyGems</span></a></div></div>
+<div class="widget-wrap" id="recent"><div class="widget-header cap dis-select"><span class="name">最近更新</span></div><div class="widget-body fs14"><div class="line"></div><a class="more-item" href="/2022/11/06/CentOS-Install-Passenger-for-ROR/"><div class="cap"><time>2022-11-06</time><span>Ruby-on-Rails</span></div><span class="title">CentOS Install Passenger for ROR</span></a><div class="line"></div><a class="more-item" href="/2022/03/15/Ruby-on-Rails-%E5%B8%B8%E7%94%A8%E7%9A%84%E5%BC%80%E5%8F%91%E5%B7%A5%E5%85%B7/"><div class="cap"><time>2022-09-04</time><span>Ruby-on-Rails</span></div><span class="title">Ruby on Rails: 常用的开发工具</span></a><div class="line"></div><a class="more-item" href="/2022/09/04/Ruby-on-Rails-%E5%AE%9E%E8%B7%B5%EF%BC%9A%E8%AF%BE%E7%A8%8B%E5%AF%BC%E8%AF%BB/"><div class="cap"><time>2022-09-04</time><span>Ruby-on-Rails</span></div><span class="title">Ruby on Rails 实践：课程导读</span></a><div class="line"></div><a class="more-item" href="/2022/09/04/Ruby-on-Rails-%E5%AE%9E%E8%B7%B5%EF%BC%9A%E5%88%9B%E5%BB%BA-aloe-%E9%A1%B9%E7%9B%AE/"><div class="cap"><time>2022-09-04</time><span>Ruby-on-Rails</span></div><span class="title">Ruby on Rails 实践：创建 aloe 项目</span></a><div class="line"></div><a class="more-item" href="/2022/04/30/CentOS7-9-%E5%AE%89%E8%A3%85-mysql5-7/"><div class="cap"><time>2022-07-09</time><span>Server</span></div><span class="title">CentOS7.9 安装 mysql5.7</span></a></div></div>
 
 
 
