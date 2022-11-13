@@ -341,7 +341,6 @@ http://example.com/tags/Short-URL-SpringBoot/
 http://example.com/tags/UI-Handler/
 http://example.com/tags/MySQL-JDBC/
 http://example.com/tags/rails-passenger-nginx/
-http://example.com/tags/rails%E2%80%98s-routes/
 http://example.com/tags/Redis-JWT-Token/
 http://example.com/tags/JWT-Token-Refractor/
 http://example.com/tags/Flutter-Nginx-Windows/
@@ -352,6 +351,7 @@ http://example.com/tags/MySQL-windows/
 http://example.com/tags/%E9%A1%B9%E7%9B%AE%E7%AE%A1%E7%90%86-%E5%B8%B8%E8%A7%81%E9%97%AE%E9%A2%98/
 http://example.com/tags/Linux-Ubuntu-CPU/
 http://example.com/tags/%E7%84%A6%E8%99%91-%E5%B7%A5%E4%BD%9C-%E7%94%9F%E6%B4%BB/
+http://example.com/tags/rails-routes-erb/
 http://example.com/categories/%E9%9A%8F%E7%AC%94/
 http://example.com/categories/ReactNative/
 http://example.com/categories/iOS/

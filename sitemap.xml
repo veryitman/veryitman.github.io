@@ -2795,13 +2795,6 @@
   </url>
   
   <url>
-    <loc>http://example.com/tags/rails%E2%80%98s-routes/</loc>
-    <lastmod>2022-11-13</lastmod>
-    <changefreq>weekly</changefreq>
-    <priority>0.2</priority>
-  </url>
-  
-  <url>
     <loc>http://example.com/tags/Redis-JWT-Token/</loc>
     <lastmod>2022-11-13</lastmod>
     <changefreq>weekly</changefreq>
@@ -2866,6 +2859,13 @@
   
   <url>
     <loc>http://example.com/tags/%E7%84%A6%E8%99%91-%E5%B7%A5%E4%BD%9C-%E7%94%9F%E6%B4%BB/</loc>
+    <lastmod>2022-11-13</lastmod>
+    <changefreq>weekly</changefreq>
+    <priority>0.2</priority>
+  </url>
+  
+  <url>
+    <loc>http://example.com/tags/rails-routes-erb/</loc>
     <lastmod>2022-11-13</lastmod>
     <changefreq>weekly</changefreq>
     <priority>0.2</priority>
