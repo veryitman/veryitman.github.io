@@ -2,7 +2,7 @@
 <urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">
   
   <url>
-    <loc>http://example.com/2023/01/07/%E8%AE%BF%E9%97%AE-Nginx-403-Fobidden/</loc>
+    <loc>http://example.com/2022/12/18/MySQL%E7%AC%94%E8%AE%B0/</loc>
     
     <lastmod>2023-01-08</lastmod>
     
@@ -11,9 +11,9 @@
   </url>
   
   <url>
-    <loc>http://example.com/2022/12/18/MySQL%E7%AC%94%E8%AE%B0/</loc>
+    <loc>http://example.com/2023/01/07/%E8%AE%BF%E9%97%AE-Nginx-403-Fobidden/</loc>
     
-    <lastmod>2023-01-07</lastmod>
+    <lastmod>2023-01-08</lastmod>
     
     <changefreq>monthly</changefreq>
     <priority>0.6</priority>
