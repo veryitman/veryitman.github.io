@@ -28,7 +28,7 @@
 <meta property="og:description" content="简介在 CentOS release 6.10 (Final) 部署了 Rails 应用，其中用到了 Passenger、Nginx，通过二者实现用户对 Rails 应用的访问。 在部署的过程中，遇到了一个较坑的问题，记录在此分享给有需要的人。 问题是这样的，部署完成后我开始进行测试，在浏览器打开 Rails 网站发现总是报 403 Forbidden 错误，最后发现问题出在 Passenger">
 <meta property="og:locale" content="zh_CN">
 <meta property="article:published_time" content="2023-01-07T07:58:15.000Z">
-<meta property="article:modified_time" content="2023-01-07T09:46:16.616Z">
+<meta property="article:modified_time" content="2023-01-08T04:04:52.424Z">
 <meta property="article:author" content="veryitman">
 <meta property="article:tag" content="rails nginx 403">
 <meta name="twitter:card" content="summary">
@@ -85,25 +85,33 @@
 <h2 id="简介"><a href="#简介" class="headerlink" title="简介"></a>简介</h2><p>在 <code>CentOS release 6.10 (Final)</code> 部署了 Rails 应用，其中用到了 Passenger、Nginx，通过二者实现用户对 Rails 应用的访问。</p>
 <p>在部署的过程中，遇到了一个较坑的问题，记录在此分享给有需要的人。</p>
 <p>问题是这样的，部署完成后我开始进行测试，在浏览器打开 Rails 网站发现总是报 <code>403 Forbidden</code> 错误，最后发现问题出在 Passenger 身上。</p>
-<h2 id="Nginx-403"><a href="#Nginx-403" class="headerlink" title="Nginx 403"></a>Nginx 403</h2><p>我们知道出现 403 错误，一般是有如下几个原因：</p>
-<ul>
+<h2 id="Nginx-403"><a href="#Nginx-403" class="headerlink" title="Nginx 403"></a>Nginx 403</h2><p>在 Rails 应用中出现 403（Forbidden） 错误，一般是有如下几个原因：</p>
+<ol>
 <li>没有权限访问相关的资源；</li>
-<li>nginx 配置文件错误；</li>
+<li>nginx 配置文件错误：</li>
+</ol>
+<ul>
+<li>nginx 配置文件中，在 server 下配置了多余的 <code>location ~</code></li>
+<li>端口错误</li>
+<li>没有开启 passenger（<code>passenger_enabled on</code>）</li>
+<li>Passenger 没有配置或者配置错误（下面两个选项配置的文件地址不对）</li>
 </ul>
+<figure class="highlight nginx"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line"><span class="attribute">passenger_root</span>  </span><br><span class="line">passenger_ruby </span><br></pre></td></tr></table></figure>
+
 <p>我最初怀疑就是因为权限问题导致的，然后使用 <code>ls</code> 也查看了 Rails 应用目录的权限，没有问题。差点就开始执行 <code>chmod -R 777</code> 了 😓。</p>
-<p>我的 nginx 配置文件（截一部分）如下：</p>
+<p>我的 <code>nginx</code> 配置文件（截一部分）如下：</p>
 <figure class="highlight nginx"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br></pre></td><td class="code"><pre><span class="line"><span class="section">http</span> &#123;</span><br><span class="line">    <span class="attribute">passenger_root</span> /opt/passenger;</span><br><span class="line">    <span class="attribute">passenger_ruby</span> /usr/local/bin/ruby;</span><br><span class="line">    <span class="attribute">passenger_ignore_client_abort</span> <span class="literal">on</span>;</span><br><span class="line">    <span class="attribute">passenger_max_pool_size</span> <span class="number">80</span>;</span><br><span class="line">    <span class="attribute">passenger_use_global_queue</span> <span class="literal">on</span>;</span><br><span class="line">    <span class="attribute">passenger_user</span> name; </span><br><span class="line"></span><br><span class="line">    <span class="section">server</span> &#123;</span><br><span class="line">        <span class="attribute">listen</span> <span class="number">8080</span>;</span><br><span class="line">        <span class="attribute">server_name</span> localhost;</span><br><span class="line">        <span class="attribute">root</span> /var/rails_app/public;</span><br><span class="line">        <span class="attribute">passenger_enabled</span> <span class="literal">on</span>;</span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
 
 
 
-<p>随手写了一个 index.html，然后通过 nginx 去访问这个 index.html 文件。发现这个在网页上正常显示，访问权限是有的（无论是 IP 还是资源目录都有权限访问），并且 nginx 的配置文件也没有错误。</p>
-<p>折腾一圈之后，并没有发现 nginx 有什么问题，顿时大脑嗡嗡的 😭</p>
-<h2 id="罪魁祸首"><a href="#罪魁祸首" class="headerlink" title="罪魁祸首"></a>罪魁祸首</h2><p>既然 nginx 大兄弟没有问题，那就是 Passenger 有问题了，开始排查。</p>
+<p>随手写了一个 <code>index.html</code>，然后通过 nginx 去访问这个 <code>index.html</code> 文件。发现这个在网页上正常显示，访问权限是有的（无论是 IP 还是资源目录都有权限访问），并且 <code>nginx</code> 的配置文件也没有错误。</p>
+<p>折腾一圈之后，并没有发现 <code>nginx</code> 有什么问题，顿时大脑嗡嗡的 😭</p>
+<h2 id="罪魁祸首"><a href="#罪魁祸首" class="headerlink" title="罪魁祸首"></a>罪魁祸首</h2><p>既然 <code>nginx</code> 大兄弟没有问题，那就是 Passenger 有问题了，开始排查。</p>
 <p>果然，passenger 启动失败了，导致无法访问 Rails 应用才报的 403 错误。</p>
-<p>passenger 启动失败的主要原因是因为无法兼容当前系统版本的 openssl（1.0.x版本），现在摆在我面前的有两条路：</p>
+<p>启动 passenger 失败的主要原因是因为其无法兼容当前系统版本的 openssl（1.0.x版本），现在摆在我面前的有两条路：</p>
 <ol>
 <li>升级 Passenger</li>
-<li>降级系统的 openssl</li>
+<li>降级系统的 openssl（这个后续我会另外补充一篇文章分享）</li>
 </ol>
 <p>因为 Rails 应用使用的 rails 和 ruby 版本的原因，我只能选择第 2 条路，然后重新编译 ruby（需要将openssl模块编译进去），否则 passenger 也无法启动。</p>
 <p>完成之后，再去使用 <code>/bin/passenger-memory-stats </code> 检查一下 passenger 运行状态，结果显示正常，Rails 应用的网站也可以正常访问了。</p>
