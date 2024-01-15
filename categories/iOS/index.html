@@ -59,12 +59,12 @@
 <nav class="menu dis-select"></nav></header>
 
 <div class="widgets">
-<div class="widget-wrap" id="markdown"><div class="widget-header cap dis-select"><span class="name">Fooboy</span></div><div class="widget-body fs14"><p>做个值得信懒的人<br><br><br><strong>Link</strong></p>
+<div class="widget-wrap" id="markdown"><div class="widget-header cap dis-select"><span class="name">veryitman</span></div><div class="widget-body fs14"><p>学习可以解决焦<br><br><br><strong>Link</strong></p>
 <ul>
 <li><a target="_blank" rel="noopener" href="https://veryitman.blog.csdn.net/">CSDN</a>  </li>
 <li><a target="_blank" rel="noopener" href="https://juejin.cn/user/3456520290573070">掘金</a><br></li>
 </ul>
-<p><strong>email</strong><br><a href="mailto:&#118;&#101;&#114;&#x79;&#105;&#116;&#x6d;&#97;&#110;&#64;&#49;&#50;&#54;&#46;&#99;&#111;&#109;">&#118;&#101;&#114;&#x79;&#105;&#116;&#x6d;&#97;&#110;&#64;&#49;&#50;&#54;&#46;&#99;&#111;&#109;</a><br><br></p>
+<p><strong>email</strong><br><a href="mailto:&#x76;&#101;&#x72;&#x79;&#x69;&#116;&#109;&#x61;&#x6e;&#x40;&#x31;&#50;&#x36;&#46;&#99;&#x6f;&#109;">&#x76;&#101;&#x72;&#x79;&#x69;&#116;&#109;&#x61;&#x6e;&#x40;&#x31;&#50;&#x36;&#46;&#99;&#x6f;&#109;</a><br><br></p>
 </div></div>
 
 <div class="widget-wrap" id="recent"><div class="widget-header cap dis-select"><span class="name">最近更新</span></div><div class="widget-body fs14"><div class="line"></div><a class="more-item" href="/2024/01/15/%E6%89%8B%E5%8A%A8%E9%99%8D%E7%BA%A7openssl%EF%BC%9A%E8%A7%A3%E5%86%B3-Rails-%E9%83%A8%E7%BD%B2%E7%9A%84%E9%97%AE%E9%A2%98/"><div class="cap"><time>2024-01-15</time><span>Ruby-on-Rails</span></div><span class="title">手动降级openssl：解决-Rails-部署的问题</span></a><div class="line"></div><a class="more-item" href="/2022/12/18/MySQL%E7%AC%94%E8%AE%B0/"><div class="cap"><time>2023-01-08</time><span>Server</span></div><span class="title">MySQL笔记</span></a><div class="line"></div><a class="more-item" href="/2023/01/07/%E8%AE%BF%E9%97%AE-Nginx-403-Fobidden/"><div class="cap"><time>2023-01-08</time><span>Ruby-on-Rails</span></div><span class="title">访问 Nginx 403 Fobidden</span></a><div class="line"></div><a class="more-item" href="/2020/12/13/%E5%AF%BC%E5%85%A5MySQL%E6%95%B0%E6%8D%AE%E5%BA%93%E6%96%87%E4%BB%B6/"><div class="cap"><time>2022-12-03</time><span>Server</span></div><span class="title">导入MySQL数据库文件</span></a><div class="line"></div><a class="more-item" href="/2022/11/13/Ruby-on-Rails-%E5%AE%9E%E8%B7%B5%EF%BC%9A%E6%9B%B4%E6%8D%A2-aloe-%E9%A6%96%E9%A1%B5/"><div class="cap"><time>2022-11-13</time><span>Ruby-on-Rails</span></div><span class="title">Ruby on Rails 实践：更换 aloe 首页</span></a></div></div>
@@ -85,10 +85,87 @@
 
       
 
-  @import 'partial/*'
-@import 'tag-plugins/*'
-@import 'sidebar/*'
-@import 'pages/*'
+  
+
+
+  <div class='nav-wrap'>
+  <nav class='sub post cap'>
+    
+      <a href='/'>近期发布</a>
+    
+    
+      
+        <a class='active' href='/categories'>分类：iOS</a>
+      
+    
+    
+      
+        <a href='/tags'>标签</a>
+      
+    
+    
+      
+        <a href='/archives'>归档</a>
+      
+    
+  </nav>
+</div>
+
+  <div class="post-list post"><a class="post-card post " href="/2020/02/27/OC%E5%9D%91%E9%9B%86%E4%B9%8Bblock%E4%BD%9C%E4%B8%BA%E5%87%BD%E6%95%B0%E5%8F%82%E6%95%B0/"><article class="md">
+<div class="post-cover"><img class="lazy" src="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAABGdBTUEAALGPC/xhBQAAADhlWElmTU0AKgAAAAgAAYdpAAQAAAABAAAAGgAAAAAAAqACAAQAAAABAAAAAaADAAQAAAABAAAAAQAAAADa6r/EAAAAC0lEQVQIHWNgAAIAAAUAAY27m/MAAAAASUVORK5CYII=" data-src="https://source.unsplash.com/1280x640/?Objective-C block"/></div><h2 class="post-title">OC坑集之block作为函数参数</h2><div class="excerpt"><p>对于 OC（Objective-C，苹果推出的自家编程语言） 的争论一直不休，对于一门语言，我觉得只要能解决你的问题就够了。
+评论一门编程语言的好坏之前，需要我们真正的去用它，OC 孰好孰坏，需要你自己去尝试。
+OC 坑集，主要记载使用 OC 开发项目遇到的问题，尽量简洁明了，希望大家喜欢。
+block 语句块可以作为函数的参数, 在项目中都经常被作为回调来使用。
+如果你还不熟悉 block...</p></div><div class="meta cap"><span class="cap" id="post-meta">发布于&nbsp;<time datetime="2020-02-27T13:17:24.000Z">2020-02-27</time></span><span class="cap breadcrumb">iOS</span><div>
+</article></a><a class="post-card post " href="/2019/04/21/%E7%94%A8Objective-C%E5%AE%9E%E7%8E%B0%E6%8A%BD%E8%B1%A1%E7%B1%BB/"><article class="md">
+<div class="post-cover"><img class="lazy" src="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAABGdBTUEAALGPC/xhBQAAADhlWElmTU0AKgAAAAgAAYdpAAQAAAABAAAAGgAAAAAAAqACAAQAAAABAAAAAaADAAQAAAABAAAAAQAAAADa6r/EAAAAC0lEQVQIHWNgAAIAAAUAAY27m/MAAAAASUVORK5CYII=" data-src="https://source.unsplash.com/1280x640/?iOS 抽象类 Objective-C"/></div><h2 class="post-title">用Objective-C实现抽象类</h2><div class="excerpt"><p>
+插图的花是我上个月发工资当天晚上加班回家的路上从一个老人家那里买的，一枝独秀！
+上周在微信公众号发布的一篇名为 反向代理 的文章，居然真被微信给封掉了，当时在写的时候我还在想是不是会被微信给封杀掉，真是怕什么来什么，完全符合墨菲定律！那篇文章我就是想给大家分享一下如何设置 Nginx 的反向代理，其中的一些概念可能是因为牵涉到了敏感词汇，本无恶意！
+不说这件事情了，还是回到今天分享的主题上...</p></div><div class="meta cap"><span class="cap" id="post-meta">发布于&nbsp;<time datetime="2019-04-21T04:01:47.000Z">2019-04-21</time></span><span class="cap breadcrumb">iOS</span><div>
+</article></a><a class="post-card post " href="/2019/04/07/dumpdecrypted-%E7%A0%B8%E5%A3%B3%EF%BC%9A%E5%AF%BC%E5%87%BA%E5%A4%B4%E6%96%87%E4%BB%B6/"><article class="md">
+<div class="post-cover"><img class="lazy" src="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAABGdBTUEAALGPC/xhBQAAADhlWElmTU0AKgAAAAgAAYdpAAQAAAABAAAAGgAAAAAAAqACAAQAAAABAAAAAaADAAQAAAABAAAAAQAAAADa6r/EAAAAC0lEQVQIHWNgAAIAAAUAAY27m/MAAAAASUVORK5CYII=" data-src="https://source.unsplash.com/1280x640/?iOS安全 越狱 jailbreak"/></div><h2 class="post-title">dumpdecrypted 砸壳：导出头文件</h2><div class="excerpt"><p>最近在看人工智能相关的知识，无意中发现了一个巨牛的 人工智能教程，分享一下给大家。
+教程不仅是零基础，通俗易懂，而且非常风趣幽默，像看小说一样！觉得太牛了，所以分享给大家。点 这里 可以直接看教程。
+导出头文件在 iOS 逆向: dumpdecrypted 砸壳记中已经给大家分享了对 ipa 文件如何砸壳了， 接下来就可以导出其头文件了。
+这里需要用到 class-dump 工具。如果你使用...</p></div><div class="meta cap"><span class="cap" id="post-meta">发布于&nbsp;<time datetime="2019-04-07T03:19:08.000Z">2019-04-07</time></span><span class="cap breadcrumb">iOS</span><div>
+</article></a><a class="post-card post " href="/2019/03/03/iOS-%E4%BD%BF%E7%94%A8-libcurl/"><article class="md">
+<div class="post-cover"><img class="lazy" src="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAABGdBTUEAALGPC/xhBQAAADhlWElmTU0AKgAAAAgAAYdpAAQAAAABAAAAGgAAAAAAAqACAAQAAAABAAAAAaADAAQAAAABAAAAAQAAAADa6r/EAAAAC0lEQVQIHWNgAAIAAAUAAY27m/MAAAAASUVORK5CYII=" data-src="https://source.unsplash.com/1280x640/?curl libcurl springboot"/></div><h2 class="post-title">iOS 使用 libcurl</h2><div class="excerpt"><p>libcurl 简介libcurl 是用C语言写的一套 开源 库，是为网络客户端提供数据传输功能的函数库。
+libcurl 支持 SMTP、HTTP、HTTPS、FTP、TELNET 等协议和各种 SSL 安全认证，支持 Solaris, NetBSD, FreeBSD, OpenBSD, Darwin, HPUX, IRIX, AIX, Tru64, Linux, UnixWare, HU...</p></div><div class="meta cap"><span class="cap" id="post-meta">发布于&nbsp;<time datetime="2019-03-03T09:35:08.000Z">2019-03-03</time></span><span class="cap breadcrumb">iOS</span><div>
+</article></a><a class="post-card post " href="/2019/01/29/Class-isa-%E5%85%83%E7%B1%BB/"><article class="md">
+<div class="post-cover"><img class="lazy" src="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAABGdBTUEAALGPC/xhBQAAADhlWElmTU0AKgAAAAgAAYdpAAQAAAABAAAAGgAAAAAAAqACAAQAAAABAAAAAaADAAQAAAABAAAAAQAAAADa6r/EAAAAC0lEQVQIHWNgAAIAAAUAAY27m/MAAAAASUVORK5CYII=" data-src="https://source.unsplash.com/1280x640/?元类 isa class meta-class"/></div><h2 class="post-title">Class、isa、元类</h2><div class="excerpt"><p>声明本文的所涉及到的源码是 objc4 源码，截止到写本文最新的是 objc4-750 这个版本。
+Class我们在学习面向对象的学习中，接触最多的就是类，那么在OC类是由Class类型来表示的，Class是用C的数据结构来表示的。
+看一下 NSObject 的声明，在头文件中，如下图所示：
+123456@interface NSObject &lt;NSObject&gt; &#123;#...</p></div><div class="meta cap"><span class="cap" id="post-meta">发布于&nbsp;<time datetime="2019-01-29T13:39:05.000Z">2019-01-29</time></span><span class="cap breadcrumb">iOS</span><div>
+</article></a><a class="post-card post " href="/2019/01/28/%E8%A2%AB%E8%AF%AF%E8%A7%A3%E7%9A%84-objc-class/"><article class="md">
+<div class="post-cover"><img class="lazy" src="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAABGdBTUEAALGPC/xhBQAAADhlWElmTU0AKgAAAAgAAYdpAAQAAAABAAAAGgAAAAAAAqACAAQAAAABAAAAAaADAAQAAAABAAAAAQAAAADa6r/EAAAAC0lEQVQIHWNgAAIAAAUAAY27m/MAAAAASUVORK5CYII=" data-src="https://source.unsplash.com/1280x640/?iOS objc_class"/></div><h2 class="post-title">被误解的 objc_class</h2><div class="excerpt"><p>网上绝大多数的博客讲 objc_class 的定义，基本上都使用了下面的代码一来讲解，与 objc4 源码 objc-runtime-new.h 中关于 objc_class 中的定义完全不一样，我认真地去探究了一下，发现这个世界上实属雷同的事件还是蛮多的，老实做事做学问的人少的可怜！
+
+本文的所涉及到的 objc4 源码，截止到写本文最新的是 objc4-750 这个版本。
+代码一：简洁版...</p></div><div class="meta cap"><span class="cap" id="post-meta">发布于&nbsp;<time datetime="2019-01-28T15:21:04.000Z">2019-01-28</time></span><span class="cap breadcrumb">iOS</span><div>
+</article></a><a class="post-card post " href="/2019/01/13/%E9%9B%86%E5%90%88%E5%AF%B9%E8%B1%A1%E5%8F%AF%E5%8F%98%E4%B8%8E%E4%B8%8D%E5%8F%AF%E5%8F%98%E7%9A%84%E9%82%A3%E7%82%B9%E4%BA%8B/"><article class="md">
+<div class="post-cover"><img class="lazy" src="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAABGdBTUEAALGPC/xhBQAAADhlWElmTU0AKgAAAAgAAYdpAAQAAAABAAAAGgAAAAAAAqACAAQAAAABAAAAAaADAAQAAAABAAAAAQAAAADa6r/EAAAAC0lEQVQIHWNgAAIAAAUAAY27m/MAAAAASUVORK5CYII=" data-src="https://source.unsplash.com/1280x640/?iOS 集合对象 可变 不可变"/></div><h2 class="post-title">集合对象可变与不可变的那点事</h2><div class="excerpt"><p>最近在看人工智能相关的知识，无意中发现了一个巨牛的 人工智能教程，分享一下给大家。
+教程不仅是零基础，通俗易懂，而且非常风趣幽默，像看小说一样！觉得太牛了，所以分享给大家。点 这里 可以直接看教程。
+
+简介在文章 NSString NSMutableString 可变与不可变的那些事儿 分享了关于 NSString 和 NSMutableString 与 copy 以及 mutableCop...</p></div><div class="meta cap"><span class="cap" id="post-meta">发布于&nbsp;<time datetime="2019-01-13T11:29:14.000Z">2019-01-13</time></span><span class="cap breadcrumb">iOS</span><div>
+</article></a><a class="post-card post " href="/2019/01/06/iOS-%E4%B8%AD%E5%A6%82%E4%BD%95%E4%BD%BF%E7%94%A8%E5%AF%B9%E8%B1%A1%E7%9A%84%E5%BC%B1%E5%BC%95%E7%94%A8/"><article class="md">
+<div class="post-cover"><img class="lazy" src="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAABGdBTUEAALGPC/xhBQAAADhlWElmTU0AKgAAAAgAAYdpAAQAAAABAAAAGgAAAAAAAqACAAQAAAABAAAAAaADAAQAAAABAAAAAQAAAADa6r/EAAAAC0lEQVQIHWNgAAIAAAUAAY27m/MAAAAASUVORK5CYII=" data-src="https://source.unsplash.com/1280x640/?weak strong NSPointerArray"/></div><h2 class="post-title">iOS 中如何使用对象的弱引用</h2><div class="excerpt"><p>简介我们都知道使用 UIImage imageNamed 创建的 UIImage 对象会被持有(强引用)，如果图片太大会占用内存，损耗 APP 的性能，影响用户体验，如果能改造对其的强引用变为弱引用就可以解决问题。
+我们可能会有类似上面的场景，有些对象暂时保存起来，可能后面会用到，也有可能不会使用，但是又不想去管理它们的生命周期，如果它们能够自己被销毁就很省事，不需要去关心这些对象到底耗费了...</p></div><div class="meta cap"><span class="cap" id="post-meta">发布于&nbsp;<time datetime="2019-01-06T10:07:49.000Z">2019-01-06</time></span><span class="cap breadcrumb">iOS</span><div>
+</article></a><a class="post-card post " href="/2018/12/30/NSString%E3%80%81NSMutableString-%E5%8F%AF%E5%8F%98%E4%B8%8E%E4%B8%8D%E5%8F%AF%E5%8F%98%E7%9A%84%E9%82%A3%E4%BA%9B%E4%BA%8B%E5%84%BF/"><article class="md">
+<div class="post-cover"><img class="lazy" src="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAABGdBTUEAALGPC/xhBQAAADhlWElmTU0AKgAAAAgAAYdpAAQAAAABAAAAGgAAAAAAAqACAAQAAAABAAAAAaADAAQAAAABAAAAAQAAAADa6r/EAAAAC0lEQVQIHWNgAAIAAAUAAY27m/MAAAAASUVORK5CYII=" data-src="https://source.unsplash.com/1280x640/?NSString NSMutableString copy mutableCopy"/></div><h2 class="post-title">NSString、NSMutableString 可变与不可变的那些事儿</h2><div class="excerpt"><p>简介这篇文章的主要包含如下内容：
+
+可变对象和不可变对象
+NSString 的 copy 和 mutableCopy
+NSMutableString 的 copy 和 mutableCopy
+property 中 copy、strong 修饰 NSString
+property 中 copy、strong 修饰 NSMutableString
+
+很多 iOS 开发的朋友会争论一个问题，我用 ...</p></div><div class="meta cap"><span class="cap" id="post-meta">发布于&nbsp;<time datetime="2018-12-30T08:24:39.000Z">2018-12-30</time></span><span class="cap breadcrumb">iOS</span><div>
+</article></a><a class="post-card post " href="/2018/12/23/OC-self/"><article class="md">
+<div class="post-cover"><img class="lazy" src="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAABGdBTUEAALGPC/xhBQAAADhlWElmTU0AKgAAAAgAAYdpAAQAAAABAAAAGgAAAAAAAqACAAQAAAABAAAAAaADAAQAAAABAAAAAQAAAADa6r/EAAAAC0lEQVQIHWNgAAIAAAUAAY27m/MAAAAASUVORK5CYII=" data-src="https://source.unsplash.com/1280x640/?Objective-C self keyword"/></div><h2 class="post-title">OC: self</h2><div class="excerpt"><p>为了更好的说明 Objective-C 中的 self，我们先从 Java 的 this 关键字开始来引入话题。
+Java 中的 this在 Java 中 this 关键字表示当前类对象，其只能在类的非静态方法中使用，静态方法和静态的代码块中绝对不能出现 this，this 只和特定的对象关联，而不和类关联，同一个类的不同对象有不同的 this.
+先看一个 Java 示例，能说明上面的问题，...</p></div><div class="meta cap"><span class="cap" id="post-meta">发布于&nbsp;<time datetime="2018-12-23T10:19:43.000Z">2018-12-23</time></span><span class="cap breadcrumb">iOS</span><div>
+</article></a></div>
+  
+
+
 
 
 
