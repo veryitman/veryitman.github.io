@@ -1,3 +1,4 @@
+http://example.com/2024/01/15/%E6%89%8B%E5%8A%A8%E9%99%8D%E7%BA%A7openssl%EF%BC%9A%E8%A7%A3%E5%86%B3-Rails-%E9%83%A8%E7%BD%B2%E7%9A%84%E9%97%AE%E9%A2%98/
 http://example.com/2022/12/18/MySQL%E7%AC%94%E8%AE%B0/
 http://example.com/2023/01/07/%E8%AE%BF%E9%97%AE-Nginx-403-Fobidden/
 http://example.com/2020/12/13/%E5%AF%BC%E5%85%A5MySQL%E6%95%B0%E6%8D%AE%E5%BA%93%E6%96%87%E4%BB%B6/
@@ -356,6 +357,7 @@ http://example.com/tags/Ruby-Rails-Gem/
 http://example.com/tags/rails-passenger-nginx/
 http://example.com/tags/MySQL-note-record/
 http://example.com/tags/rails-nginx-403/
+http://example.com/tags/rails-openssl-passenger/
 http://example.com/categories/%E9%9A%8F%E7%AC%94/
 http://example.com/categories/iOS/
 http://example.com/categories/Server/

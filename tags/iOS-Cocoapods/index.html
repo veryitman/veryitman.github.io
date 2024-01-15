@@ -64,10 +64,10 @@
 <li><a target="_blank" rel="noopener" href="https://veryitman.blog.csdn.net/">CSDN</a>  </li>
 <li><a target="_blank" rel="noopener" href="https://juejin.cn/user/3456520290573070">掘金</a><br></li>
 </ul>
-<p><strong>email</strong><br><a href="mailto:&#x76;&#101;&#x72;&#x79;&#x69;&#116;&#109;&#x61;&#110;&#64;&#49;&#50;&#54;&#x2e;&#x63;&#x6f;&#x6d;">&#x76;&#101;&#x72;&#x79;&#x69;&#116;&#109;&#x61;&#110;&#64;&#49;&#50;&#54;&#x2e;&#x63;&#x6f;&#x6d;</a><br><br></p>
+<p><strong>email</strong><br><a href="mailto:&#118;&#101;&#x72;&#121;&#x69;&#116;&#x6d;&#97;&#x6e;&#64;&#49;&#x32;&#54;&#x2e;&#x63;&#111;&#109;">&#118;&#101;&#x72;&#121;&#x69;&#116;&#x6d;&#97;&#x6e;&#64;&#49;&#x32;&#54;&#x2e;&#x63;&#111;&#109;</a><br><br></p>
 </div></div>
 
-<div class="widget-wrap" id="recent"><div class="widget-header cap dis-select"><span class="name">最近更新</span></div><div class="widget-body fs14"><div class="line"></div><a class="more-item" href="/2022/12/18/MySQL%E7%AC%94%E8%AE%B0/"><div class="cap"><time>2023-01-08</time><span>Server</span></div><span class="title">MySQL笔记</span></a><div class="line"></div><a class="more-item" href="/2023/01/07/%E8%AE%BF%E9%97%AE-Nginx-403-Fobidden/"><div class="cap"><time>2023-01-08</time><span>Ruby-on-Rails</span></div><span class="title">访问 Nginx 403 Fobidden</span></a><div class="line"></div><a class="more-item" href="/2020/12/13/%E5%AF%BC%E5%85%A5MySQL%E6%95%B0%E6%8D%AE%E5%BA%93%E6%96%87%E4%BB%B6/"><div class="cap"><time>2022-12-03</time><span>Server</span></div><span class="title">导入MySQL数据库文件</span></a><div class="line"></div><a class="more-item" href="/2022/11/13/Ruby-on-Rails-%E5%AE%9E%E8%B7%B5%EF%BC%9A%E6%9B%B4%E6%8D%A2-aloe-%E9%A6%96%E9%A1%B5/"><div class="cap"><time>2022-11-13</time><span>Ruby-on-Rails</span></div><span class="title">Ruby on Rails 实践：更换 aloe 首页</span></a><div class="line"></div><a class="more-item" href="/2022/09/04/Ruby-on-Rails-%E5%AE%9E%E8%B7%B5%EF%BC%9A%E8%AF%BE%E7%A8%8B%E5%AF%BC%E8%AF%BB/"><div class="cap"><time>2022-11-13</time><span>Ruby-on-Rails</span></div><span class="title">Ruby on Rails 实践：课程导读</span></a></div></div>
+<div class="widget-wrap" id="recent"><div class="widget-header cap dis-select"><span class="name">最近更新</span></div><div class="widget-body fs14"><div class="line"></div><a class="more-item" href="/2024/01/15/%E6%89%8B%E5%8A%A8%E9%99%8D%E7%BA%A7openssl%EF%BC%9A%E8%A7%A3%E5%86%B3-Rails-%E9%83%A8%E7%BD%B2%E7%9A%84%E9%97%AE%E9%A2%98/"><div class="cap"><time>2024-01-15</time><span>Ruby-on-Rails</span></div><span class="title">手动降级openssl：解决-Rails-部署的问题</span></a><div class="line"></div><a class="more-item" href="/2022/12/18/MySQL%E7%AC%94%E8%AE%B0/"><div class="cap"><time>2023-01-08</time><span>Server</span></div><span class="title">MySQL笔记</span></a><div class="line"></div><a class="more-item" href="/2023/01/07/%E8%AE%BF%E9%97%AE-Nginx-403-Fobidden/"><div class="cap"><time>2023-01-08</time><span>Ruby-on-Rails</span></div><span class="title">访问 Nginx 403 Fobidden</span></a><div class="line"></div><a class="more-item" href="/2020/12/13/%E5%AF%BC%E5%85%A5MySQL%E6%95%B0%E6%8D%AE%E5%BA%93%E6%96%87%E4%BB%B6/"><div class="cap"><time>2022-12-03</time><span>Server</span></div><span class="title">导入MySQL数据库文件</span></a><div class="line"></div><a class="more-item" href="/2022/11/13/Ruby-on-Rails-%E5%AE%9E%E8%B7%B5%EF%BC%9A%E6%9B%B4%E6%8D%A2-aloe-%E9%A6%96%E9%A1%B5/"><div class="cap"><time>2022-11-13</time><span>Ruby-on-Rails</span></div><span class="title">Ruby on Rails 实践：更换 aloe 首页</span></a></div></div>
 </div>
 
 
@@ -305,6 +305,36 @@ Cocoapods 管理代码的必要性项目到了一定规模, 代码组织和结�
       const el = document.getElementById("valine_container");
       var path = el.getAttribute('comment_id');
       const placeholder = "欢迎您留言~";
+      if (!path) {
+        path = decodeURI(window.location.pathname);
+      }
+      var valine = new Valine();
+      valine.init(Object.assign({"js":"https://cdn.jsdelivr.net/gh/XuxuGood/simple-blog-cdn@main/js/Valine.min.js","appId":"FY2C9UCttYNaE1j8umenqdCE-gzGzoHsz","appKey":"4i7xMwkfSEGmEDhi6SceKFxz","placeholder":"欢迎您留言~","requiredFields":["nick","mail"],"enableQQ":true,"recordIP":false,"avatar":"robohash","pageSize":10,"lang":"zh-cn","highlight":true,"mathJax":false,"tagMeta":["博主","小伙伴","访客"],"metaPlaceholder":{"nick":"昵称/QQ号(必填)","mail":"邮箱（必填，完全保密）"},"master":["6783037F2DF30EAB99F9FC256157D875"],"friends":["6783037F2DF30EAB99F9FC256157D875"],"comment_count":true}, {
+        el: '#valine_container',
+        path: path,
+        placeholder: placeholder,
+        emojiCDN: 'https://cdn.jsdelivr.net/gh/volantis-x/cdn-emoji/valine/',
+        emojiMaps: getEmojiMaps(),
+      }));
+    });
+  }
+  window.addEventListener('DOMContentLoaded', (event) => {
+    console.log('DOM fully loaded and parsed');
+    load_comment();
+  });
+
+</script>
+
+
+
+
+<!-- inject -->
+
+
+  </div>
+</body>
+</html>
+�言~";
       if (!path) {
         path = decodeURI(window.location.pathname);
       }

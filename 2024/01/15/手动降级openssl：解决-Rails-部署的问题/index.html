@@ -1,0 +1,413 @@
+<!DOCTYPE html>
+<html lang='zh-CN'>
+
+<head>
+  <meta name="generator" content="Hexo 6.0.0">
+  <meta charset="utf-8">
+  
+
+  <meta http-equiv='x-dns-prefetch-control' content='on' />
+  <link rel='dns-prefetch' href='https://cdn.jsdelivr.net'>
+  <link rel="preconnect" href="https://cdn.jsdelivr.net" crossorigin>
+
+  <meta name="renderer" content="webkit">
+  <meta name="force-rendering" content="webkit">
+  <meta http-equiv="X-UA-Compatible" content="IE=Edge,chrome=1">
+  <meta name="HandheldFriendly" content="True" >
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1">
+  <meta name="theme-color" content="#f8f8f8">
+  <title>手动降级openssl：解决-Rails-部署的问题 - veryitman</title>
+
+  
+    <meta name="description" content="简介1、为什么要降 openssl 版本？ 我的工程比较老，使用的还是 rails 3.2 、ruby 1.8（自己源码编译的），生产环境的应用服务器是 passenger。在安装  passenger时发生了错误（passenger-install-nginx-module 的安装方式）：提示需要 ruby 支持 openssl。 123456ossl_pkey_ec.c:815: error:">
+<meta property="og:type" content="article">
+<meta property="og:title" content="手动降级openssl：解决-Rails-部署的问题">
+<meta property="og:url" content="http://example.com/2024/01/15/%E6%89%8B%E5%8A%A8%E9%99%8D%E7%BA%A7openssl%EF%BC%9A%E8%A7%A3%E5%86%B3-Rails-%E9%83%A8%E7%BD%B2%E7%9A%84%E9%97%AE%E9%A2%98/index.html">
+<meta property="og:site_name" content="veryitman">
+<meta property="og:description" content="简介1、为什么要降 openssl 版本？ 我的工程比较老，使用的还是 rails 3.2 、ruby 1.8（自己源码编译的），生产环境的应用服务器是 passenger。在安装  passenger时发生了错误（passenger-install-nginx-module 的安装方式）：提示需要 ruby 支持 openssl。 123456ossl_pkey_ec.c:815: error:">
+<meta property="og:locale" content="zh_CN">
+<meta property="og:image" content="http://example.com/upload/me/qrcode_wx2022.png">
+<meta property="article:published_time" content="2024-01-15T14:25:57.000Z">
+<meta property="article:modified_time" content="2024-01-15T14:26:56.706Z">
+<meta property="article:author" content="veryitman">
+<meta property="article:tag" content="rails openssl passenger">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:image" content="http://example.com/upload/me/qrcode_wx2022.png">
+  
+  
+
+  <!-- feed -->
+  
+
+  
+    
+<link rel="stylesheet" href="/css/main.css">
+
+  
+
+  
+
+  
+</head>
+
+<body>
+  
+
+
+  <div class='l_body' id='start'>
+    <aside class='l_left' layout='post'>
+    
+
+
+<header class="header">
+
+<div class="logo-wrap"><a class="title" href="/"><div class="main">veryitman</div></a></div>
+<nav class="menu dis-select"></nav></header>
+
+<div class="widgets">
+
+<div class="widget-wrap single" id="toc"><div class="widget-header cap dis-select"><span class="name">本文目录</span></div><div class="widget-body fs14"><div class="doc-tree active"><ol class="toc"><li class="toc-item toc-level-2"><a class="toc-link" href="#%E7%AE%80%E4%BB%8B"><span class="toc-text">简介</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#%E5%AE%89%E8%A3%85%E4%BD%8E%E7%89%88%E6%9C%AC-openssl"><span class="toc-text">安装低版本 openssl</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#%E7%BC%96%E8%AF%91-ruby-openssl"><span class="toc-text">编译 ruby+openssl</span></a></li></ol></div></div></div>
+
+
+</div>
+
+
+    </aside>
+    <div class='l_main'>
+      
+
+      
+
+
+<div class="bread-nav fs12"><div id="breadcrumb"><a class="cap breadcrumb" href="/">主页</a><span class="sep"></span><a class="cap breadcrumb" href="/">文章</a><span class="sep"></span><a class="cap breadcrumb-link" href="/categories/Ruby-on-Rails/">Ruby-on-Rails</a></div><div id="post-meta">发布于&nbsp;<time datetime="2024-01-15T14:25:57.000Z">2024-01-15</time></div></div>
+
+<article class='content md post'>
+<h1 class="article-title"><span>手动降级openssl：解决-Rails-部署的问题</span></h1>
+<h2 id="简介"><a href="#简介" class="headerlink" title="简介"></a>简介</h2><p>1、为什么要降 openssl 版本？</p>
+<p>我的工程比较老，使用的还是 <code>rails 3.2</code> 、<code>ruby 1.8</code>（自己源码编译的），生产环境的应用服务器是 <code>passenger</code>。在安装  <code>passenger</code>时发生了错误（passenger-install-nginx-module 的安装方式）：提示需要 <code>ruby</code> 支持 <code>openssl</code>。</p>
+<figure class="highlight shell"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br></pre></td><td class="code"><pre><span class="line">ossl_pkey_ec.c:815: error: ‘EC_GROUP_new_curve_GF2m’ undeclared (first use in this function)</span><br><span class="line">ossl_pkey_ec.c:815: error: (Each undeclared identifier is reported only once</span><br><span class="line">ossl_pkey_ec.c:815: error: for each function it appears in.)</span><br><span class="line">make[1]: *** [ossl_pkey_ec.o] Error 1</span><br><span class="line">make[1]: Leaving directory `/home/vagrant/ruby-1.8.7-p357/ext/openssl&#x27;</span><br><span class="line">make: *** [all] Error 1</span><br></pre></td></tr></table></figure>
+
+<p>后面我查询了下面两篇文章，折腾了很久未能解决问题，最后无奈降级系统自带的 <code>openssl</code> 版本。</p>
+<ul>
+<li><p><a target="_blank" rel="noopener" href="https://www.cnblogs.com/grimm/p/5568129.html">https://www.cnblogs.com/grimm/p/5568129.html</a></p>
+</li>
+<li><p><a target="_blank" rel="noopener" href="https://blog.csdn.net/u012599988/article/details/45820319">ruby升级时编译报错EC_GROUP_new_curve_GF2m</a></p>
+</li>
+</ul>
+<p>当前云服务器的系统是 <code>centOS 6.10</code>，默认安装了 <code>openssl 1.0.x</code> 版本，我需要在 <code>ruby-1.8</code> 环境下使用 <code>openssl 0.9.8</code> 系列版本。</p>
+<p>2、我还尝试编译 ruby 源码中自带的 openssl </p>
+<figure class="highlight shell"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line">cd ruby-1.8.7/ext/openssl</span><br><span class="line">ruby extconf.rb </span><br></pre></td></tr></table></figure>
+
+<p>报错：</p>
+<blockquote>
+<p>&#x3D;&#x3D;&#x3D; OpenSSL for Ruby configurator &#x3D;&#x3D;&#x3D;<br>&#x3D;&#x3D;&#x3D; Checking for system dependent stuff… &#x3D;&#x3D;&#x3D;<br>checking for t_open() in -lnsl… no<br>checking for socket() in -lsocket… no<br>checking for assert.h… yes<br>&#x3D;&#x3D;&#x3D; Checking for required stuff… &#x3D;&#x3D;&#x3D;<br>checking for openssl&#x2F;ssl.h… no<br>&#x3D;&#x3D;&#x3D; Checking for required stuff failed. &#x3D;&#x3D;&#x3D;<br>Makefile wasn’t created. Fix the errors above.</p>
+</blockquote>
+<p>系统自带的 <code>openssl</code> 版本（OpenSSL 1.0.1e-fips 11 Feb 2013）和 <code>ruby</code> 版本去编译 <code>openssl</code> 扩展库不兼容，无法通过编译。</p>
+<p>可以通过下面命令查看 <code>openssl</code> 版本：</p>
+<figure class="highlight shell"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">openssl version</span><br></pre></td></tr></table></figure>
+
+<p>下面我们正式进入战斗。</p>
+<h2 id="安装低版本-openssl"><a href="#安装低版本-openssl" class="headerlink" title="安装低版本 openssl"></a>安装低版本 openssl</h2><p>1、下载 <code>openssl-0.9.8</code></p>
+<figure class="highlight shell"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><span class="line">cd /usr/local</span><br><span class="line">wget https://www.openssl.org/source/openssl-0.9.8e.tar.gz --no-check-certificate</span><br><span class="line">tar -zxvf openssl-0.9.8e.tar.gz</span><br><span class="line">cd openssl-0.9.8e</span><br></pre></td></tr></table></figure>
+
+<p>2、编译</p>
+<figure class="highlight shell"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line">./config --prefix=/usr/local/ssl -fPIC no-asm</span><br><span class="line">make</span><br><span class="line">make install</span><br></pre></td></tr></table></figure>
+
+<p>正常情况下，我们配置一下默认安装路径即可，但是这里我们加了两个参数  <code>-fPIC</code>、 <code>no-asm</code>。</p>
+<ul>
+<li><p>用 <code>no-asm</code> 是为了解决类似 “md5-x86_64.s:41: Error: 0xd76aa478 out range of signed 32bit displacement” 的报错。</p>
+</li>
+<li><p>用 <code>-fPIC</code> 是为了解决类似 “&#x2F;usr&#x2F;local&#x2F;ssl&#x2F;lib&#x2F;libssl.a: error adding symbols: Bad value” 的报错。</p>
+</li>
+</ul>
+<p>如果你使用 <code>./config --prefix=/usr/local/ssl</code> 能够编译、安装正常就不需要加这两个参数。如果报错了，请先执行 <code>make clean</code> 操作。</p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br></pre></td><td class="code"><pre><span class="line">我们都知道在生成一个动态库时需要指定 -fPIC，这是创建动态库所要求的，共享库被加载是在内存中的位置是不固定的，是一个相对的位置。</span><br><span class="line">那么在生成静态库时通常不指定 -fPIC, 可是在64bit编译使用静态库就会提示需要 -fPIC 重新编译该库。</span><br><span class="line">由于 openssl 编译静态库时，没有使用 -fPIC 选项，使得编译出来的静态库没有重定位能力。</span><br><span class="line">这样在 64bit 机器上编译出来的静态库如果不指定-fPIC选项几乎全部不能使用。</span><br><span class="line">因此需要重新加上 -fPIC 从新编译 openssl。</span><br></pre></td></tr></table></figure>
+
+<p>编译如果报找不到库的错误，请安装 <code>libssl</code></p>
+<figure class="highlight shell"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">yum install libssl-dev</span><br></pre></td></tr></table></figure>
+
+<p>3、备份之前 OpenSSL 版本的文件，以方便恢复</p>
+<figure class="highlight shell"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line">mv -f /usr/bin/openssl /usr/bin/openssl.old</span><br><span class="line">mv -f /usr/include/openssl /usr/include/openssl.old</span><br></pre></td></tr></table></figure>
+
+<p>4、增加软链，指向新版本的 OpenSSL 路径</p>
+<figure class="highlight shell"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line">ln -s /usr/local/ssl/bin/openssl /usr/bin/openssl</span><br><span class="line">ln -s /usr/local/ssl/include/openssl /usr/include/openssl</span><br></pre></td></tr></table></figure>
+
+<p>5、写入 ld 配置文件<code>ld.so.conf</code></p>
+<figure class="highlight shell"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">echo &quot;/usr/local/ssl/lib&quot;&gt;&gt;/etc/ld.so.conf</span><br></pre></td></tr></table></figure>
+
+<p>可以看下 <code>vim  /etc/ld.so.conf</code> 文件内容。</p>
+<p>6、添加 so 库的路径，添加完成之后，运行<code>ldconfig</code>，将新增的 so 文件缓存到<code>/etc/ld.so.cache</code>中。</p>
+<figure class="highlight shell"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">ldconfig -v</span><br></pre></td></tr></table></figure>
+
+<p>最后，确认版本是否正确。</p>
+<figure class="highlight shell"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">openssl version -a</span><br></pre></td></tr></table></figure>
+
+<blockquote>
+<p>OpenSSL 0.9.8e 23 Feb 2007<br>built on: Thu Jan  5 11:13:28 CST 2023<br>platform: linux-x86_64</p>
+</blockquote>
+<p>检查一下，<code>ruby</code> 是否带 <code>openssl</code> 模块：</p>
+<figure class="highlight shell"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">ruby -ropenssl -e &#x27;puts OpenSSL::OPENSSL_VERSION&#x27;</span><br></pre></td></tr></table></figure>
+
+<p>理论上还不行，别着急，接下来我们重新编译 ruby。</p>
+<h2 id="编译-ruby-openssl"><a href="#编译-ruby-openssl" class="headerlink" title="编译 ruby+openssl"></a>编译 ruby+openssl</h2><p>编译 <code>ruby</code> + <code>openssl</code> 模块：</p>
+<figure class="highlight shell"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br></pre></td><td class="code"><pre><span class="line">cd /usr/local/ruby-1.8.7</span><br><span class="line"><span class="meta"># </span><span class="language-bash">我之前编译过</span></span><br><span class="line">make clean</span><br><span class="line"><span class="meta"></span></span><br><span class="line"><span class="meta"> # </span><span class="language-bash">--prefix 指定ruby安装目录</span></span><br><span class="line"><span class="meta"> # </span><span class="language-bash">--with-openssl-dir 指定openssl目录（刚安装的 openssl）</span></span><br><span class="line"> ./configure --enable-pthread --prefix=/usr/local --with-openssl-dir=/usr/local/ssl</span><br><span class="line"> </span><br><span class="line"> make </span><br><span class="line"> make install</span><br></pre></td></tr></table></figure>
+
+<p>（可选操作）如果还是编译报错，可以尝试用下面这种方式进行修复：</p>
+<figure class="highlight shell"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><span class="line"><span class="meta"># </span><span class="language-bash">ruby 源码自带了 openssl 库，当然还有其他扩展库如 zlib</span></span><br><span class="line">cd /usr/local/ruby-1.8.7/ext/openssl</span><br><span class="line">ruby extconf.rb</span><br><span class="line">make &amp;&amp; make install</span><br></pre></td></tr></table></figure>
+
+<p>编译完成之后，也是修复成功了。如果这一步你还是无法通过编译，先放弃这个操作，直接看下面的内容去检测一下。</p>
+<p>检测一下编译后的 <code>ruby</code> 是否带 <code>openssl</code> 模块，使用如下命令。</p>
+<figure class="highlight shell"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br></pre></td><td class="code"><pre><span class="line"><span class="meta"># </span><span class="language-bash">检查 openssl zlib</span></span><br><span class="line">ruby -ropenssl -rzlib  -e &quot;puts :success&quot;</span><br><span class="line"><span class="meta"></span></span><br><span class="line"><span class="meta"># </span><span class="language-bash">用下面的也可以</span></span><br><span class="line">ruby -ropenssl -e &quot;puts :success&quot;</span><br><span class="line">ruby -ropenssl -e &#x27;puts OpenSSL::OPENSSL_VERSION&#x27;</span><br></pre></td></tr></table></figure>
+
+<p>在控制台会输出对应的信息就代表成功了。如果没有成功会报类似如下的错误：</p>
+<blockquote>
+<p>ruby: no such file to load – openssl (LoadError)</p>
+</blockquote>
+<p>上面能够成功，我也觉得很神奇，不管怎么样我遇到的问题算是解决了。后来我在 <a target="_blank" rel="noopener" href="https://docs.ruby-lang.org/en/2.3.0/OpenSSL.html">官网 doc</a> 上面找到了一些解释。</p>
+<blockquote>
+<p><strong>module OpenSSL</strong></p>
+<p><a target="_blank" rel="noopener" href="https://docs.ruby-lang.org/en/2.3.0/OpenSSL.html"><code>OpenSSL</code></a> (指的是 ruby 自带的 openssl) provides <a target="_blank" rel="noopener" href="https://docs.ruby-lang.org/en/2.3.0/OpenSSL/SSL.html"><code>SSL</code></a>, TLS and general purpose cryptography. It wraps the <a target="_blank" rel="noopener" href="http://www.openssl.org/">OpenSSL</a> （指的是系统的 openssl 库） library.</p>
+<p><strong>Install</strong></p>
+<p><a target="_blank" rel="noopener" href="https://docs.ruby-lang.org/en/2.3.0/OpenSSL.html"><code>OpenSSL</code></a> comes bundled with the Standard Library of Ruby.</p>
+<p>This means the <a target="_blank" rel="noopener" href="https://docs.ruby-lang.org/en/2.3.0/OpenSSL.html"><code>OpenSSL</code></a> extension is compiled with Ruby and packaged on build. During compile time, Ruby will need to link against the <a target="_blank" rel="noopener" href="https://docs.ruby-lang.org/en/2.3.0/OpenSSL.html"><code>OpenSSL</code></a> library on your system. However, you cannot use openssl provided by Apple to build standard library openssl.</p>
+<p>If you use OSX, you should install another openssl and run “<code>./configure –with-openssl-dir=/path/to/another-openssl“</code>. For Homebrew user, run <code>brew install openssl</code> and then “<code>./configure –with-openssl-dir=</code>brew –prefix openssl<code> “</code>.</p>
+</blockquote>
+<p>最后，自己重新编译 <code>passenger</code>，工程可以正常运行了。</p>
+<hr>
+<p>～～</p>
+<p>当你遇到问题的时候，不要慌张，试着让自己放下问题出去走一走，回过头再来看或许问题就引刃而解了。</p>
+<p><img class="lazy" src="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAABGdBTUEAALGPC/xhBQAAADhlWElmTU0AKgAAAAgAAYdpAAQAAAABAAAAGgAAAAAAAqACAAQAAAABAAAAAaADAAQAAAABAAAAAQAAAADa6r/EAAAAC0lEQVQIHWNgAAIAAAUAAY27m/MAAAAASUVORK5CYII=" data-src="/upload/me/qrcode_wx2022.png"></p>
+
+
+
+
+</article>
+
+<div class="related-wrap reveal" id="read-next"><section class="header cap theme"><span>接下来阅读</span></section><section class="body fs14"><a id="next" href="/2023/01/07/%E8%AE%BF%E9%97%AE-Nginx-403-Fobidden/">访问 Nginx 403 Fobidden<span class="note">较早</span></a><div class="line"></div></section></div>
+
+
+
+
+
+
+  <div class='related-wrap md reveal' id="comments">
+    <div class='cmt-title cap theme'>
+      快来参与讨论吧
+    </div>
+    <div class='cmt-body valine'>
+      
+
+<div id="valine_container" class="valine_thread"><svg class="loading" style="vertical-align: middle;fill: currentColor;overflow: hidden;" viewBox="0 0 1024 1024" version="1.1" xmlns="http://www.w3.org/2000/svg" p-id="2709"><path d="M832 512c0-176-144-320-320-320V128c211.2 0 384 172.8 384 384h-64zM192 512c0 176 144 320 320 320v64C300.8 896 128 723.2 128 512h64z" p-id="2710"></path></svg></div>
+
+    </div>
+  </div>
+
+
+
+      
+<footer class="page-footer reveal fs12"><hr><div class="text"><p>本博客所有文章除特别声明外，均采用 <a target="_blank" rel="noopener" href="https://creativecommons.org/licenses/by-nc-sa/4.0/">CC BY-NC-SA 4.0</a> 许可协议，转载请注明出处。</p>
+<p>veryitman</p>
+</div></footer>
+
+      <div class='float-panel mobile-only blur' style='display:none'>
+  <button type='button' class='sidebar-toggle mobile' onclick='sidebar.toggle()'>
+    <svg class="icon" style="width: 1em; height: 1em;vertical-align: middle;fill: currentColor;overflow: hidden;" viewBox="0 0 1024 1024" version="1.1" xmlns="http://www.w3.org/2000/svg" p-id="15301"><path d="M566.407 808.3c26.9-0.1 49.3-20.8 51.6-47.6-1.9-27.7-23.9-49.7-51.6-51.6h-412.6c-28.2-1.4-52.6 19.5-55.5 47.6 2.3 26.8 24.6 47.5 51.6 47.6h416.5v4z m309.3-249.9c26.9-0.1 49.3-20.8 51.6-47.6-2.2-26.8-24.6-47.5-51.6-47.6h-721.9c-27.7-2.8-52.5 17.4-55.3 45.1-0.1 0.8-0.1 1.7-0.2 2.5 0.9 27.2 23.6 48.5 50.7 47.6H875.707z m-103.1-245.9c26.9-0.1 49.3-20.8 51.6-47.6-0.4-28.3-23.2-51.1-51.5-51.6h-618.9c-29.5-1.1-54.3 21.9-55.5 51.4v0.2c1.4 27.8 25.2 49.2 53 47.8 0.8 0 1.7-0.1 2.5-0.2h618.8z" p-id="15302"></path><path d="M566.407 808.3c26.9-0.1 49.3-20.8 51.6-47.6-1.9-27.7-23.9-49.7-51.6-51.6h-412.6c-28.2-1.4-52.6 19.5-55.5 47.6 1.9 27.7 23.9 49.7 51.6 51.6h416.5z m309.3-249.9c26.9-0.1 49.3-20.8 51.6-47.6-2.2-26.8-24.6-47.5-51.6-47.6h-721.9c-27.7-2.8-52.5 17.4-55.3 45.1-0.1 0.8-0.1 1.7-0.2 2.5 0.9 27.2 23.6 48.5 50.7 47.6H875.707z m-103.1-245.9c26.9-0.1 49.3-20.8 51.6-47.6-0.4-28.3-23.2-51.1-51.5-51.6h-618.9c-29.5-1.1-54.3 21.9-55.5 51.4v0.2c1.4 27.8 25.2 49.2 53 47.8 0.8 0 1.7-0.1 2.5-0.2h618.8z" p-id="15303"></path></svg>
+  </button>
+</div>
+
+    </div>
+  </div>
+  <div class='scripts'>
+    <script type="text/javascript">
+  stellar = {
+    // 懒加载 css https://github.com/filamentgroup/loadCSS
+    loadCSS: (href, before, media, attributes) => {
+      var doc = window.document;
+      var ss = doc.createElement("link");
+      var ref;
+      if (before) {
+        ref = before;
+      } else {
+        var refs = (doc.body || doc.getElementsByTagName("head")[0]).childNodes;
+        ref = refs[refs.length - 1];
+      }
+      var sheets = doc.styleSheets;
+      if (attributes) {
+        for (var attributeName in attributes) {
+          if (attributes.hasOwnProperty(attributeName)) {
+            ss.setAttribute(attributeName, attributes[attributeName]);
+          }
+        }
+      }
+      ss.rel = "stylesheet";
+      ss.href = href;
+      ss.media = "only x";
+      function ready(cb) {
+        if (doc.body) {
+          return cb();
+        }
+        setTimeout(function () {
+          ready(cb);
+        });
+      }
+      ready(function () {
+        ref.parentNode.insertBefore(ss, before ? ref : ref.nextSibling);
+      });
+      var onloadcssdefined = function (cb) {
+        var resolvedHref = ss.href;
+        var i = sheets.length;
+        while (i--) {
+          if (sheets[i].href === resolvedHref) {
+            return cb();
+          }
+        }
+        setTimeout(function () {
+          onloadcssdefined(cb);
+        });
+      };
+      function loadCB() {
+        if (ss.addEventListener) {
+          ss.removeEventListener("load", loadCB);
+        }
+        ss.media = media || "all";
+      }
+      if (ss.addEventListener) {
+        ss.addEventListener("load", loadCB);
+      }
+      ss.onloadcssdefined = onloadcssdefined;
+      onloadcssdefined(loadCB);
+      return ss;
+    },
+
+    // 从 butterfly 和 volantis 获得灵感
+    loadScript: (src, opt) => new Promise((resolve, reject) => {
+      var script = document.createElement('script');
+      script.src = src;
+      if (opt) {
+        for (let key of Object.keys(opt)) {
+          script[key] = opt[key]
+        }
+      } else {
+        // 默认异步，如果需要同步，第二个参数传入 {} 即可
+        script.async = true
+      }
+      script.onerror = reject
+      script.onload = script.onreadystatechange = function() {
+        const loadState = this.readyState
+        if (loadState && loadState !== 'loaded' && loadState !== 'complete') return
+        script.onload = script.onreadystatechange = null
+        resolve()
+      }
+      document.head.appendChild(script)
+    }),
+
+    // https://github.com/jerryc127/hexo-theme-butterfly
+    jQuery: (fn) => {
+      if (typeof jQuery === 'undefined') {
+        stellar.loadScript(stellar.plugins.jQuery).then(fn)
+      } else {
+        fn()
+      }
+    }
+  };
+  stellar.github = 'https://github.com/xaoxuu/hexo-theme-stellar/tree/1.6.1';
+  stellar.config = {
+    date_suffix: {
+      just: '刚刚',
+      min: '分钟前',
+      hour: '小时前',
+      day: '天前',
+      month: '个月前',
+    },
+  };
+
+  // required plugins (only load if needs)
+  stellar.plugins = {
+    jQuery: 'https://cdn.jsdelivr.net/npm/jquery@3.5.1/dist/jquery.min.js',
+    sitesjs: '/js/plugins/sites.js',
+    friendsjs: '/js/plugins/friends.js',
+  };
+
+  // optional plugins
+  if ('true' == 'true') {
+    stellar.plugins.lazyload = Object.assign({"enable":true,"js":"https://cdn.jsdelivr.net/npm/vanilla-lazyload@17.3.1/dist/lazyload.min.js","transition":"blur"});
+  }
+  if ('true' == 'true') {
+    stellar.plugins.swiper = Object.assign({"enable":true,"css":"https://unpkg.com/swiper@6/swiper-bundle.min.css","js":"https://unpkg.com/swiper@6/swiper-bundle.min.js"});
+  }
+  if ('' == 'true') {
+    stellar.plugins.scrollreveal = Object.assign({"enable":null,"js":"https://cdn.jsdelivr.net/npm/scrollreveal@4.0.9/dist/scrollreveal.min.js","distance":"8px","duration":500,"interval":100,"scale":1});
+  }
+  if ('true' == 'true') {
+    stellar.plugins.preload = Object.assign({"enable":true,"service":"flying_pages","instant_page":"https://cdn.jsdelivr.net/gh/volantis-x/cdn-volantis@4.1.2/js/instant_page.js","flying_pages":"https://cdn.jsdelivr.net/gh/gijo-varghese/flying-pages@2.1.2/flying-pages.min.js"});
+  }
+</script>
+
+<!-- required -->
+
+  
+<script src="/js/main.js" async></script>
+
+
+
+<!-- optional -->
+
+  <script>
+  function getEmojiMaps() {
+    function emoji(path, idx, ext) {
+      return path + "/" + path + "-" + idx + "." + ext;
+    }
+    var emojiMaps = {};
+    for (var i = 1; i <= 54; i++) {
+      emojiMaps['tieba-' + i] = emoji('tieba', i, 'png');
+    }
+    for (var i = 1; i <= 101; i++) {
+      emojiMaps['qq-' + i] = emoji('qq', i, 'gif');
+    }
+    for (var i = 1; i <= 116; i++) {
+      emojiMaps['aru-' + i] = emoji('aru', i, 'gif');
+    }
+    for (var i = 1; i <= 125; i++) {
+      emojiMaps['twemoji-' + i] = emoji('twemoji', i, 'png');
+    }
+    for (var i = 1; i <= 4; i++) {
+      emojiMaps['weibo-' + i] = emoji('weibo', i, 'png');
+    }
+    return emojiMaps;
+  }
+  function load_comment(){
+    if(!document.getElementById("valine_container"))return;
+    stellar.loadScript('https://cdn.jsdelivr.net/gh/XuxuGood/simple-blog-cdn@main/js/Valine.min.js', {defer:true}).then(function () {
+      const el = document.getElementById("valine_container");
+      var path = el.getAttribute('comment_id');
+      const placeholder = "欢迎您留言~";
+      if (!path) {
+        path = decodeURI(window.location.pathname);
+      }
+      var valine = new Valine();
+      valine.init(Object.assign({"js":"https://cdn.jsdelivr.net/gh/XuxuGood/simple-blog-cdn@main/js/Valine.min.js","appId":"FY2C9UCttYNaE1j8umenqdCE-gzGzoHsz","appKey":"4i7xMwkfSEGmEDhi6SceKFxz","placeholder":"欢迎您留言~","requiredFields":["nick","mail"],"enableQQ":true,"recordIP":false,"avatar":"robohash","pageSize":10,"lang":"zh-cn","highlight":true,"mathJax":false,"tagMeta":["博主","小伙伴","访客"],"metaPlaceholder":{"nick":"昵称/QQ号(必填)","mail":"邮箱（必填，完全保密）"},"master":["6783037F2DF30EAB99F9FC256157D875"],"friends":["6783037F2DF30EAB99F9FC256157D875"],"comment_count":true}, {
+        el: '#valine_container',
+        path: path,
+        placeholder: placeholder,
+        emojiCDN: 'https://cdn.jsdelivr.net/gh/volantis-x/cdn-emoji/valine/',
+        emojiMaps: getEmojiMaps(),
+      }));
+    });
+  }
+  window.addEventListener('DOMContentLoaded', (event) => {
+    console.log('DOM fully loaded and parsed');
+    load_comment();
+  });
+
+</script>
+
+
+
+
+<!-- inject -->
+
+
+  </div>
+</body>
+</html>
