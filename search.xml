@@ -4,6 +4,33 @@
   
     
     <entry>
+      <title>docker容器中创建非root用户</title>
+      <link href="/2024/01/20/docker%E5%AE%B9%E5%99%A8%E4%B8%AD%E5%88%9B%E5%BB%BA%E9%9D%9Eroot%E7%94%A8%E6%88%B7/"/>
+      <url>/2024/01/20/docker%E5%AE%B9%E5%99%A8%E4%B8%AD%E5%88%9B%E5%BB%BA%E9%9D%9Eroot%E7%94%A8%E6%88%B7/</url>
+      
+        <content type="html"><![CDATA[<h2 id="简介"><a href="#简介" class="headerlink" title="简介"></a>简介</h2><p>用 <code>docker</code> 也有一段时间了，一直在 <code>docker</code> 容器中使用 <code>root</code> 用户肆意操作。直到部署 <code>stable diffusion webui</code> 我才发现无法使用 <code>root</code> 用户运行它，于是才幡然醒悟：是时候搞个非 <code>root</code> 用户了。</p><p>我使用的 docker 镜像文件是 <code>centos:centos7.9.2009</code>，使用如下命令就可以拉取其镜像文件。</p><figure class="highlight shell"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">docker pull centos:centos7.9.2009</span><br></pre></td></tr></table></figure><p>接下来的内容都是基于该镜像进行操作的，仅供大家参考。</p><h2 id="厉兵秣马"><a href="#厉兵秣马" class="headerlink" title="厉兵秣马"></a>厉兵秣马</h2><p>我们还是要做些准备工作。</p><p>1、创建&#x2F;运行容器</p><figure class="highlight shell"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line">docker run -d -it --name c_os centos:centos7.9.2009</span><br><span class="line">docker container start c_os</span><br></pre></td></tr></table></figure><p>2、进入容器（此时用的是 root 用户，docker默认如此）</p><figure class="highlight shell"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">docker exec -it c_os bash</span><br></pre></td></tr></table></figure><p>3、安装相关工具</p><figure class="highlight shell"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line">yum install -y vim</span><br><span class="line">yum install -y sudo</span><br></pre></td></tr></table></figure><h2 id="万事俱备"><a href="#万事俱备" class="headerlink" title="万事俱备"></a>万事俱备</h2><p>做完上面的工作，我们就可以来操刀了。</p><p>跟着命令敲，都是基本操作。</p><figure class="highlight shell"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br></pre></td><td class="code"><pre><span class="line"><span class="meta"># </span><span class="language-bash">添加 nuser 这个用户</span></span><br><span class="line">useradd -d /home/nuser -m nuser</span><br><span class="line"><span class="meta"></span></span><br><span class="line"><span class="meta"># </span><span class="language-bash">设置密码</span></span><br><span class="line">passwd nuser</span><br></pre></td></tr></table></figure><p>需要为该用户 <code>nuser</code> 设置一个密码，比如 565656。</p><figure class="highlight shell"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">usermod -aG wheel nuser</span><br></pre></td></tr></table></figure><p>编辑  <code>/etc/sudoers</code> 文件</p><figure class="highlight shell"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line">chmod u+w /etc/sudoers</span><br><span class="line">vim /etc/sudoers</span><br></pre></td></tr></table></figure><p>修改两个地方</p><figure class="highlight shell"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br></pre></td><td class="code"><pre><span class="line"><span class="meta">#</span><span class="language-bash"><span class="comment"># Allows people in group wheel to run all commands</span></span>  </span><br><span class="line"><span class="meta"># </span><span class="language-bash">取消这个注释</span></span><br><span class="line">wheel   ALL=(ALL)       ALL </span><br><span class="line"><span class="meta"># </span><span class="language-bash">新增</span></span><br><span class="line">nuser    ALL=(ALL)       ALL  </span><br></pre></td></tr></table></figure><p>编辑完成之后，关闭文件的编辑权限。</p><figure class="highlight shell"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">chmod u-w /etc/sudoers</span><br></pre></td></tr></table></figure><p>我们退出刚才进入的容器</p><figure class="highlight shell"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">exit</span><br></pre></td></tr></table></figure><p>指定用户 <code>nuser</code> 重新进入容器</p><figure class="highlight shell"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">docker exec --user nuser -it c_os bash</span><br></pre></td></tr></table></figure><p>可以使用如下命令查看当前登入的用户是哪位</p><figure class="highlight shell"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">whoami</span><br></pre></td></tr></table></figure><p>结果显示：nuser，搞定！</p><hr><p><img src="/upload/me/qrcode_wx2022.png"></p>]]></content>
+      
+      
+      <categories>
+          
+          <category> Server </category>
+          
+          <category> Tools </category>
+          
+      </categories>
+      
+      
+        <tags>
+            
+            <tag> docker user root </tag>
+            
+        </tags>
+      
+    </entry>
+    
+    
+    
+    <entry>
       <title>手动降级openssl：解决-Rails-部署的问题</title>
       <link href="/2024/01/15/%E6%89%8B%E5%8A%A8%E9%99%8D%E7%BA%A7openssl%EF%BC%9A%E8%A7%A3%E5%86%B3-Rails-%E9%83%A8%E7%BD%B2%E7%9A%84%E9%97%AE%E9%A2%98/"/>
       <url>/2024/01/15/%E6%89%8B%E5%8A%A8%E9%99%8D%E7%BA%A7openssl%EF%BC%9A%E8%A7%A3%E5%86%B3-Rails-%E9%83%A8%E7%BD%B2%E7%9A%84%E9%97%AE%E9%A2%98/</url>

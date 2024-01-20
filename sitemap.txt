@@ -1,3 +1,4 @@
+http://example.com/2024/01/20/docker%E5%AE%B9%E5%99%A8%E4%B8%AD%E5%88%9B%E5%BB%BA%E9%9D%9Eroot%E7%94%A8%E6%88%B7/
 http://example.com/2024/01/15/%E6%89%8B%E5%8A%A8%E9%99%8D%E7%BA%A7openssl%EF%BC%9A%E8%A7%A3%E5%86%B3-Rails-%E9%83%A8%E7%BD%B2%E7%9A%84%E9%97%AE%E9%A2%98/
 http://example.com/2022/12/18/MySQL%E7%AC%94%E8%AE%B0/
 http://example.com/2023/01/07/%E8%AE%BF%E9%97%AE-Nginx-403-Fobidden/
@@ -358,6 +359,7 @@ http://example.com/tags/MySQL-note-record/
 http://example.com/tags/rails-passenger-nginx/
 http://example.com/tags/rails-routes-erb/
 http://example.com/tags/rails-openssl-passenger/
+http://example.com/tags/docker-user-root/
 http://example.com/categories/ReactNative/
 http://example.com/categories/iOS/
 http://example.com/categories/%E9%9A%8F%E7%AC%94/
