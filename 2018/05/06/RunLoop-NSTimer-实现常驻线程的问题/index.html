@@ -17,14 +17,14 @@
   <meta name="apple-mobile-web-app-capable" content="yes">
   <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1">
   <meta name="theme-color" content="#f8f8f8">
-  <title>RunLoop: NSTimer 实现常驻线程的问题 - veryitman</title>
+  <title>RunLoop: NSTimer 实现常驻线程的问题 - 利他才能利己</title>
 
   
     <meta name="description" content="可行性在 常驻线程是一种什么体验 这篇文章中给大家分享了如何利用 RunLoop 的特性, 结合 NSMachPort 实现一个 常驻线程 的主题内容. 今天我们探讨一下使用 NSTimer 如何实现 常驻线程 以及注意事项. 从 RunLoop 的特性来看, 只要有 Source 或者 Timer 都会使其能自循环使用, 不会立即终止当前线程的执行, 所以从理论上来看 NSTimer 是可以达到">
 <meta property="og:type" content="article">
 <meta property="og:title" content="RunLoop: NSTimer 实现常驻线程的问题">
 <meta property="og:url" content="http://example.com/2018/05/06/RunLoop-NSTimer-%E5%AE%9E%E7%8E%B0%E5%B8%B8%E9%A9%BB%E7%BA%BF%E7%A8%8B%E7%9A%84%E9%97%AE%E9%A2%98/index.html">
-<meta property="og:site_name" content="veryitman">
+<meta property="og:site_name" content="利他才能利己">
 <meta property="og:description" content="可行性在 常驻线程是一种什么体验 这篇文章中给大家分享了如何利用 RunLoop 的特性, 结合 NSMachPort 实现一个 常驻线程 的主题内容. 今天我们探讨一下使用 NSTimer 如何实现 常驻线程 以及注意事项. 从 RunLoop 的特性来看, 只要有 Source 或者 Timer 都会使其能自循环使用, 不会立即终止当前线程的执行, 所以从理论上来看 NSTimer 是可以达到">
 <meta property="og:locale" content="zh_CN">
 <meta property="article:published_time" content="2018-05-05T16:32:09.000Z">
@@ -60,7 +60,7 @@
 
 <header class="header">
 
-<div class="logo-wrap"><a class="title" href="/"><div class="main">veryitman</div></a></div>
+<div class="logo-wrap"><a class="title" href="/"><div class="main">利他才能利己</div></a></div>
 <nav class="menu dis-select"></nav></header>
 
 <div class="widgets">
